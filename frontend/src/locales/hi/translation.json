@@ -1,0 +1,93 @@
+{
+  "header": {
+    "home": "होम",
+    "tours": "टूर",
+    "booking": "बुकिंग",
+    "blog": "ब्लॉग",
+    "adminPanel": "एडमिन पैनल",
+    "login": "लॉग इन",
+    "register": "रजिस्टर",
+    "logout": "लॉगआउट"
+  },
+  "home": {
+    "welcome": "GNB Transfer में आपका स्वागत है",
+    "slogan": "विश्वसनीय हवाईअड्डा स्थानांतरण और तुर्की में रोमांचक टूर।",
+    "bookNow": "अभी बुक करें",
+    "whyChooseUsTitle": "GNB Transfer क्यों चुनें?",
+    "trustBadge1Title": "पेशेवर ड्राइवर",
+    "trustBadge1Desc": "हमारे अनुभवी और पेशेवर ड्राइवर एक सुरक्षित और आरामदायक यात्रा सुनिश्चित करते हैं।",
+    "trustBadge2Title": "पारदर्शी मूल्य निर्धारण",
+    "trustBadge2Desc": "कोई छिपी हुई फीस नहीं, कोई आश्चर्य नहीं। जो कीमत आप देखते हैं, वही कीमत आप चुकाते हैं।",
+    "trustBadge3Title": "24/7 सहायता",
+    "trustBadge3Desc": "हम आपके लिए चौबीसों घंटे मौजूद हैं, किसी भी प्रश्न या आवश्यकता में सहायता के लिए तैयार हैं।",
+    "servicesTitle": "हमारी सेवाएं",
+    "campaignsTitle": "सीमित समय के ऑफ़र!"
+  },
+  "buttons": {
+    "submit": "सबमिट करें",
+    "runCommand": "कमांड चलाएं",
+    "generateSuggestions": "सुझाव उत्पन्न करें",
+    "submitting": "सबमिट हो रहा है...",
+    "submitReview": "समीक्षा सबमिट करें"
+  },
+  "forms": {
+    "fullName": "पूरा नाम",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "selectTour": "एक टूर चुनें",
+    "paymentMethod": "भुगतान विधि",
+    "cash": "आगमन पर नकद",
+    "creditCard": "क्रेडिट कार्ड (ऑनलाइन)",
+    "login": "लॉग इन",
+    "register": "रजिस्टर करें"
+  },
+  "messages": {
+    "allFieldsRequired": "सभी फ़ील्ड आवश्यक हैं।",
+    "bookingSuccess": "बुकिंग सफलतापूर्वक सबमिट की गई!",
+    "bookingCashSuccess": "बुकिंग सफलतापूर्वक सबमिट की गई! कृपया पहुंचने पर नकद भुगतान करें।",
+    "emailRegistered": "ईमेल पहले से ही पंजीकृत है।",
+    "invalidCredentials": "अमान्य क्रेडेंशियल।",
+    "loginFailed": "लॉग इन विफल।",
+    "loadToursFailed": "टूर लोड करने में विफल।",
+    "bookingFailed": "बुकिंग विफल। कृपया फिर से प्रयास करें।",
+    "bookingDescription": "GNB Transfer के साथ अपना टूर या स्थानांतरण बुक करें।",
+    "bookingKeywords": "GNB Transfer, बुकिंग, हवाई अड्डा स्थानांतरण, टूर"
+  },
+  "footer": {
+    "allRightsReserved": "सर्वाधिकार सुरक्षित।"
+  },
+  "tourCard": {
+    "noHiddenFees": "कोई छिपी हुई फीस नहीं।",
+    "onSale": "सेल पर है"
+  },
+  "userTable": {
+    "name": "नाम",
+    "email": "ईमेल",
+    "role": "भूमिका"
+  },
+  "liveChat": {
+    "title": "लाइव चैट समर्थन",
+    "description": "हमारी टीम यहां मदद के लिए है! हमारी सेवाओं के बारे में कुछ भी पूछें।",
+    "messagePlaceholder": "आपका संदेश..."
+  },
+  "reviews": {
+    "title": "हमारे ग्राहक क्या कहते हैं",
+    "leaveReviewTitle": "समीक्षा छोड़ें",
+    "allReviewsTitle": "सभी समीक्षाएं",
+    "namePlaceholder": "आपका नाम",
+    "commentPlaceholder": "आपकी टिप्पणी",
+    "ratingLabel": "रेटिंग",
+    "loading": "समीक्षाएं लोड हो रही हैं...",
+    "noReviews": "अभी तक कोई समीक्षा नहीं है। पहले आप एक समीक्षा छोड़ें!",
+    "submitReview": "समीक्षा सबमिट करें"
+  },
+  "tours": {
+    "managementTitle": "टूर प्रबंधन",
+    "title": "शीर्षक",
+    "price": "मूल्य",
+    "duration": "अवधि",
+    "discount": "छूट",
+    "isCampaign": "अभियान",
+    "actions": "कार्य"
+  }
+}

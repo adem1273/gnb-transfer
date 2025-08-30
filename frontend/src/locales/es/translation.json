@@ -1,0 +1,93 @@
+{
+  "header": {
+    "home": "Inicio",
+    "tours": "Tours",
+    "booking": "Reserva",
+    "blog": "Blog",
+    "adminPanel": "Panel de administración",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar sesión"
+  },
+  "home": {
+    "welcome": "Bienvenido a GNB Transfer",
+    "slogan": "Traslados de aeropuerto fiables y emocionantes tours por Turquía.",
+    "bookNow": "Reservar ahora",
+    "whyChooseUsTitle": "Por qué elegir GNB Transfer?",
+    "trustBadge1Title": "Conductores profesionales",
+    "trustBadge1Desc": "Nuestros conductores experimentados y profesionales garantizan un viaje seguro y cómodo.",
+    "trustBadge2Title": "Precios transparentes",
+    "trustBadge2Desc": "Sin cargos ocultos, sin sorpresas. El precio que ve es el precio que paga.",
+    "trustBadge3Title": "Soporte 24/7",
+    "trustBadge3Desc": "Estamos aquí para usted las 24 horas del día, listos para ayudar con cualquier pregunta o necesidad.",
+    "servicesTitle": "Nuestros servicios",
+    "campaignsTitle": "¡Ofertas por tiempo limitado!"
+  },
+  "buttons": {
+    "submit": "Enviar",
+    "runCommand": "Ejecutar comando",
+    "generateSuggestions": "Generar sugerencias",
+    "submitting": "Enviando...",
+    "submitReview": "Enviar reseña"
+  },
+  "forms": {
+    "fullName": "Nombre completo",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "selectTour": "Seleccionar un tour",
+    "paymentMethod": "Método de pago",
+    "cash": "Pago en efectivo",
+    "creditCard": "Tarjeta de crédito (en línea)",
+    "login": "Iniciar sesión",
+    "register": "Registrarse"
+  },
+  "messages": {
+    "allFieldsRequired": "Todos los campos son obligatorios.",
+    "bookingSuccess": "¡Reserva enviada con éxito!",
+    "bookingCashSuccess": "¡Reserva enviada con éxito! Por favor, pague en efectivo a la llegada.",
+    "emailRegistered": "El correo electrónico ya está registrado.",
+    "invalidCredentials": "Credenciales inválidas.",
+    "loginFailed": "Error de inicio de sesión.",
+    "loadToursFailed": "No se pudieron cargar los tours.",
+    "bookingFailed": "Error de reserva. Por favor, inténtelo de nuevo.",
+    "bookingDescription": "Reserve su tour o traslado con GNB Transfer.",
+    "bookingKeywords": "GNB Transfer, Reserva, Traslado al aeropuerto, Tours"
+  },
+  "footer": {
+    "allRightsReserved": "Todos los derechos reservados."
+  },
+  "tourCard": {
+    "noHiddenFees": "Sin cargos ocultos.",
+    "onSale": "En oferta"
+  },
+  "userTable": {
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "role": "Rol"
+  },
+  "liveChat": {
+    "title": "Soporte de chat en vivo",
+    "description": "¡Nuestro equipo está aquí para ayudar! Pregúntenos cualquier cosa sobre nuestros servicios.",
+    "messagePlaceholder": "Tu mensaje..."
+  },
+  "reviews": {
+    "title": "Lo que dicen nuestros clientes",
+    "leaveReviewTitle": "Deja una reseña",
+    "allReviewsTitle": "Todas las reseñas",
+    "namePlaceholder": "Tu nombre",
+    "commentPlaceholder": "Tu comentario",
+    "ratingLabel": "Calificación",
+    "loading": "Cargando reseñas...",
+    "noReviews": "Aún no hay reseñas. ¡Sé el primero en dejar una!",
+    "submitReview": "Enviar reseña"
+  },
+  "tours": {
+    "managementTitle": "Gestión de tours",
+    "title": "Título",
+    "price": "Precio",
+    "duration": "Duración",
+    "discount": "Descuento",
+    "isCampaign": "Campaña",
+    "actions": "Acciones"
+  }
+}

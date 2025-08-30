@@ -1,0 +1,93 @@
+{
+  "header": {
+    "home": "Home",
+    "tours": "Tours",
+    "booking": "Booking",
+    "blog": "Blog",
+    "adminPanel": "Admin Panel",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "home": {
+    "welcome": "Welcome to GNB Transfer",
+    "slogan": "Reliable airport transfers and exciting tours across Turkey.",
+    "bookNow": "Book Now",
+    "whyChooseUsTitle": "Why Choose GNB Transfer?",
+    "trustBadge1Title": "Professional Drivers",
+    "trustBadge1Desc": "Our experienced and professional drivers ensure a safe and comfortable journey.",
+    "trustBadge2Title": "Transparent Pricing",
+    "trustBadge2Desc": "No hidden fees, no surprises. The price you see is the price you pay.",
+    "trustBadge3Title": "24/7 Support",
+    "trustBadge3Desc": "We are here for you around the clock, ready to assist with any questions or needs.",
+    "servicesTitle": "Our Services",
+    "campaignsTitle": "Limited Time Offers!"
+  },
+  "buttons": {
+    "submit": "Submit",
+    "runCommand": "Run Command",
+    "generateSuggestions": "Generate Suggestions",
+    "submitting": "Submitting...",
+    "submitReview": "Submit Review"
+  },
+  "forms": {
+    "fullName": "Full Name",
+    "email": "Email",
+    "password": "Password",
+    "selectTour": "Select a Tour",
+    "paymentMethod": "Payment Method",
+    "cash": "Cash on Arrival",
+    "creditCard": "Credit Card (Online)",
+    "login": "Login",
+    "register": "Register"
+  },
+  "messages": {
+    "allFieldsRequired": "All fields are required.",
+    "bookingSuccess": "Booking successfully submitted!",
+    "bookingCashSuccess": "Booking successfully submitted! Please pay cash on arrival.",
+    "emailRegistered": "Email already registered.",
+    "invalidCredentials": "Invalid credentials.",
+    "loginFailed": "Login failed.",
+    "loadToursFailed": "Failed to load tours.",
+    "bookingFailed": "Booking failed. Please try again.",
+    "bookingDescription": "Book your tour or transfer with GNB Transfer.",
+    "bookingKeywords": "GNB Transfer, Booking, Airport Transfer, Tours"
+  },
+  "footer": {
+    "allRightsReserved": "All rights reserved."
+  },
+  "tourCard": {
+    "noHiddenFees": "No hidden fees.",
+    "onSale": "On Sale"
+  },
+  "userTable": {
+    "name": "Name",
+    "email": "Email",
+    "role": "Role"
+  },
+  "liveChat": {
+    "title": "Live Chat Support",
+    "description": "Our team is here to help! Ask us anything about our services.",
+    "messagePlaceholder": "Your message..."
+  },
+  "reviews": {
+    "title": "What Our Customers Say",
+    "leaveReviewTitle": "Leave a Review",
+    "allReviewsTitle": "All Reviews",
+    "namePlaceholder": "Your Name",
+    "commentPlaceholder": "Your Comment",
+    "ratingLabel": "Rating",
+    "loading": "Loading reviews...",
+    "noReviews": "No reviews yet. Be the first to leave one!",
+    "submitReview": "Submit Review"
+  },
+  "tours": {
+    "managementTitle": "Tours Management",
+    "title": "Title",
+    "price": "Price",
+    "duration": "Duration",
+    "discount": "Discount",
+    "isCampaign": "Campaign",
+    "actions": "Actions"
+  }
+}

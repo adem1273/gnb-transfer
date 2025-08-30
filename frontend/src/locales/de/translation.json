@@ -1,0 +1,93 @@
+{
+  "header": {
+    "home": "Startseite",
+    "tours": "Touren",
+    "booking": "Buchung",
+    "blog": "Blog",
+    "adminPanel": "Admin-Panel",
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "logout": "Abmelden"
+  },
+  "home": {
+    "welcome": "Willkommen bei GNB Transfer",
+    "slogan": "Zuverlässige Flughafentransfers und spannende Touren in der ganzen Türkei.",
+    "bookNow": "Jetzt buchen",
+    "whyChooseUsTitle": "Warum GNB Transfer wählen?",
+    "trustBadge1Title": "Professionelle Fahrer",
+    "trustBadge1Desc": "Unsere erfahrenen und professionellen Fahrer garantieren eine sichere und bequeme Reise.",
+    "trustBadge2Title": "Transparente Preise",
+    "trustBadge2Desc": "Keine versteckten Gebühren, keine Überraschungen. Der Preis, den Sie sehen, ist der Preis, den Sie zahlen.",
+    "trustBadge3Title": "24/7 Support",
+    "trustBadge3Desc": "Wir sind rund um die Uhr für Sie da und stehen Ihnen bei allen Fragen und Anliegen zur Verfügung.",
+    "servicesTitle": "Unsere Dienstleistungen",
+    "campaignsTitle": "Zeitlich begrenzte Angebote!"
+  },
+  "buttons": {
+    "submit": "Senden",
+    "runCommand": "Befehl ausführen",
+    "generateSuggestions": "Vorschläge generieren",
+    "submitting": "Wird gesendet...",
+    "submitReview": "Bewertung absenden"
+  },
+  "forms": {
+    "fullName": "Vollständiger Name",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "selectTour": "Wählen Sie eine Tour",
+    "paymentMethod": "Zahlungsmethode",
+    "cash": "Barzahlung bei Ankunft",
+    "creditCard": "Kreditkarte (online)",
+    "login": "Anmelden",
+    "register": "Registrieren"
+  },
+  "messages": {
+    "allFieldsRequired": "Alle Felder sind erforderlich.",
+    "bookingSuccess": "Buchung erfolgreich gesendet!",
+    "bookingCashSuccess": "Buchung erfolgreich gesendet! Bitte bezahlen Sie bei Ankunft in bar.",
+    "emailRegistered": "E-Mail-Adresse bereits registriert.",
+    "invalidCredentials": "Ungültige Anmeldeinformationen.",
+    "loginFailed": "Anmeldung fehlgeschlagen.",
+    "loadToursFailed": "Touren konnten nicht geladen werden.",
+    "bookingFailed": "Buchung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "bookingDescription": "Buchen Sie Ihre Tour oder Ihren Transfer mit GNB Transfer.",
+    "bookingKeywords": "GNB Transfer, Buchung, Flughafentransfer, Touren"
+  },
+  "footer": {
+    "allRightsReserved": "Alle Rechte vorbehalten."
+  },
+  "tourCard": {
+    "noHiddenFees": "Keine versteckten Gebühren.",
+    "onSale": "Im Angebot"
+  },
+  "userTable": {
+    "name": "Name",
+    "email": "E-Mail",
+    "role": "Rolle"
+  },
+  "liveChat": {
+    "title": "Live-Chat-Support",
+    "description": "Unser Team ist für Sie da! Fragen Sie uns alles über unsere Dienstleistungen.",
+    "messagePlaceholder": "Ihre Nachricht..."
+  },
+  "reviews": {
+    "title": "Was unsere Kunden sagen",
+    "leaveReviewTitle": "Hinterlassen Sie eine Bewertung",
+    "allReviewsTitle": "Alle Bewertungen",
+    "namePlaceholder": "Ihr Name",
+    "commentPlaceholder": "Ihr Kommentar",
+    "ratingLabel": "Bewertung",
+    "loading": "Lade Bewertungen...",
+    "noReviews": "Noch keine Bewertungen. Seien Sie der Erste, der eine hinterlässt!",
+    "submitReview": "Bewertung absenden"
+  },
+  "tours": {
+    "managementTitle": "Tourenverwaltung",
+    "title": "Titel",
+    "price": "Preis",
+    "duration": "Dauer",
+    "discount": "Rabatt",
+    "isCampaign": "Kampagne",
+    "actions": "Aktionen"
+  }
+}

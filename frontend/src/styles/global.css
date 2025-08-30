@@ -1,0 +1,37 @@
+/* Global CSS */
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+/* Başlıklar */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Linkler */
+a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Butonlar */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}

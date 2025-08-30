@@ -1,0 +1,93 @@
+{
+  "header": {
+    "home": "الرئيسية",
+    "tours": "الجولات السياحية",
+    "booking": "الحجز",
+    "blog": "المدونة",
+    "adminPanel": "لوحة التحكم",
+    "login": "تسجيل الدخول",
+    "register": "التسجيل",
+    "logout": "تسجيل الخروج"
+  },
+  "home": {
+    "welcome": "مرحباً بكم في GNB Transfer",
+    "slogan": "خدمات نقل موثوقة في المطارات وجولات سياحية شيقة في جميع أنحاء تركيا.",
+    "bookNow": "احجز الآن",
+    "whyChooseUsTitle": "لماذا تختار GNB Transfer؟",
+    "trustBadge1Title": "سائقون محترفون",
+    "trustBadge1Desc": "يضمن سائقونا ذوو الخبرة والاحترافية رحلة آمنة ومريحة.",
+    "trustBadge2Title": "أسعار شفافة",
+    "trustBadge2Desc": "لا توجد رسوم خفية، لا توجد مفاجآت. السعر الذي تراه هو السعر الذي تدفعه.",
+    "trustBadge3Title": "دعم على مدار الساعة",
+    "trustBadge3Desc": "نحن هنا من أجلك على مدار الساعة، جاهزون للمساعدة في أي أسئلة أو احتياجات.",
+    "servicesTitle": "خدماتنا",
+    "campaignsTitle": "عروض لفترة محدودة!"
+  },
+  "buttons": {
+    "submit": "إرسال",
+    "runCommand": "تشغيل الأمر",
+    "generateSuggestions": "إنشاء اقتراحات",
+    "submitting": "جاري الإرسال...",
+    "submitReview": "إرسال التقييم"
+  },
+  "forms": {
+    "fullName": "الاسم الكامل",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "selectTour": "اختر جولة",
+    "paymentMethod": "طريقة الدفع",
+    "cash": "الدفع عند الوصول",
+    "creditCard": "بطاقة الائتمان (عبر الإنترنت)",
+    "login": "تسجيل الدخول",
+    "register": "التسجيل"
+  },
+  "messages": {
+    "allFieldsRequired": "جميع الحقول مطلوبة.",
+    "bookingSuccess": "تم الحجز بنجاح!",
+    "bookingCashSuccess": "تم الحجز بنجاح! يرجى الدفع نقدًا عند الوصول.",
+    "emailRegistered": "البريد الإلكتروني مسجل بالفعل.",
+    "invalidCredentials": "بيانات الاعتماد غير صالحة.",
+    "loginFailed": "فشل تسجيل الدخول.",
+    "loadToursFailed": "فشل تحميل الجولات.",
+    "bookingFailed": "فشل الحجز. يرجى المحاولة مرة أخرى.",
+    "bookingDescription": "احجز جولتك أو نقلك مع GNB Transfer.",
+    "bookingKeywords": "GNB Transfer, الحجز, نقل المطار, الجولات"
+  },
+  "footer": {
+    "allRightsReserved": "جميع الحقوق محفوظة."
+  },
+  "tourCard": {
+    "noHiddenFees": "لا توجد رسوم خفية.",
+    "onSale": "عرض"
+  },
+  "userTable": {
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "role": "الدور"
+  },
+  "liveChat": {
+    "title": "دعم الدردشة المباشرة",
+    "description": "فريقنا هنا للمساعدة! اسألنا عن أي شيء بخصوص خدماتنا.",
+    "messagePlaceholder": "رسالتك..."
+  },
+  "reviews": {
+    "title": "ماذا يقول عملاؤنا",
+    "leaveReviewTitle": "اترك تقييمًا",
+    "allReviewsTitle": "جميع التقييمات",
+    "namePlaceholder": "اسمك",
+    "commentPlaceholder": "تعليقك",
+    "ratingLabel": "التقييم",
+    "loading": "جاري تحميل التقييمات...",
+    "noReviews": "لا توجد تقييمات بعد. كن أول من يترك واحدة!",
+    "submitReview": "إرسال التقييم"
+  },
+  "tours": {
+    "managementTitle": "إدارة الجولات",
+    "title": "العنوان",
+    "price": "السعر",
+    "duration": "المدة",
+    "discount": "الخصم",
+    "isCampaign": "الحملة",
+    "actions": "الإجراءات"
+  }
+}

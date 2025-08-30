@@ -1,0 +1,93 @@
+{
+  "header": {
+    "home": "Главная",
+    "tours": "Туры",
+    "booking": "Бронирование",
+    "blog": "Блог",
+    "adminPanel": "Панель админа",
+    "login": "Войти",
+    "register": "Регистрация",
+    "logout": "Выйти"
+  },
+  "home": {
+    "welcome": "Добро пожаловать в GNB Transfer",
+    "slogan": "Надежные трансферы из аэропорта и увлекательные туры по Турции.",
+    "bookNow": "Забронировать",
+    "whyChooseUsTitle": "Почему выбирают GNB Transfer?",
+    "trustBadge1Title": "Профессиональные водители",
+    "trustBadge1Desc": "Наши опытные и профессиональные водители гарантируют безопасную и комфортную поездку.",
+    "trustBadge2Title": "Прозрачное ценообразование",
+    "trustBadge2Desc": "Никаких скрытых платежей, никаких сюрпризов. Цена, которую вы видите, — это цена, которую вы платите.",
+    "trustBadge3Title": "Круглосуточная поддержка 24/7",
+    "trustBadge3Desc": "Мы всегда рядом, готовы помочь с любыми вопросами или потребностями.",
+    "servicesTitle": "Наши услуги",
+    "campaignsTitle": "Ограниченные по времени предложения!"
+  },
+  "buttons": {
+    "submit": "Отправить",
+    "runCommand": "Выполнить команду",
+    "generateSuggestions": "Сгенерировать предложения",
+    "submitting": "Отправка...",
+    "submitReview": "Оставить отзыв"
+  },
+  "forms": {
+    "fullName": "Полное имя",
+    "email": "Электронная почта",
+    "password": "Пароль",
+    "selectTour": "Выберите тур",
+    "paymentMethod": "Способ оплаты",
+    "cash": "Наличными по прибытии",
+    "creditCard": "Банковской картой (онлайн)",
+    "login": "Войти",
+    "register": "Регистрация"
+  },
+  "messages": {
+    "allFieldsRequired": "Все поля обязательны для заполнения.",
+    "bookingSuccess": "Бронирование успешно завершено!",
+    "bookingCashSuccess": "Бронирование успешно завершено! Пожалуйста, оплатите наличными по прибытии.",
+    "emailRegistered": "Электронная почта уже зарегистрирована.",
+    "invalidCredentials": "Неверные учетные данные.",
+    "loginFailed": "Ошибка входа.",
+    "loadToursFailed": "Не удалось загрузить туры.",
+    "bookingFailed": "Ошибка бронирования. Пожалуйста, попробуйте еще раз.",
+    "bookingDescription": "Забронируйте свой тур или трансфер с GNB Transfer.",
+    "bookingKeywords": "GNB Transfer, Бронирование, Трансфер из аэропорта, Туры"
+  },
+  "footer": {
+    "allRightsReserved": "Все права защищены."
+  },
+  "tourCard": {
+    "noHiddenFees": "Без скрытых платежей.",
+    "onSale": "Распродажа"
+  },
+  "userTable": {
+    "name": "Имя",
+    "email": "Электронная почта",
+    "role": "Роль"
+  },
+  "liveChat": {
+    "title": "Поддержка в чате",
+    "description": "Наша команда готова помочь! Спросите нас о наших услугах.",
+    "messagePlaceholder": "Ваше сообщение..."
+  },
+  "reviews": {
+    "title": "Что говорят наши клиенты",
+    "leaveReviewTitle": "Оставить отзыв",
+    "allReviewsTitle": "Все отзывы",
+    "namePlaceholder": "Ваше имя",
+    "commentPlaceholder": "Ваш комментарий",
+    "ratingLabel": "Рейтинг",
+    "loading": "Загрузка отзывов...",
+    "noReviews": "Отзывов пока нет. Будьте первым, кто оставит отзыв!",
+    "submitReview": "Оставить отзыв"
+  },
+  "tours": {
+    "managementTitle": "Управление турами",
+    "title": "Название",
+    "price": "Цена",
+    "duration": "Продолжительность",
+    "discount": "Скидка",
+    "isCampaign": "Кампания",
+    "actions": "Действия"
+  }
+}

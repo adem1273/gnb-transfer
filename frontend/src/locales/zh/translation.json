@@ -1,0 +1,93 @@
+{
+  "header": {
+    "home": "首页",
+    "tours": "旅游",
+    "booking": "预订",
+    "blog": "博客",
+    "adminPanel": "管理面板",
+    "login": "登录",
+    "register": "注册",
+    "logout": "退出"
+  },
+  "home": {
+    "welcome": "欢迎来到 GNB Transfer",
+    "slogan": "土耳其可靠的机场接送和精彩的旅游。",
+    "bookNow": "立即预订",
+    "whyChooseUsTitle": "为什么选择 GNB Transfer？",
+    "trustBadge1Title": "专业的司机",
+    "trustBadge1Desc": "我们经验丰富且专业的司机确保旅途安全舒适。",
+    "trustBadge2Title": "价格透明",
+    "trustBadge2Desc": "没有隐藏费用，没有惊喜。您看到的价格就是您支付的价格。",
+    "trustBadge3Title": "24/7 全天候支持",
+    "trustBadge3Desc": "我们全天候为您服务，随时准备好帮助您解决任何问题或需求。",
+    "servicesTitle": "我们的服务",
+    "campaignsTitle": "限时优惠!"
+  },
+  "buttons": {
+    "submit": "提交",
+    "runCommand": "运行命令",
+    "generateSuggestions": "生成建议",
+    "submitting": "提交中...",
+    "submitReview": "提交评价"
+  },
+  "forms": {
+    "fullName": "全名",
+    "email": "电子邮件",
+    "password": "密码",
+    "selectTour": "选择一个旅游",
+    "paymentMethod": "支付方式",
+    "cash": "现金支付",
+    "creditCard": "信用卡（在线）",
+    "login": "登录",
+    "register": "注册"
+  },
+  "messages": {
+    "allFieldsRequired": "所有字段都是必填的。",
+    "bookingSuccess": "预订成功提交！",
+    "bookingCashSuccess": "预订成功提交！请在抵达时支付现金。",
+    "emailRegistered": "电子邮件已注册。",
+    "invalidCredentials": "凭据无效。",
+    "loginFailed": "登录失败。",
+    "loadToursFailed": "无法加载旅游信息。",
+    "bookingFailed": "预订失败。请再试一次。",
+    "bookingDescription": "使用GNB Transfer预订您的旅游或接送服务。",
+    "bookingKeywords": "GNB Transfer, 预订, 机场接送, 旅游"
+  },
+  "footer": {
+    "allRightsReserved": "保留所有权利。"
+  },
+  "tourCard": {
+    "noHiddenFees": "没有隐藏费用。",
+    "onSale": "促销"
+  },
+  "userTable": {
+    "name": "姓名",
+    "email": "电子邮件",
+    "role": "角色"
+  },
+  "liveChat": {
+    "title": "在线聊天支持",
+    "description": "我们的团队在这里为您提供帮助！随时向我们询问有关我们服务的任何问题。",
+    "messagePlaceholder": "您的留言..."
+  },
+  "reviews": {
+    "title": "客户评价",
+    "leaveReviewTitle": "留下评价",
+    "allReviewsTitle": "所有评价",
+    "namePlaceholder": "您的姓名",
+    "commentPlaceholder": "您的评论",
+    "ratingLabel": "评分",
+    "loading": "正在加载评价...",
+    "noReviews": "尚无评价。成为第一个留下评价的人！",
+    "submitReview": "提交评价"
+  },
+  "tours": {
+    "managementTitle": "管理旅游",
+    "title": "标题",
+    "price": "价格",
+    "duration": "持续时间",
+    "discount": "折扣",
+    "isCampaign": "活动",
+    "actions": "操作"
+  }
+}
