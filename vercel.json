@@ -2,22 +2,22 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
+      "src": "paket.json",
       "use": "@vercel/static-build"
     },
     {
-      "src": "backend/server.js",
+      "src": "arka uç/server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/backend/server.js"
+      "dest": "/arka uç/server.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/$1"
+      "dest": "/kaynak/$1"
     }
   ]
 }
