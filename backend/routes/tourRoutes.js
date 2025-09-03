@@ -8,18 +8,18 @@ const {
   deleteTour,
   getCampaignTours,
   getDiscountedPriceForTour,
-  getMostPopularTours // Yeni import
+  getMostPopularTours
 } = require('../controllers/tourController');
 const { verifyToken, verifyAdmin } = require('../middlewares/authMiddleware');
 
 // Turlar
 router.get('/', getAllTours);
 router.get('/campaigns', getCampaignTours);
-router.get('/most-popular', getMostPopularTours); // Yeni rota
+router.get('/most-popular', getMostPopularTours);
 router.get('/:id', getTourById);
 router.get('/:id/discounted-price', getDiscountedPriceForTour);
 
-// Admin yetkisi gereken işlemler
+// Admin işlemleri
 router.post('/', verifyToken, verifyAdmin, createTour);
 router.put('/:id', verifyToken, verifyAdmin, updateTour);
 router.delete('/:id', verifyToken, verifyAdmin, deleteTour);

@@ -11,9 +11,7 @@ router.post('/login', userController.loginUser);
 router.get('/profile', verifyToken, userController.getProfile);
 
 // Admin yetkisi gerektiren rotalar
-// Tüm kullanıcıları getir
 router.get('/', verifyToken, verifyAdmin, userController.getAllUsers);
-// Kullanıcı sil
 router.delete('/:id', verifyToken, verifyAdmin, userController.deleteUser);
 
 module.exports = router;

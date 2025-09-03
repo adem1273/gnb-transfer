@@ -1,8 +1,5 @@
 const Booking = require('../models/Booking');
 const Tour = require('../models/Tour');
-// E-posta gönderme işlevi için nodemailer veya benzeri bir kütüphane kullanılabilir.
-// Bu örnekte, e-posta gönderme fonksiyonunun var olduğu varsayılmıştır.
-// const sendEmail = require('../utils/sendEmail');
 
 // Yeni rezervasyon oluştur
 exports.createBooking = async (req, res) => {
@@ -14,30 +11,46 @@ exports.createBooking = async (req, res) => {
 
   try {
     const tour = await Tour.findById(tourId);
-    if (!tour) {
-      return res.status(404).json({ message: 'Tour not found.' });
-    }
+    if (!tour) return res.status(404).json({ message: 'Tour not found.' });
 
     const status = paymentMethod === 'cash' ? 'pending' : 'confirmed';
 
     const booking = await Booking.create({ name, email, tourId, paymentMethod, status });
 
-    // Kişiselleştirilmiş hoş geldin e-postası gönder
-    // try {
-    //     await sendEmail({
-    //         to: email,
-    //         subject: 'Rezervasyonunuz Onaylandı - GNB Transfer',
-    //         html: `<h1>Merhaba ${name},</h1>
-    //                <p>Rezervasyonunuz başarıyla oluşturuldu. Turunuz: ${tour.title}</p>
-    //                <p>Size daha iyi hizmet verebilmek için sabırsızlanıyoruz.</p>`
-    //     });
-    // } catch (emailError) {
-    //     console.error('Email sending failed:', emailError);
-    //     // E-posta gönderilemese bile rezervasyonun başarılı olması önemlidir
-    // }
-
     res.status(201).json(booking);
   } catch (err) {
     res.status(500).json({ message: 'Failed to create booking.', error: err.message });
+  }
+};
+
+// Tüm rezervasyonları listele (Admin)
+exports.getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find().populate('tourId', 'title price');
+    res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch bookings.' });
+  }
+};
+
+// ID'ye göre rezervasyonu getir
+exports.getBookingById = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id).populate('tourId', 'title price');
+    if (!booking) return res.status(404).json({ message: 'Booking not found.' });
+    res.json(booking);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch booking.' });
+  }
+};
+
+// Rezervasyonu sil
+exports.deleteBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndDelete(req.params.id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found.' });
+    res.json({ message: 'Booking deleted successfully.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to delete booking.' });
   }
 };
