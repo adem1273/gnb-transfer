@@ -1,4 +1,4 @@
-const Tour = require('../models/Tour');
+const Tour = require('../models/tour');
 const Booking = require('../models/Booking');
 
 // Tüm turları listele
