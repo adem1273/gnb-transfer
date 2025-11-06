@@ -1,52 +1,45 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  password: { type: String, required: true },
-  role: { type: String, default: 'user', enum: ['user', 'admin', 'driver'] },
-}, { timestamps: true });
+const SALT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
 
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: [true, 'Name is required'], trim: true },
+    email: {
+      type: String,
+      required: [true, 'Email is required'],
+      unique: true,
+      lowercase: true,
+      trim: true,
+      match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'],
+    },
+    password: { type: String, required: [true, 'Password is required'], minlength: [6, 'Password must be at least 6 characters'] },
+    role: { type: String, enum: ['user', 'admin', 'driver'], default: 'user' },
+  },
+  { timestamps: true }
+);
+
+// Ensure email unique index
 userSchema.index({ email: 1 }, { unique: true });
 
-export default mongoose.models.User || mongoose.model('User', userSchema);
-/**
- * User model with validation and indexes
- */
-
-import mongoose from 'mongoose';
-
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Name is required'],
-    trim: true
-  },
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email']
-  },
-  password: {
-    type: String,
-    required: [true, 'Password is required'],
-    minlength: [6, 'Password must be at least 6 characters']
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
+// Hash password before saving
+userSchema.pre('save', async function (next) {
+  try {
+    // Only hash if password is new or modified
+    if (!this.isModified('password')) return next();
+    const salt = await bcrypt.genSalt(SALT_ROUNDS);
+    this.password = await bcrypt.hash(this.password, salt);
+    return next();
+  } catch (err) {
+    return next(err);
   }
-}, {
-  timestamps: true
 });
 
-// Index on email for faster lookups
-userSchema.index({ email: 1 }, { unique: true });
+// Helper to compare provided password with stored hash
+userSchema.methods.comparePassword = function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
-const User = mongoose.model('User', userSchema);
-
+const User = mongoose.models.User || mongoose.model('User', userSchema);
 export default User;

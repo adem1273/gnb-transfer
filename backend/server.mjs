@@ -1,6 +1,8 @@
 /**
- * ES Module Express Server with Security Best Practices
- * Phase 1: Core architecture with helmet, CORS, rate limiting, and JWT verification
+ * ES Module Express Server (cleaned)
+ * - Single responsibility imports
+ * - Single connectDB implementation
+ * - Production safety checks for JWT_SECRET
  */
 
 import dotenv from 'dotenv';
@@ -10,83 +12,49 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
-import { responseMiddleware } from './middlewares/response.mjs';
-import { rateLimiter } from './middlewares/rateLimiter.mjs';
-import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
-import { responseMiddleware } from './middlewares/response.mjs';
 
-// Import routes
+import { responseMiddleware } from './middlewares/response.mjs';
+import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
+
 import userRoutes from './routes/userRoutes.mjs';
 import tourRoutes from './routes/tourRoutes.mjs';
 import bookingRoutes from './routes/bookingRoutes.mjs';
 
 const app = express();
 
-// Security middleware
+// Security & parsers
 app.use(helmet());
 app.use(cors());
-app.use(rateLimiter);
-
-// Body parser middleware
-app.use(express.json());
-
-// Response middleware for standardized responses
-app.use(responseMiddleware);
-
-// Routes
-
-// CORS middleware
-app.use(cors());
-
-// Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Global rate limiting
+// Rate limiting & standardized responses
 app.use(globalRateLimiter);
-
-// Unified response middleware
 app.use(responseMiddleware);
 
-// Route registration
+// Routes
 app.use('/api/users', userRoutes);
 app.use('/api/tours', tourRoutes);
 app.use('/api/bookings', bookingRoutes);
 
-// MongoDB connection
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB connected');
-  } catch (err) {
-    console.error('MongoDB connection failed:', err.message);
-    process.exit(1);
-  }
-};
-
-connectDB();
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-// Health check endpoint
+// Health check (registered before listen)
 app.get('/health', (req, res) => {
   res.apiSuccess({ status: 'ok' }, 'Server is running');
 });
 
-// MongoDB connection with error handling
+// Database connect
+const MONGO_URI = process.env.MONGO_URI || '';
+
 const connectDB = async () => {
-  const MONGO_URI = process.env.MONGO_URI;
-  
   if (!MONGO_URI) {
     console.warn('⚠️  WARNING: MONGO_URI is not set. Skipping database connection.');
-    console.warn('⚠️  Set MONGO_URI environment variable to connect to MongoDB.');
     return;
   }
-
   try {
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
     console.log('✓ MongoDB connected successfully');
   } catch (err) {
     console.error('✗ MongoDB connection failed:', err.message);
@@ -94,23 +62,30 @@ const connectDB = async () => {
   }
 };
 
-// Connect to database
-connectDB();
+// Safety: in production require JWT_SECRET
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  console.error('✗ JWT_SECRET must be set in production. Aborting start.');
+  process.exit(1);
+}
 
-// Start server
+await connectDB();
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   if (!process.env.JWT_SECRET) {
-    console.warn('⚠️  WARNING: JWT_SECRET not set. Using default value "changeme".');
-    console.warn('⚠️  Set JWT_SECRET environment variable for production.');
+    console.warn('⚠️  WARNING: JWT_SECRET not set. Set JWT_SECRET for secure authentication.');
   }
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('SIGTERM received. Closing server gracefully...');
-  mongoose.connection.close();
+  try {
+    await mongoose.disconnect();
+  } catch (err) {
+    // ignore
+  }
   process.exit(0);
 });
 
