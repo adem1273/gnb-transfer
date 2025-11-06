@@ -15,8 +15,9 @@ router.get('/', async (req, res) => {
     const tours = await Tour.find().limit(100);
     return res.apiSuccess(tours, 'Tours retrieved successfully');
   } catch (error) {
-    return res.apiError(error.message || 'Failed to retrieve tours', 500);
+    return res.apiError('Failed to retrieve tours: ' + error.message, 500);
   }
 });
 
 export default router;
+

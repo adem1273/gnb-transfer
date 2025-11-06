@@ -11,7 +11,7 @@ const router = express.Router();
 /**
  * GET /api/bookings - Get all bookings (requires authentication)
  */
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireAuth(), async (req, res) => {
   try {
     const bookings = await Booking.find().limit(100).populate('user tour');
     return res.apiSuccess(bookings, 'Bookings retrieved successfully');
@@ -21,3 +21,4 @@ router.get('/', requireAuth, async (req, res) => {
 });
 
 export default router;
+

@@ -37,3 +37,4 @@ tourSchema.index({ title: 'text', description: 'text' });
 const Tour = mongoose.models.Tour || mongoose.model('Tour', tourSchema);
 
 export default Tour;
+

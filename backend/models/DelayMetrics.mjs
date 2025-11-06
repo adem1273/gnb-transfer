@@ -1,4 +1,5 @@
 /**
+ * DelayMetrics model for tracking delay guarantees and risk scores
  * DelayMetrics Model
  * Stores delay risk calculations for transfer routes
  */

@@ -40,3 +40,4 @@ bookingSchema.index({ user: 1, status: 1 });
 const Booking = mongoose.models.Booking || mongoose.model('Booking', bookingSchema);
 
 export default Booking;
+

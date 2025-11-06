@@ -28,7 +28,8 @@
     "runCommand": "Run Command",
     "generateSuggestions": "Generate Suggestions",
     "submitting": "Submitting...",
-    "submitReview": "Submit Review"
+    "submitReview": "Submit Review",
+    "close": "Close"
   },
   "forms": {
     "fullName": "Full Name",
@@ -58,7 +59,8 @@
   },
   "tourCard": {
     "noHiddenFees": "No hidden fees.",
-    "onSale": "On Sale"
+    "onSale": "On Sale",
+    "createPackage": "Create Your Package"
   },
   "userTable": {
     "name": "Name",
