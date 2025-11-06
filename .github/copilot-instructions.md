@@ -150,11 +150,13 @@ npm run build  # Builds frontend to /dist
 
 ## Testing Guidelines
 
-- Currently no test infrastructure exists - do not add testing frameworks unless specifically requested
-- Manually test all changes in development environment
-- Test both authenticated and unauthenticated flows
+- Currently no test infrastructure exists in this repository
+- Manually test all changes in development environment before committing
+- When adding tests is appropriate for new features or critical functionality, prefer industry-standard frameworks (Jest for backend, Vitest or React Testing Library for frontend)
+- Always test both authenticated and unauthenticated flows
 - Verify responsive design on multiple screen sizes
 - Test error scenarios and edge cases
+- Document test setup if you introduce testing infrastructure
 
 ## API Conventions
 
@@ -220,8 +222,13 @@ return <h1>{t('key.path')}</h1>;
 - **Node.js Version**: Requires Node.js 18 or higher
 - **Module System**: Backend uses ES Modules (.mjs files)
 - **Database**: MongoDB connection required for backend to start
-- **Mixed File Extensions**: Some legacy files use .js while newer files use .mjs - maintain consistency per directory
-- **Duplicate Definitions**: Some models/routes have both .js and .mjs versions - prefer .mjs versions for new code
+- **Mixed File Extensions**: Some legacy files use .js while newer files use .mjs
+  - **Prefer .mjs** for all new backend code
+  - When modifying existing .js files, consider migrating them to .mjs if it doesn't break dependencies
+  - Maintain consistency within each directory
+- **Duplicate Definitions**: Some models/routes have both .js and .mjs versions
+  - **Always use .mjs versions** for new code
+  - When safe to do so, consolidate duplicates by migrating to .mjs and removing legacy .js files
 - **Comments**: Use English for code comments and documentation
 - **UI Text**: Support Turkish language through i18n (translation keys in /src/locales/)
 
