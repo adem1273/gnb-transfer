@@ -8,6 +8,7 @@ import User from '../models/User.mjs';
 import { requireAuth, requireAdmin } from '../middlewares/auth.mjs';
 
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || '';
 
 /**
  * POST /api/users/register - Register a new user
