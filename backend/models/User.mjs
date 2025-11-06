@@ -3,21 +3,21 @@ import bcrypt from 'bcrypt';
 
 /**
  * User Model
- * 
+ *
  * @module models/User
  * @description Mongoose model for user authentication and management
- * 
+ *
  * Security features:
  * - Passwords are automatically hashed before saving using bcrypt
  * - Email uniqueness is enforced at database level
  * - Email is stored in lowercase for case-insensitive matching
  * - Password validation requires minimum 6 characters
  * - Supports role-based access control (user, admin, driver)
- * 
+ *
  * Pre-save hook:
  * - Hashes password only when it's new or modified
  * - Uses configurable salt rounds (default: 10)
- * 
+ *
  * Instance methods:
  * - comparePassword: Verifies plain text password against stored hash
  */
@@ -38,7 +38,11 @@ const userSchema = new mongoose.Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'],
     },
-    password: { type: String, required: [true, 'Password is required'], minlength: [6, 'Password must be at least 6 characters'] },
+    password: {
+      type: String,
+      required: [true, 'Password is required'],
+      minlength: [6, 'Password must be at least 6 characters'],
+    },
     role: { type: String, enum: ['user', 'admin', 'driver'], default: 'user' },
   },
   { timestamps: true }
@@ -46,10 +50,10 @@ const userSchema = new mongoose.Schema(
 
 /**
  * Pre-save middleware to hash password
- * 
+ *
  * @description Automatically hashes password before saving to database
  * Only runs when password is new or modified to avoid unnecessary hashing
- * 
+ *
  * Security:
  * - Uses bcrypt with configurable salt rounds (BCRYPT_ROUNDS env variable)
  * - Salt rounds default to 10 if not specified
@@ -69,17 +73,17 @@ userSchema.pre('save', async function (next) {
 
 /**
  * Instance method to compare password with stored hash
- * 
+ *
  * @param {string} candidatePassword - Plain text password to verify
  * @returns {Promise<boolean>} - True if password matches, false otherwise
- * 
+ *
  * @example
  * const user = await User.findOne({ email });
  * const isValid = await user.comparePassword('plainTextPassword');
  * if (isValid) {
  *   // Password is correct
  * }
- * 
+ *
  * Security:
  * - Uses bcrypt.compare which is timing-attack safe
  * - Never exposes the stored hash

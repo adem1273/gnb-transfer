@@ -7,7 +7,7 @@
  * Error handler middleware
  * Handles all errors and sends appropriate responses
  */
-export const errorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res, _next) => {
   // Log error for debugging (in production, use proper logging service)
   console.error('Error:', err.message);
   console.error('Stack:', err.stack);

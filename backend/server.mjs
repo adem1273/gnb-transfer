@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-dotenv.config();
 
 import express from 'express';
 import mongoose from 'mongoose';
@@ -14,6 +13,8 @@ import { errorHandler } from './middlewares/errorHandler.mjs';
 import userRoutes from './routes/userRoutes.mjs';
 import tourRoutes from './routes/tourRoutes.mjs';
 import bookingRoutes from './routes/bookingRoutes.mjs';
+
+dotenv.config();
 // AI features disabled for Phase 1 - no AI implementation in this phase
 // import delayRoutes from './routes/delayRoutes.mjs';
 // import packageRoutes from './routes/packageRoutes.mjs';

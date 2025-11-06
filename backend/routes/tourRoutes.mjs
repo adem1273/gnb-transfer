@@ -7,11 +7,7 @@ import Tour from '../models/Tour.mjs';
 import Booking from '../models/Booking.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
-import {
-  validateTourCreation,
-  validateTourUpdate,
-  validateMongoId,
-} from '../validators/index.mjs';
+import { validateTourCreation, validateTourUpdate, validateMongoId } from '../validators/index.mjs';
 
 const router = express.Router();
 
@@ -23,7 +19,7 @@ router.get('/', async (req, res) => {
     const tours = await Tour.find().sort({ createdAt: -1 });
     return res.apiSuccess(tours, 'Tours retrieved successfully');
   } catch (error) {
-    return res.apiError('Failed to retrieve tours: ' + error.message, 500);
+    return res.apiError(`Failed to retrieve tours: ${error.message}`, 500);
   }
 });
 
@@ -35,7 +31,7 @@ router.get('/campaigns', async (req, res) => {
     const campaignTours = await Tour.find({ isCampaign: true }).sort({ discount: -1 });
     return res.apiSuccess(campaignTours, 'Campaign tours retrieved successfully');
   } catch (error) {
-    return res.apiError('Failed to fetch campaign tours: ' + error.message, 500);
+    return res.apiError(`Failed to fetch campaign tours: ${error.message}`, 500);
   }
 });
 
@@ -54,8 +50,8 @@ router.get('/most-popular', async (req, res) => {
           from: 'tours',
           localField: '_id',
           foreignField: '_id',
-          as: 'tourDetails'
-        }
+          as: 'tourDetails',
+        },
       },
       { $unwind: '$tourDetails' },
       {
@@ -67,14 +63,14 @@ router.get('/most-popular', async (req, res) => {
           duration: '$tourDetails.duration',
           discount: '$tourDetails.discount',
           isCampaign: '$tourDetails.isCampaign',
-          bookingCount: '$count'
-        }
-      }
+          bookingCount: '$count',
+        },
+      },
     ]);
-    
+
     return res.apiSuccess(mostPopularTours, 'Most popular tours retrieved successfully');
   } catch (error) {
-    return res.apiError('Failed to fetch most popular tours: ' + error.message, 500);
+    return res.apiError(`Failed to fetch most popular tours: ${error.message}`, 500);
   }
 });
 
@@ -89,7 +85,7 @@ router.get('/:id', validateMongoId, async (req, res) => {
     }
     return res.apiSuccess(tour, 'Tour retrieved successfully');
   } catch (error) {
-    return res.apiError('Failed to fetch tour: ' + error.message, 500);
+    return res.apiError(`Failed to fetch tour: ${error.message}`, 500);
   }
 });
 
@@ -102,56 +98,64 @@ router.get('/:id/discounted-price', validateMongoId, async (req, res) => {
     if (!tour) {
       return res.apiError('Tour not found', 404);
     }
-    
+
     const originalPrice = tour.price;
     const discount = tour.discount || 0;
-    
+
     // Calculate discounted price
     // Discount range: 0-100% (inclusive)
     // Note: 100% discount (free tour) is intentionally allowed for promotions
-    const discountedPrice = discount > 0 && discount <= 100
-      ? originalPrice - (originalPrice * discount / 100)
-      : originalPrice;
-    
+    const discountedPrice =
+      discount > 0 && discount <= 100
+        ? originalPrice - (originalPrice * discount) / 100
+        : originalPrice;
+
     return res.apiSuccess(
       {
         originalPrice,
         discount,
-        discountedPrice
+        discountedPrice,
       },
       'Discounted price calculated successfully'
     );
   } catch (error) {
-    return res.apiError('Failed to calculate discounted price: ' + error.message, 500);
+    return res.apiError(`Failed to calculate discounted price: ${error.message}`, 500);
   }
 });
 
 /**
  * POST /api/tours - Create a new tour (Admin only)
  */
-router.post('/', requireAuth(['admin']), validateTourCreation, strictRateLimiter, async (req, res) => {
-  try {
-    const { title, description, price, duration, discount, isCampaign, ...translations } = req.body;
-    
-    if (!title || !price || !duration) {
-      return res.apiError('Title, price, and duration are required', 400);
+router.post(
+  '/',
+  requireAuth(['admin']),
+  validateTourCreation,
+  strictRateLimiter,
+  async (req, res) => {
+    try {
+      const { title, description, price, duration, discount, isCampaign, ...translations } =
+        req.body;
+
+      if (!title || !price || !duration) {
+        return res.apiError('Title, price, and duration are required', 400);
+      }
+
+      const tour = await Tour.create({
+        title,
+        description,
+        price,
+        duration,
+        discount: discount || 0,
+        isCampaign: isCampaign || false,
+        ...translations,
+      });
+
+      return res.apiSuccess(tour, 'Tour created successfully', 201);
+    } catch (error) {
+      return res.apiError(`Failed to create tour: ${error.message}`, 500);
     }
-    
-    const tour = await Tour.create({
-      title,
-      description,
-      price,
-      duration,
-      discount: discount || 0,
-      isCampaign: isCampaign || false,
-      ...translations
-    });
-    
-    return res.apiSuccess(tour, 'Tour created successfully', 201);
-  } catch (error) {
-    return res.apiError('Failed to create tour: ' + error.message, 500);
   }
-});
+);
 
 /**
  * PUT /api/tours/:id - Update a tour (Admin only)
@@ -163,22 +167,22 @@ router.put(
   validateTourUpdate,
   strictRateLimiter,
   async (req, res) => {
-  try {
-    const tour = await Tour.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    
-    if (!tour) {
-      return res.apiError('Tour not found', 404);
+    try {
+      const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true,
+      });
+
+      if (!tour) {
+        return res.apiError('Tour not found', 404);
+      }
+
+      return res.apiSuccess(tour, 'Tour updated successfully');
+    } catch (error) {
+      return res.apiError(`Failed to update tour: ${error.message}`, 500);
     }
-    
-    return res.apiSuccess(tour, 'Tour updated successfully');
-  } catch (error) {
-    return res.apiError('Failed to update tour: ' + error.message, 500);
   }
-});
+);
 
 /**
  * DELETE /api/tours/:id - Delete a tour (Admin only)
@@ -189,18 +193,18 @@ router.delete(
   validateMongoId,
   strictRateLimiter,
   async (req, res) => {
-  try {
-    const tour = await Tour.findByIdAndDelete(req.params.id);
-    
-    if (!tour) {
-      return res.apiError('Tour not found', 404);
+    try {
+      const tour = await Tour.findByIdAndDelete(req.params.id);
+
+      if (!tour) {
+        return res.apiError('Tour not found', 404);
+      }
+
+      return res.apiSuccess(null, 'Tour deleted successfully');
+    } catch (error) {
+      return res.apiError(`Failed to delete tour: ${error.message}`, 500);
     }
-    
-    return res.apiSuccess(null, 'Tour deleted successfully');
-  } catch (error) {
-    return res.apiError('Failed to delete tour: ' + error.message, 500);
   }
-});
+);
 
 export default router;
-

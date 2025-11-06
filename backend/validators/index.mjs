@@ -41,7 +41,9 @@ export const validateUserRegistration = [
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters long')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+    .withMessage(
+      'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+    ),
   handleValidationErrors,
 ];
 
@@ -90,10 +92,7 @@ export const validateBookingCreation = [
     .optional()
     .isInt({ min: 1, max: 50 })
     .withMessage('Guests must be between 1 and 50'),
-  body('date')
-    .optional()
-    .isISO8601()
-    .withMessage('Invalid date format'),
+  body('date').optional().isISO8601().withMessage('Invalid date format'),
   handleValidationErrors,
 ];
 
@@ -126,10 +125,7 @@ export const validateTourCreation = [
     .optional()
     .isFloat({ min: 0, max: 100 })
     .withMessage('Discount must be between 0 and 100'),
-  body('isCampaign')
-    .optional()
-    .isBoolean()
-    .withMessage('isCampaign must be a boolean'),
+  body('isCampaign').optional().isBoolean().withMessage('isCampaign must be a boolean'),
   handleValidationErrors,
 ];
 
@@ -147,10 +143,7 @@ export const validateTourUpdate = [
     .trim()
     .isLength({ max: 2000 })
     .withMessage('Description must not exceed 2000 characters'),
-  body('price')
-    .optional()
-    .isFloat({ min: 0 })
-    .withMessage('Price must be a positive number'),
+  body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
   body('duration')
     .optional()
     .isLength({ min: 1, max: 100 })
@@ -159,10 +152,7 @@ export const validateTourUpdate = [
     .optional()
     .isFloat({ min: 0, max: 100 })
     .withMessage('Discount must be between 0 and 100'),
-  body('isCampaign')
-    .optional()
-    .isBoolean()
-    .withMessage('isCampaign must be a boolean'),
+  body('isCampaign').optional().isBoolean().withMessage('isCampaign must be a boolean'),
   handleValidationErrors,
 ];
 
