@@ -116,15 +116,11 @@ npm run dev  # Runs with nodemon
 
 **Frontend:**
 ```bash
-npm install
+npm install  # Run from project root
 npm run dev  # Runs Vite dev server on port 5173
 ```
 
-**Full Stack:**
-```bash
-npm run install-all  # Install all dependencies
-npm run dev         # Run both frontend and backend concurrently
-```
+**Note:** The root package.json contains scripts that reference `--prefix frontend` and `--prefix backend`, but the actual structure has frontend code in the root directory. Use the commands above for proper setup.
 
 ### Environment Variables
 
@@ -145,7 +141,7 @@ VITE_STRIPE_PUBLIC_KEY=your_stripe_public_key
 ### Building for Production
 
 ```bash
-npm run build  # Builds frontend to /dist
+npm run build  # Builds frontend to /dist (runs from project root)
 ```
 
 ## Testing Guidelines
@@ -230,7 +226,7 @@ return <h1>{t('key.path')}</h1>;
   - **Always use .mjs versions** for new code
   - When safe to do so, consolidate duplicates by migrating to .mjs and removing legacy .js files
 - **Comments**: Use English for code comments and documentation
-- **UI Text**: Support Turkish language through i18n (translation keys in /src/locales/)
+- **UI Text**: Support multiple languages through i18n (available: Arabic, German, English, Spanish, Hindi, Italian, Russian, Chinese)
 
 ## When Making Changes
 
