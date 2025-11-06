@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import PackageModal from './PackageModal';
 
-function TourCard({ tour }) {
+function TourCard({ tour, showPackageButton = true }) {
     const { t, i18n } = useTranslation();
     const currentLang = i18n.language;
+    const [showPackageModal, setShowPackageModal] = useState(false);
 
     const getDiscountedPrice = (price, discount) => {
         if (discount <= 0 || discount >= 100) return price;
@@ -23,29 +25,62 @@ function TourCard({ tour }) {
     const discountedPrice = getDiscountedPrice(tour.price, tour.discount);
 
     return (
-        <div className="border rounded-lg p-4 shadow hover:shadow-lg transition relative">
-            {tour.isCampaign && (
-                <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    {t('tourCard.onSale')}
-                </div>
-            )}
-            <h2 className="text-xl font-bold mt-4">{getTranslatedTitle(tour)}</h2>
-            <p>{getTranslatedDescription(tour)}</p>
-            <div className="mt-2">
-                {tour.isCampaign && tour.discount > 0 ? (
-                    <div className="flex items-center gap-2">
-                        <p className="text-gray-500 line-through">${tour.price}</p>
-                        <p className="font-semibold text-lg text-red-600">${discountedPrice}</p>
-                        <span className="text-green-600 text-sm font-bold">({tour.discount}% OFF)</span>
+        <>
+            <div className="border rounded-lg p-4 shadow hover:shadow-lg transition relative">
+                {tour.isCampaign && (
+                    <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                        {t('tourCard.onSale')}
                     </div>
-                ) : (
-                    <p className="font-semibold mt-2">${tour.price}</p>
+                )}
+                <h2 className="text-xl font-bold mt-4">{getTranslatedTitle(tour)}</h2>
+                <p>{getTranslatedDescription(tour)}</p>
+                <div className="mt-2">
+                    {tour.isCampaign && tour.discount > 0 ? (
+                        <div className="flex items-center gap-2">
+                            <p className="text-gray-500 line-through">${tour.price}</p>
+                            <p className="font-semibold text-lg text-red-600">${discountedPrice}</p>
+                            <span className="text-green-600 text-sm font-bold">({tour.discount}% OFF)</span>
+                        </div>
+                    ) : (
+                        <p className="font-semibold mt-2">${tour.price}</p>
+                    )}
+                </div>
+                <p className="text-sm text-green-600 mt-2 font-medium">
+                    {t('tourCard.noHiddenFees')}
+                </p>
+                
+                {/* Add Create Package Button */}
+                {showPackageButton && (
+                    <button
+                        onClick={() => setShowPackageModal(true)}
+                        className="mt-3 w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 px-4 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 font-semibold flex items-center justify-center gap-2"
+                    >
+                        <svg 
+                            className="w-5 h-5" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                        >
+                            <path 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                strokeWidth={2} 
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" 
+                            />
+                        </svg>
+                        {t('tourCard.createPackage')}
+                    </button>
                 )}
             </div>
-            <p className="text-sm text-green-600 mt-2 font-medium">
-                {t('tourCard.noHiddenFees')}
-            </p>
-        </div>
+            
+            {/* Package Modal */}
+            {showPackageModal && (
+                <PackageModal
+                    tourId={tour._id}
+                    onClose={() => setShowPackageModal(false)}
+                />
+            )}
+        </>
     );
 }
 

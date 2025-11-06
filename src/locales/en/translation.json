@@ -28,7 +28,8 @@
     "runCommand": "Run Command",
     "generateSuggestions": "Generate Suggestions",
     "submitting": "Submitting...",
-    "submitReview": "Submit Review"
+    "submitReview": "Submit Review",
+    "close": "Close"
   },
   "forms": {
     "fullName": "Full Name",
@@ -58,7 +59,8 @@
   },
   "tourCard": {
     "noHiddenFees": "No hidden fees.",
-    "onSale": "On Sale"
+    "onSale": "On Sale",
+    "createPackage": "Create Your Package"
   },
   "userTable": {
     "name": "Name",
@@ -107,5 +109,19 @@
     "save": "Save",
     "useNextBooking": "Use this code on your next booking for compensation",
     "infoMessage": "Our delay guarantee protects you with automatic compensation if delays occur."
+  },
+  "packageModal": {
+    "title": "AI-Powered Package Deal",
+    "personalizedDesc": "Personalized package based on your preferences",
+    "genericDesc": "Curated package for the best value",
+    "generating": "Creating your personalized package...",
+    "highlights": "Package Highlights",
+    "includedTours": "Included Tours",
+    "originalPrice": "Original Price",
+    "packageDiscount": "Package Discount",
+    "totalPrice": "Total Price",
+    "saveAmount": "You save ${{amount}}!",
+    "bookPackage": "Book This Package",
+    "bookingComingSoon": "Package booking coming soon! Contact us for assistance."
   }
 }
