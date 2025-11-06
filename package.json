@@ -2,12 +2,12 @@
   "name": "gnb-pro-fullstack",
   "version": "1.0.0",
   "description": "GNB Transfer - Full Stack Web Application",
-  "main": "backend/server.js",
+  "main": "backend/server.mjs",
   "scripts": {
-    "start": "node backend/server.js",
-    "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
-    "build": "npm run build --prefix frontend",
-    "install-all": "npm install && npm install --prefix backend && npm install --prefix frontend"
+    "start": "node backend/server.mjs",
+    "dev": "concurrently \"npm run dev --prefix backend\"",
+    "build": "echo 'No frontend build needed'",
+    "install-all": "npm install && npm install --prefix backend"
   },
   "keywords": [
     "gnb",
@@ -18,7 +18,7 @@
     "express",
     "mongodb"
   ],
-  "author": "Your Name",
+  "author": "GNB Transfer",
   "license": "ISC",
   "dependencies": {
     "concurrently": "^8.2.2",
@@ -32,5 +32,8 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

@@ -19,8 +19,9 @@ import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
 import userRoutes from './routes/userRoutes.mjs';
 import tourRoutes from './routes/tourRoutes.mjs';
 import bookingRoutes from './routes/bookingRoutes.mjs';
-import delayRoutes from './routes/delayRoutes.mjs';
-import packageRoutes from './routes/packageRoutes.mjs';
+// AI features disabled for Phase 1 - no AI implementation in this phase
+// import delayRoutes from './routes/delayRoutes.mjs';
+// import packageRoutes from './routes/packageRoutes.mjs';
 
 const app = express();
 
@@ -38,8 +39,9 @@ app.use(responseMiddleware);
 app.use('/api/users', userRoutes);
 app.use('/api/tours', tourRoutes);
 app.use('/api/bookings', bookingRoutes);
-app.use('/api/delay', delayRoutes);
-app.use('/api/packages', packageRoutes);
+// AI features disabled for Phase 1
+// app.use('/api/delay', delayRoutes);
+// app.use('/api/packages', packageRoutes);
 
 // Health check (registered before listen)
 app.get('/health', (req, res) => {
@@ -55,10 +57,7 @@ const connectDB = async () => {
     return;
   }
   try {
-    await mongoose.connect(MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(MONGO_URI);
     console.log('✓ MongoDB connected successfully');
   } catch (err) {
     console.error('✗ MongoDB connection failed:', err.message);
