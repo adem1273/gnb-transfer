@@ -1,8 +1,8 @@
 {
-  "type": "module",
   "name": "gnb-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "GNB Transfer backend server",
+  "type": "module",
   "main": "server.mjs",
   "scripts": {
     "start": "node server.mjs",
@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^5.1.0",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
