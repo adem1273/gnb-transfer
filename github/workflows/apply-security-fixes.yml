@@ -1,0 +1,261 @@
+# Manuel tetiklemeli: Actions > Run workflow ile çalıştır.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  apply-fixes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git user
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Apply file changes
+        run: |
+          # Write .gitignore
+          cat > .gitignore <<'EOF'
+# ignore node_modules and envs
+node_modules/
+backend/node_modules/
+backend/.env
+.env.local
+.DS_Store
+dist/
+build/
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+EOF
+
+          # Add backend/.env.example
+          mkdir -p backend
+          cat > backend/.env.example <<'EOF'
+PORT=5000
+MONGO_URI=your_mongo_uri_here
+JWT_SECRET=your_jwt_secret_here
+STRIPE_KEY=your_stripe_key_here
+EOF
+
+          # Create/overwrite response middleware
+          mkdir -p backend/middlewares
+          cat > backend/middlewares/response.mjs <<'EOF'
+export const responseMiddleware = (req, res, next) => {
+  res.apiSuccess = (data = null, message = 'OK', status = 200) =>
+    res.status(status).json({ success: true, message, data });
+  res.apiError = (message = 'Error', status = 500) =>
+    res.status(status).json({ success: false, message, data: null });
+  next();
+};
+
+export default responseMiddleware;
+EOF
+
+          # Create/overwrite auth middleware
+          cat > backend/middlewares/auth.mjs <<'EOF'
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
+
+export const requireAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer '))
+    return res.apiError('No token provided', 401);
+
+  const token = authHeader.substring(7);
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    return next();
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') return res.apiError('Token expired', 401);
+    return res.apiError('Invalid token', 401);
+  }
+};
+
+export const requireRole = (...roles) => (req, res, next) => {
+  if (!req.user) return res.apiError('Authentication required', 401);
+  if (!roles.includes(req.user.role)) return res.apiError('Insufficient permissions', 403);
+  next();
+};
+
+export const requireAdmin = requireRole('admin');
+
+export default { requireAuth, requireRole, requireAdmin };
+EOF
+
+          # User routes (register uses bcrypt)
+          mkdir -p backend/routes
+          cat > backend/routes/userRoutes.mjs <<'EOF'
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import User from '../models/User.mjs';
+import { requireAuth, requireAdmin } from '../middlewares/auth.mjs';
+
+const router = express.Router();
+
+router.get('/', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const users = await User.find().limit(100).select('-password');
+    return res.apiSuccess(users, 'Users retrieved successfully');
+  } catch (err) {
+    return res.apiError('Failed to retrieve users', 500);
+  }
+});
+
+router.post('/register', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) return res.apiError('Name, email, and password are required', 400);
+
+    const existing = await User.findOne({ email });
+    if (existing) return res.apiError('Email already registered', 400);
+
+    const salt = await bcrypt.genSalt(10);
+    const hashed = await bcrypt.hash(password, salt);
+
+    const user = new User({ name, email, password: hashed });
+    await user.save();
+
+    return res.apiSuccess({ id: user._id, email: user.email }, 'User registered', 201);
+  } catch (err) {
+    return res.apiError('Failed to register user', 500);
+  }
+});
+
+export default router;
+EOF
+
+          # server.mjs (cleaned)
+          cat > backend/server.mjs <<'EOF'
+import dotenv from 'dotenv';
+dotenv.config();
+
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import helmet from 'helmet';
+import { responseMiddleware } from './middlewares/response.mjs';
+import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
+
+import userRoutes from './routes/userRoutes.mjs';
+import tourRoutes from './routes/tourRoutes.mjs';
+import bookingRoutes from './routes/bookingRoutes.mjs';
+
+const app = express();
+
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(globalRateLimiter);
+app.use(responseMiddleware);
+
+app.use('/api/users', userRoutes);
+app.use('/api/tours', tourRoutes);
+app.use('/api/bookings', bookingRoutes);
+
+app.get('/health', (req, res) => res.apiSuccess({ status: 'ok' }, 'Server is running'));
+
+const connectDB = async () => {
+  const MONGO_URI = process.env.MONGO_URI;
+  if (!MONGO_URI) {
+    console.warn('⚠️  WARNING: MONGO_URI is not set. Skipping database connection.');
+    return;
+  }
+  try {
+    await mongoose.connect(MONGO_URI);
+    console.log('✓ MongoDB connected successfully');
+  } catch (err) {
+    console.error('✗ MongoDB connection failed:', err.message);
+  }
+};
+
+await connectDB();
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  if (!process.env.JWT_SECRET) {
+    console.warn('⚠️  WARNING: JWT_SECRET not set. Using default fallback — set JWT_SECRET in env for production.');
+  }
+});
+
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received. Closing server gracefully...');
+  await mongoose.connection.close();
+  process.exit(0);
+});
+
+export default app;
+EOF
+
+          # backend package.json
+          cat > backend/package.json <<'EOF'
+{
+  "name": "gnb-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node backend/server.mjs",
+    "dev": "nodemon --watch backend --exec node backend/server.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.1",
+    "stripe": "^15.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
+EOF
+
+      - name: Remove tracked secrets & node_modules from index
+        run: |
+          git checkout -b security/remove-secrets-and-fixes || git switch security/remove-secrets-and-fixes
+          git rm --cached backend/.env || true
+          git rm -r --cached node_modules || true
+          git rm -r --cached backend/node_modules || true
+
+      - name: Commit changes
+        run: |
+          git add .gitignore backend/.env.example backend/middlewares backend/routes backend/server.mjs backend/package.json || true
+          git commit -m "chore(security): remove secrets, add .env.example, unify middlewares, hash passwords" || echo "No changes to commit"
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          commit-message: "chore(security): remove secrets, add .env.example, unify middlewares, hash passwords"
+          branch: security/remove-secrets-and-fixes
+          title: "security: remove secrets, unify middlewares & fixes"
+          body: |
+            This follow-up PR removes sensitive secrets from the repository, adds backend/.env.example,
+            unifies response/auth middlewares, adds bcrypt password hashing on register, and removes tracked node_modules.
+
+            IMPORTANT: rotate any exposed secrets immediately (MongoDB, JWT, Stripe). Do not merge until secrets rotated and CI passes.
+          labels: security,phase1,backend
