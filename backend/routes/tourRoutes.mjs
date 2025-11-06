@@ -103,7 +103,8 @@ router.get('/:id/discounted-price', async (req, res) => {
     const discount = tour.discount || 0;
     
     // Calculate discounted price
-    // Discount must be between 0 and 100 (inclusive)
+    // Discount range: 0-100% (inclusive)
+    // Note: 100% discount (free tour) is intentionally allowed for promotions
     const discountedPrice = discount > 0 && discount <= 100
       ? originalPrice - (originalPrice * discount / 100)
       : originalPrice;
