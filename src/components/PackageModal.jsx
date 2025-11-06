@@ -232,11 +232,9 @@ function PackageModal({ tourId, onClose }) {
                   {t('buttons.close')}
                 </button>
                 <button
-                  onClick={() => {
-                    // TODO: Implement booking flow for package
-                    alert(t('packageModal.bookingComingSoon'));
-                  }}
+                  onClick={onClose}
                   className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-6 rounded-lg hover:from-purple-700 hover:to-blue-700 transition font-semibold flex items-center justify-center gap-2"
+                  title={t('packageModal.bookingComingSoon')}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path

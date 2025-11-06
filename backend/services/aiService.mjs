@@ -13,6 +13,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
 });
 
+// Warn if OpenAI API key is not configured
+if (!process.env.OPENAI_API_KEY) {
+  console.warn('⚠️  WARNING: OPENAI_API_KEY not set. AI features will use fallback logic.');
+}
+
 /**
  * Get user booking history with tour details
  */

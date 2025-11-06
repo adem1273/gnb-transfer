@@ -104,9 +104,7 @@ function Booking() {
         {completedBookingId && (
           <div className="mb-4">
             <DelayBadge 
-              bookingId={completedBookingId} 
-              origin="airport" 
-              destination="istanbul"
+              bookingId={completedBookingId}
             />
           </div>
         )}

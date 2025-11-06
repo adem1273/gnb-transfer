@@ -9,7 +9,7 @@ import Booking from '../models/Booking.mjs';
 import axios from 'axios';
 
 // OpenRouteService API (Free tier: 2000 requests/day)
-const ORS_API_KEY = process.env.OPENROUTE_API_KEY || '5b3ce3597851110001cf6248d3b3fd3b4d9f47f5a7b5e0c1e0d5f8c9'; // Demo key
+const ORS_API_KEY = process.env.OPENROUTE_API_KEY;
 const ORS_BASE_URL = 'https://api.openrouteservice.org/v2';
 
 /**
@@ -18,6 +18,17 @@ const ORS_BASE_URL = 'https://api.openrouteservice.org/v2';
  */
 async function calculateRouteMetrics(origin, destination) {
   try {
+    if (!ORS_API_KEY) {
+      console.warn('OpenRouteService API key not set. Using fallback calculation.');
+      // Fallback calculation when API key is not available
+      const avgSpeed = 60; // km/h average speed
+      const estimatedDistance = 100; // Default 100km
+      return {
+        distance: estimatedDistance,
+        estimatedDuration: Math.round((estimatedDistance / avgSpeed) * 60)
+      };
+    }
+    
     // For demo purposes, use geocoding to get coordinates
     // In production, you'd have coordinates stored or use a proper geocoding service
     
