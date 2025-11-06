@@ -1,43 +1,33 @@
 import express from 'express';
 import Booking from '../models/Booking.mjs';
-import { authMiddleware } from '../middlewares/auth.mjs';
 
 const router = express.Router();
 
-// GET /api/bookings - Get all bookings (protected)
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const bookings = await Booking.find()
-      .populate('user', 'name email')
-      .populate('tour', 'title price location');
-    res.apiSuccess(bookings, 'Bookings retrieved successfully');
-  } catch (error) {
-    res.apiError('Failed to retrieve bookings', 500);
-  }
-});
+    const bookings = await Booking.find().limit(100).populate('user tour');
+    return res.apiSuccess(bookings, 'Bookings retrieved');
+  } catch (err) {
+    return res.apiError(err.message);
+/**
+ * Booking routes - basic implementations with standardized responses
+ */
 
-// GET /api/bookings/:id - Get booking by ID (protected)
-router.get('/:id', authMiddleware, async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id)
-      .populate('user', 'name email')
-      .populate('tour', 'title price location');
-    if (!booking) {
-      return res.apiError('Booking not found', 404);
-    }
-    res.apiSuccess(booking, 'Booking retrieved successfully');
-  } catch (error) {
-    res.apiError('Failed to retrieve booking', 500);
-  }
-});
+import express from 'express';
+import { requireAuth } from '../middlewares/auth.mjs';
 
-// POST /api/bookings - Create new booking (protected)
-router.post('/', authMiddleware, async (req, res) => {
+const router = express.Router();
+
+/**
+ * GET /api/bookings - Get all bookings (requires authentication)
+ */
+router.get('/', requireAuth, async (req, res) => {
   try {
-    const booking = await Booking.create(req.body);
-    res.apiSuccess(booking, 'Booking created successfully');
+    // Basic implementation - returns empty array
+    // In production, this would query the database
+    return res.apiSuccess([], 'Bookings retrieved successfully');
   } catch (error) {
-    res.apiError('Failed to create booking', 500);
+    return res.apiError('Failed to retrieve bookings', 500);
   }
 });
 

@@ -1,0 +1,29 @@
+name: Auto-trigger PR Creation
+
+on:
+  push:
+    branches:
+      - 'copilot/fix-auto-fixes'
+    paths:
+      - '.github/workflows/trigger-pr-creation.yml'
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  trigger-pr-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger PR Creation Workflow
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'create-pr-from-fix-auto-fixes.yml',
+              ref: 'copilot/fix-auto-fixes'
+            });
+            console.log('PR creation workflow triggered successfully');
