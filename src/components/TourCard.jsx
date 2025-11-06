@@ -37,7 +37,6 @@ function TourCard({ tour, showPackageButton = false, userId = null }) {
             setPackageData(response.data);
             setShowPackageModal(true);
         } catch (error) {
-            console.error('Error creating package:', error);
             alert(t('package.error', 'Failed to create package. Please try again.'));
         } finally {
             setLoadingPackage(false);
@@ -45,7 +44,6 @@ function TourCard({ tour, showPackageButton = false, userId = null }) {
     };
 
     const handleAcceptPackage = (packageData) => {
-        console.log('Package accepted:', packageData);
         // In production, this would navigate to booking with the package
         alert(t('package.bookingRedirect', 'Redirecting to booking...'));
         setShowPackageModal(false);

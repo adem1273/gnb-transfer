@@ -7,6 +7,11 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.mjs';
 import { requireAuth, requireAdmin } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
+import {
+  validateUserRegistration,
+  validateUserLogin,
+  validateMongoId,
+} from '../validators/index.mjs';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || '';
@@ -14,7 +19,7 @@ const JWT_SECRET = process.env.JWT_SECRET || '';
 /**
  * POST /api/users/register - Register a new user
  */
-router.post('/register', strictRateLimiter, async (req, res) => {
+router.post('/register', strictRateLimiter, validateUserRegistration, async (req, res) => {
   try {
     const { name, email, password } = req.body;
     
@@ -72,7 +77,7 @@ router.post('/register', strictRateLimiter, async (req, res) => {
 /**
  * POST /api/users/login - Login user and return JWT token
  */
-router.post('/login', strictRateLimiter, async (req, res) => {
+router.post('/login', strictRateLimiter, validateUserLogin, async (req, res) => {
   try {
     const { email, password } = req.body;
     
@@ -166,7 +171,7 @@ router.get('/', requireAuth(['admin']), async (req, res) => {
 /**
  * DELETE /api/users/:id - Delete a user (admin only)
  */
-router.delete('/:id', requireAuth(['admin']), strictRateLimiter, async (req, res) => {
+router.delete('/:id', requireAuth(['admin']), validateMongoId, strictRateLimiter, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     

@@ -1,10 +1,3 @@
-/**
- * ES Module Express Server (cleaned)
- * - Single responsibility imports
- * - Single connectDB implementation
- * - Production safety checks for JWT_SECRET
- */
-
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -12,9 +5,11 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 
 import { responseMiddleware } from './middlewares/response.mjs';
 import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
+import { errorHandler } from './middlewares/errorHandler.mjs';
 
 import userRoutes from './routes/userRoutes.mjs';
 import tourRoutes from './routes/tourRoutes.mjs';
@@ -25,9 +20,27 @@ import bookingRoutes from './routes/bookingRoutes.mjs';
 
 const app = express();
 
+// Configure CORS with whitelist
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim())
+  : ['http://localhost:5173', 'http://localhost:3000'];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
 // Security & parsers
 app.use(helmet());
-app.use(cors());
+app.use(cors(corsOptions));
+app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -47,6 +60,9 @@ app.use('/api/bookings', bookingRoutes);
 app.get('/health', (req, res) => {
   res.apiSuccess({ status: 'ok' }, 'Server is running');
 });
+
+// Centralized error handler (must be last middleware)
+app.use(errorHandler);
 
 // Database connect
 const MONGO_URI = process.env.MONGO_URI || '';

@@ -7,6 +7,11 @@ import Tour from '../models/Tour.mjs';
 import Booking from '../models/Booking.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
+import {
+  validateTourCreation,
+  validateTourUpdate,
+  validateMongoId,
+} from '../validators/index.mjs';
 
 const router = express.Router();
 
@@ -69,7 +74,6 @@ router.get('/most-popular', async (req, res) => {
     
     return res.apiSuccess(mostPopularTours, 'Most popular tours retrieved successfully');
   } catch (error) {
-    console.error('Error fetching most popular tours:', error);
     return res.apiError('Failed to fetch most popular tours: ' + error.message, 500);
   }
 });
@@ -77,7 +81,7 @@ router.get('/most-popular', async (req, res) => {
 /**
  * GET /api/tours/:id - Get tour by ID
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateMongoId, async (req, res) => {
   try {
     const tour = await Tour.findById(req.params.id);
     if (!tour) {
@@ -92,7 +96,7 @@ router.get('/:id', async (req, res) => {
 /**
  * GET /api/tours/:id/discounted-price - Get discounted price for a tour
  */
-router.get('/:id/discounted-price', async (req, res) => {
+router.get('/:id/discounted-price', validateMongoId, async (req, res) => {
   try {
     const tour = await Tour.findById(req.params.id);
     if (!tour) {
@@ -125,7 +129,7 @@ router.get('/:id/discounted-price', async (req, res) => {
 /**
  * POST /api/tours - Create a new tour (Admin only)
  */
-router.post('/', requireAuth(['admin']), strictRateLimiter, async (req, res) => {
+router.post('/', requireAuth(['admin']), validateTourCreation, strictRateLimiter, async (req, res) => {
   try {
     const { title, description, price, duration, discount, isCampaign, ...translations } = req.body;
     
@@ -152,7 +156,13 @@ router.post('/', requireAuth(['admin']), strictRateLimiter, async (req, res) => 
 /**
  * PUT /api/tours/:id - Update a tour (Admin only)
  */
-router.put('/:id', requireAuth(['admin']), strictRateLimiter, async (req, res) => {
+router.put(
+  '/:id',
+  requireAuth(['admin']),
+  validateMongoId,
+  validateTourUpdate,
+  strictRateLimiter,
+  async (req, res) => {
   try {
     const tour = await Tour.findByIdAndUpdate(
       req.params.id,
@@ -173,7 +183,12 @@ router.put('/:id', requireAuth(['admin']), strictRateLimiter, async (req, res) =
 /**
  * DELETE /api/tours/:id - Delete a tour (Admin only)
  */
-router.delete('/:id', requireAuth(['admin']), strictRateLimiter, async (req, res) => {
+router.delete(
+  '/:id',
+  requireAuth(['admin']),
+  validateMongoId,
+  strictRateLimiter,
+  async (req, res) => {
   try {
     const tour = await Tour.findByIdAndDelete(req.params.id);
     

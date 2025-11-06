@@ -7,13 +7,18 @@ import Booking from '../models/Booking.mjs';
 import Tour from '../models/Tour.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
+import {
+  validateBookingCreation,
+  validateBookingStatusUpdate,
+  validateMongoId,
+} from '../validators/index.mjs';
 
 const router = express.Router();
 
 /**
  * POST /api/bookings - Create a new booking
  */
-router.post('/', strictRateLimiter, async (req, res) => {
+router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) => {
   try {
     const { name, email, tourId, paymentMethod, guests, date } = req.body;
     
@@ -70,7 +75,7 @@ router.get('/', requireAuth(['admin']), async (req, res) => {
 /**
  * GET /api/bookings/:id - Get booking by ID (Admin only)
  */
-router.get('/:id', requireAuth(['admin']), async (req, res) => {
+router.get('/:id', requireAuth(['admin']), validateMongoId, async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id)
       .populate('tour', 'title price duration')
@@ -89,7 +94,7 @@ router.get('/:id', requireAuth(['admin']), async (req, res) => {
 /**
  * DELETE /api/bookings/:id - Delete a booking (Admin only)
  */
-router.delete('/:id', requireAuth(['admin']), strictRateLimiter, async (req, res) => {
+router.delete('/:id', requireAuth(['admin']), validateMongoId, strictRateLimiter, async (req, res) => {
   try {
     const booking = await Booking.findByIdAndDelete(req.params.id);
     
@@ -106,7 +111,13 @@ router.delete('/:id', requireAuth(['admin']), strictRateLimiter, async (req, res
 /**
  * PUT /api/bookings/:id/status - Update booking status (Admin only)
  */
-router.put('/:id/status', requireAuth(['admin']), strictRateLimiter, async (req, res) => {
+router.put(
+  '/:id/status',
+  requireAuth(['admin']),
+  validateMongoId,
+  validateBookingStatusUpdate,
+  strictRateLimiter,
+  async (req, res) => {
   try {
     const { status } = req.body;
     
