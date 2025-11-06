@@ -3,6 +3,10 @@ name: Create PR from fix/auto-fixes to master
 on:
   workflow_dispatch:  # Manual trigger
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   create-pull-request:
     runs-on: ubuntu-latest
@@ -12,53 +16,50 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: master
-          branch: fix/auto-fixes
-          title: "Phase 1: Backend ES-module refactor + Security middlewares + Models"
-          body: |
-            ## Description
-            This PR includes all changes from the fix/auto-fixes branch, implementing Phase 1 improvements:
-            
-            - Backend ES-module refactor
-            - Security middlewares implementation
-            - Model definitions
-            - Added .gitignore and helper files
-            - Multiple bug fixes and configuration improvements
-            
-            ## Changes Include:
-            - 📁 Added .gitignore file
-            - 🔒 Backend security middlewares (auth.mjs, rateLimiter.mjs, response.mjs)
-            - 📦 Backend models (Booking.mjs, Tour.mjs, User.mjs)
-            - 🛤️ Backend routes (bookingRoutes.mjs, tourRoutes.mjs, userRoutes.mjs)
-            - ⚙️ Updated backend server.mjs with ES modules
-            - 🔧 Updated package configurations
-            - 🐛 Various bug fixes for deployment and configuration
-            
-            ## Testing Steps:
-            1. Clone the repository and checkout this branch
-            2. Install dependencies: `npm install` in root and `cd backend && npm install`
-            3. Set up .env file in backend with MongoDB URI and JWT secret
-            4. Run backend: `cd backend && npm run dev`
-            5. Run frontend: `npm run dev`
-            6. Test authentication endpoints
-            7. Test tour and booking routes
-            8. Verify security middlewares are functioning
-            
-            ## ⚠️ Warnings:
-            - Requires MongoDB connection string in .env
-            - JWT_SECRET must be set in backend/.env
-            - This is a breaking change that migrates from CommonJS to ES modules
-            - Ensure all environment variables are properly configured before deployment
-            
-            ## Reviewer:
-            @adem1273
-          labels: |
-            phase1
-            security
-            backend
-          reviewers: adem1273
-          draft: false
+      - name: Create Pull Request using GitHub CLI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr create \
+            --base master \
+            --head fix/auto-fixes \
+            --title "Phase 1: Backend ES-module refactor + Security middlewares + Models" \
+            --body "## Description
+          This PR includes all changes from the fix/auto-fixes branch, implementing Phase 1 improvements:
+          
+          - Backend ES-module refactor
+          - Security middlewares implementation
+          - Model definitions
+          - Added .gitignore and helper files
+          - Multiple bug fixes and configuration improvements
+          
+          ## Changes Include:
+          - 📁 Added .gitignore file
+          - 🔒 Backend security middlewares (auth.mjs, rateLimiter.mjs, response.mjs)
+          - 📦 Backend models (Booking.mjs, Tour.mjs, User.mjs)
+          - 🛤️ Backend routes (bookingRoutes.mjs, tourRoutes.mjs, userRoutes.mjs)
+          - ⚙️ Updated backend server.mjs with ES modules
+          - 🔧 Updated package configurations
+          - 🐛 Various bug fixes for deployment and configuration
+          
+          ## Testing Steps:
+          1. Clone the repository and checkout this branch
+          2. Install dependencies: \`npm install\` in root and \`cd backend && npm install\`
+          3. Set up .env file in backend with MongoDB URI and JWT secret
+          4. Run backend: \`cd backend && npm run dev\`
+          5. Run frontend: \`npm run dev\`
+          6. Test authentication endpoints
+          7. Test tour and booking routes
+          8. Verify security middlewares are functioning
+          
+          ## ⚠️ Warnings:
+          - Requires MongoDB connection string in .env
+          - JWT_SECRET must be set in backend/.env
+          - This is a breaking change that migrates from CommonJS to ES modules
+          - Ensure all environment variables are properly configured before deployment
+          
+          ## Reviewer:
+          @adem1273" \
+            --reviewer adem1273 \
+            --label "phase1,security,backend" \
+            --no-maintainer-edit
