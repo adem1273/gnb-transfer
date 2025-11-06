@@ -11,9 +11,8 @@ import Loading from './components/Loading';
 import LiveChat from './components/LiveChat';
 import Feedback from './components/Feedback';
 import ErrorMessage from './components/ErrorMessage';
-import AdminLayout from './layouts/AdminLayout'; // AdminLayout eklendi
-import MainLayout from './layouts/MainLayout'; // MainLayout eklendi
-
+// (NOT: AdminLayout ve MainLayout importları kaldırıldı — yerel tanımlar dosyada mevcut)
+ 
 // Genel Kullanıcı Sayfaları
 import Home from './pages/Home';
 import Tours from './pages/Tours';
@@ -24,7 +23,7 @@ import Blog from './pages/Blog';
 import BlogPost from './components/BlogPost';
 import StripePayment from './components/StripePayment';
 import Contact from './pages/Contact';
-
+ 
 // Admin Paneli Sayfaları
 import AdminDashboard from './pages/Dashboard';
 import AdminBookings from './pages/Bookings';
@@ -33,8 +32,8 @@ import AIAdminPanel from './components/AIAdminPanel';
 import AIMarketingPanel from './components/AIMarketingPanel';
 import VehicleManagement from './pages/VehicleManagement';
 import DriverPanel from './pages/DriverPanel';
-
-
+ 
+ 
 // Genel Kullanıcı Düzeni
 const MainLayout = () => {
   const { t } = useTranslation();
@@ -63,7 +62,7 @@ const MainLayout = () => {
     </div>
   );
 };
-
+ 
 // Admin Paneli Düzeni
 const AdminLayout = () => {
   const { loading } = useAuth();
@@ -81,7 +80,7 @@ const AdminLayout = () => {
     </div>
   );
 };
-
+ 
 function App() {
   return (
     <I18nextProvider i18n={i18n}>
@@ -89,7 +88,7 @@ function App() {
         <AuthProvider>
           <Routes>
             {/* Ana Kullanıcı Rotaları */}
-            <Route path="/" element={<MainLayout />}>
+            <Route path="/" element={<MainLayout />}> 
               <Route index element={<Home />} />
               <Route path="tours" element={<Tours />} />
               <Route path="booking" element={<Booking />} />
@@ -101,9 +100,9 @@ function App() {
               <Route path="reviews" element={<Feedback />} />
               <Route path="contact" element={<Contact />} />
             </Route>
-
+ 
             {/* Admin Paneli Rotaları (Korunmuş) */}
-            <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']}><AdminLayout /></PrivateRoute>}>
+            <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']}><AdminLayout /></PrivateRoute>}> 
               <Route index element={<AdminDashboard />} />
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="users" element={<AdminUsers />} />
@@ -121,5 +120,5 @@ function App() {
     </I18nextProvider>
   );
 }
-
+ 
 export default App;
