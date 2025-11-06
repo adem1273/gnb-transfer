@@ -120,7 +120,7 @@ npm install  # Run from project root
 npm run dev  # Runs Vite dev server on port 5173
 ```
 
-**Note:** The root package.json contains scripts that reference `--prefix frontend` and `--prefix backend`, but the actual structure has frontend code in the root directory. Use the commands above for proper setup.
+**Note:** The frontend code is located in the root directory (`/src`, `/public`), not in a separate `frontend/` folder. Some scripts in the root package.json reference `--prefix frontend` which is a project structure inconsistency.
 
 ### Environment Variables
 
