@@ -16,7 +16,7 @@ const JWT_SECRET = process.env.JWT_SECRET || '';
  */
 router.post('/register', strictRateLimiter, async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
     
     // Validate required fields
     if (!name || !email || !password) {
@@ -29,12 +29,13 @@ router.post('/register', strictRateLimiter, async (req, res) => {
       return res.apiError('Email already registered', 409);
     }
 
-    // Create new user (password will be hashed by pre-save hook)
+    // Create new user with 'user' role by default
+    // Note: Role assignment restricted to prevent privilege escalation
     const user = new User({ 
       name, 
       email, 
       password,
-      role: role || 'user' // Default to 'user' role, allow admin creation if specified
+      role: 'user' // Always default to 'user' role for security
     });
     await user.save();
 
