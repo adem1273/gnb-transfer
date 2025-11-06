@@ -1,5 +1,8 @@
 /**
  * Booking routes - comprehensive booking management
+ * 
+ * @module routes/bookingRoutes
+ * @description Handles all booking-related operations including creation, retrieval, and management
  */
 
 import express from 'express';
@@ -16,7 +19,22 @@ import {
 const router = express.Router();
 
 /**
- * POST /api/bookings - Create a new booking
+ * @route   POST /api/bookings
+ * @desc    Create a new booking for a tour
+ * @access  Public (rate limited)
+ * @body    {string} name - Customer name (2-100 characters)
+ * @body    {string} email - Customer email address
+ * @body    {string} tourId - MongoDB ObjectId of the tour
+ * @body    {string} [paymentMethod=cash] - Payment method (cash, card, stripe)
+ * @body    {number} [guests=1] - Number of guests (1-50)
+ * @body    {string} [date] - Booking date (ISO 8601 format)
+ * @returns {object} - Created booking object with calculated amount
+ * 
+ * Business logic:
+ * - Validates tour existence before creating booking
+ * - Calculates total amount as: tour.price * guests
+ * - Sets status to 'pending' for cash, 'confirmed' for card/stripe
+ * - Rate limited to 5 requests per 15 minutes to prevent spam
  */
 router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) => {
   try {
@@ -56,7 +74,16 @@ router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) =>
 });
 
 /**
- * GET /api/bookings - Get all bookings (Admin only)
+ * @route   GET /api/bookings
+ * @desc    Get all bookings with tour details
+ * @access  Private (admin only)
+ * @headers Authorization: Bearer <token>
+ * @returns {array} - Array of booking objects with populated tour information
+ * 
+ * Features:
+ * - Populates tour details (title, price, duration)
+ * - Sorted by creation date (newest first)
+ * - Limited to 200 results to prevent performance issues
  */
 router.get('/', requireAuth(['admin']), async (req, res) => {
   try {
@@ -73,7 +100,12 @@ router.get('/', requireAuth(['admin']), async (req, res) => {
 });
 
 /**
- * GET /api/bookings/:id - Get booking by ID (Admin only)
+ * @route   GET /api/bookings/:id
+ * @desc    Get a specific booking by ID
+ * @access  Private (admin only)
+ * @headers Authorization: Bearer <token>
+ * @param   {string} id - MongoDB ObjectId of the booking
+ * @returns {object} - Booking object with populated tour details
  */
 router.get('/:id', requireAuth(['admin']), validateMongoId, async (req, res) => {
   try {
@@ -92,7 +124,17 @@ router.get('/:id', requireAuth(['admin']), validateMongoId, async (req, res) => 
 });
 
 /**
- * DELETE /api/bookings/:id - Delete a booking (Admin only)
+ * @route   DELETE /api/bookings/:id
+ * @desc    Delete a booking by ID
+ * @access  Private (admin only)
+ * @headers Authorization: Bearer <token>
+ * @param   {string} id - MongoDB ObjectId of the booking to delete
+ * @returns {null} - Success message on deletion
+ * 
+ * Security:
+ * - Requires admin role
+ * - Rate limited to 5 requests per 15 minutes
+ * - Validates MongoDB ObjectId format
  */
 router.delete('/:id', requireAuth(['admin']), validateMongoId, strictRateLimiter, async (req, res) => {
   try {
@@ -109,7 +151,19 @@ router.delete('/:id', requireAuth(['admin']), validateMongoId, strictRateLimiter
 });
 
 /**
- * PUT /api/bookings/:id/status - Update booking status (Admin only)
+ * @route   PUT /api/bookings/:id/status
+ * @desc    Update booking status
+ * @access  Private (admin only)
+ * @headers Authorization: Bearer <token>
+ * @param   {string} id - MongoDB ObjectId of the booking
+ * @body    {string} status - New status (pending, confirmed, cancelled, completed, paid)
+ * @returns {object} - Updated booking object with tour details
+ * 
+ * Security:
+ * - Requires admin role
+ * - Rate limited to 5 requests per 15 minutes
+ * - Validates status against allowed values
+ * - Validates MongoDB ObjectId format
  */
 router.put(
   '/:id/status',

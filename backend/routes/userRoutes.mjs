@@ -17,7 +17,20 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || '';
 
 /**
- * POST /api/users/register - Register a new user
+ * @route   POST /api/users/register
+ * @desc    Register a new user account
+ * @access  Public
+ * @body    {string} name - User's full name (2-100 characters)
+ * @body    {string} email - Valid email address
+ * @body    {string} password - Password (min 6 chars, must contain uppercase, lowercase, and number)
+ * @returns {object} - JWT token and user details (without password)
+ * 
+ * Security measures:
+ * - Rate limited to 5 requests per 15 minutes
+ * - Password is hashed with bcrypt before storage (see User model)
+ * - Default role is 'user' to prevent privilege escalation
+ * - JWT token expires in 7 days
+ * - Email uniqueness is enforced at database level
  */
 router.post('/register', strictRateLimiter, validateUserRegistration, async (req, res) => {
   try {
@@ -75,7 +88,18 @@ router.post('/register', strictRateLimiter, validateUserRegistration, async (req
 });
 
 /**
- * POST /api/users/login - Login user and return JWT token
+ * @route   POST /api/users/login
+ * @desc    Authenticate user and return JWT token
+ * @access  Public
+ * @body    {string} email - User's email address
+ * @body    {string} password - User's password
+ * @returns {object} - JWT token and user details (without password)
+ * 
+ * Security measures:
+ * - Rate limited to 5 requests per 15 minutes
+ * - Password verified using bcrypt compare (see User.comparePassword method)
+ * - JWT token expires in 7 days
+ * - Generic error message on invalid credentials (security best practice)
  */
 router.post('/login', strictRateLimiter, validateUserLogin, async (req, res) => {
   try {
@@ -129,7 +153,15 @@ router.post('/login', strictRateLimiter, validateUserLogin, async (req, res) => 
 });
 
 /**
- * GET /api/users/profile - Get current user profile (requires authentication)
+ * @route   GET /api/users/profile
+ * @desc    Get current authenticated user's profile
+ * @access  Private (requires valid JWT token)
+ * @headers Authorization: Bearer <token>
+ * @returns {object} - User profile (without password)
+ * 
+ * Security:
+ * - Requires valid JWT token in Authorization header
+ * - Password field is excluded from response
  */
 router.get('/profile', requireAuth(), async (req, res) => {
   try {
@@ -157,7 +189,15 @@ router.get('/profile', requireAuth(), async (req, res) => {
 });
 
 /**
- * GET /api/users - Get all users (admin only)
+ * @route   GET /api/users
+ * @desc    Get all users (limited to 100)
+ * @access  Private (admin only)
+ * @headers Authorization: Bearer <token>
+ * @returns {array} - Array of user objects (passwords excluded)
+ * 
+ * Security:
+ * - Requires admin role
+ * - Limited to 100 results to prevent memory issues
  */
 router.get('/', requireAuth(['admin']), async (req, res) => {
   try {
@@ -169,7 +209,17 @@ router.get('/', requireAuth(['admin']), async (req, res) => {
 });
 
 /**
- * DELETE /api/users/:id - Delete a user (admin only)
+ * @route   DELETE /api/users/:id
+ * @desc    Delete a user by ID
+ * @access  Private (admin only)
+ * @headers Authorization: Bearer <token>
+ * @param   {string} id - MongoDB ObjectId of the user to delete
+ * @returns {null} - Success message on deletion
+ * 
+ * Security:
+ * - Requires admin role
+ * - Rate limited to 5 requests per 15 minutes
+ * - Validates MongoDB ObjectId format
  */
 router.delete('/:id', requireAuth(['admin']), validateMongoId, strictRateLimiter, async (req, res) => {
   try {
