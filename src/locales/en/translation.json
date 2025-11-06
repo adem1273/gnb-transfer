@@ -89,5 +89,54 @@
     "discount": "Discount",
     "isCampaign": "Campaign",
     "actions": "Actions"
+  },
+  "delay": {
+    "guarantee": "Delay Guarantee",
+    "lowRisk": "Low Risk",
+    "mediumRisk": "Medium Risk",
+    "highRisk": "High Risk",
+    "riskScore": "Risk Score",
+    "estimatedDelay": "Estimated Delay",
+    "minutes": "min",
+    "discountEarned": "Discount Earned!",
+    "copy": "Copy",
+    "discountInfo": "Use this code for your next booking due to potential delay",
+    "guaranteeInfo": "Our delay guarantee ensures you receive compensation if your transfer is delayed more than 15 minutes.",
+    "calculating": "Calculating delay guarantee..."
+  },
+  "package": {
+    "smartBundle": "Smart Package for You",
+    "recommendedTour": "Recommended Tour",
+    "whyThisTour": "Why this tour?",
+    "bundlePrice": "Bundle Price",
+    "savings": "Your Savings",
+    "packageIncludes": "Package Includes",
+    "transfer": "Airport Transfer",
+    "selectedTour": "Selected Tour Experience",
+    "autoDiscount": "Automatic 15% Discount Applied",
+    "prioritySupport": "Priority Customer Support",
+    "bookNow": "Book This Package",
+    "notNow": "Not Now",
+    "aiPowered": "AI-Powered",
+    "personalizedMessage": "Personalized based on your preferences",
+    "createPackage": "Create Your Package",
+    "creating": "Creating...",
+    "loginRequired": "Please login to create a package",
+    "error": "Failed to create package. Please try again.",
+    "bookingRedirect": "Redirecting to booking..."
+  },
+  "booking": {
+    "recommendations": "Recommended Tours",
+    "confirmed": "Booking Confirmed!",
+    "thankYou": "Thank you for your booking.",
+    "newBooking": "Make Another Booking"
+  },
+  "guarantees": {
+    "fixedPrice": "Fixed Price",
+    "noHiddenFees": "No hidden fees",
+    "freeCancellation": "Free Cancellation",
+    "cancellationPolicy": "Cancel up to 24h before",
+    "flightTracking": "Flight Tracking",
+    "weMonitor": "We monitor your flight"
   }
 }
