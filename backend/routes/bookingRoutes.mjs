@@ -16,19 +16,7 @@ router.get('/', requireAuth(), async (req, res) => {
     const bookings = await Booking.find().limit(100).populate('user tour');
     return res.apiSuccess(bookings, 'Bookings retrieved successfully');
   } catch (error) {
-    return res.apiError('Failed to retrieve bookings: ' + error.message, 500);
-  }
-});
-
-/**
- * POST /api/bookings - Create a new booking
- */
-router.post('/', async (req, res) => {
-  try {
-    const booking = await Booking.create(req.body);
-    return res.apiSuccess(booking, 'Booking created successfully');
-  } catch (error) {
-    return res.apiError('Failed to create booking: ' + error.message, 500);
+    return res.apiError(error.message || 'Failed to retrieve bookings', 500);
   }
 });
 

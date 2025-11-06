@@ -9,6 +9,13 @@ import Booking from '../models/Booking.mjs';
 import Tour from '../models/Tour.mjs';
 
 // Initialize OpenAI client
+ * AI Service
+ * Handles AI-powered features using GPT-3.5-Turbo and route APIs
+ */
+
+import OpenAI from 'openai';
+import axios from 'axios';
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
 });

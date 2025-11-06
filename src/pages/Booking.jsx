@@ -5,19 +5,23 @@ import API from '../utils/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
 import { useTranslation } from 'react-i18next';
-import TourCard from '../components/TourCard'; // TourCard bileşenini dahil et
+import TourCard from '../components/TourCard';
 import DelayBadge from '../components/DelayBadge';
+import { useAuth } from '../context/AuthContext';
 
 function Booking() {
   const [form, setForm] = useState({ name: '', email: '', tourId: '', paymentMethod: 'cash' });
   const [tours, setTours] = useState([]);
-  const [recommendedTours, setRecommendedTours] = useState([]); // Yeni state: Önerilen turlar
+  const [recommendedTours, setRecommendedTours] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loadingTours, setLoadingTours] = useState(true);
-  const [completedBookingId, setCompletedBookingId] = useState(null); // Track completed booking
+  const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [delayMetrics, setDelayMetrics] = useState(null);
+  const [loadingDelay, setLoadingDelay] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchTours = async () => {
@@ -72,7 +76,12 @@ function Booking() {
       } else {
         setSuccess(t('messages.bookingCashSuccess'));
         setError('');
-        setCompletedBookingId(res.data._id); // Set completed booking ID to show DelayBadge
+        setBookingConfirmed(true);
+        
+        // Calculate delay metrics after successful booking
+        await calculateDelayMetrics(res.data._id);
+        
+        // Reset form
         setForm({ name: '', email: '', tourId: '', paymentMethod: 'cash' });
         setRecommendedTours([]);
       }
@@ -80,6 +89,25 @@ function Booking() {
       console.error(err);
       setError(t('messages.bookingFailed'));
       setSuccess('');
+    }
+  };
+
+  const calculateDelayMetrics = async (bookingId) => {
+    setLoadingDelay(true);
+    try {
+      // Mock origin and destination - in production, get from form or tour details
+      const response = await API.post('/delay/calculate', {
+        bookingId,
+        origin: 'Istanbul Airport',
+        destination: 'Hotel in Sultanahmet'
+      });
+      
+      setDelayMetrics(response.data);
+    } catch (error) {
+      console.error('Error calculating delay metrics:', error);
+      // Don't show error to user - this is a nice-to-have feature
+    } finally {
+      setLoadingDelay(false);
     }
   };
 
@@ -100,68 +128,93 @@ function Booking() {
         {error && <ErrorMessage message={error} />}
         {success && <p className="text-green-500 mb-2">{success}</p>}
         
-        {/* Show Delay Badge after successful booking */}
-        {completedBookingId && (
-          <div className="mb-4">
-            <DelayBadge 
-              bookingId={completedBookingId}
+        {!bookingConfirmed ? (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              type="text"
+              name="name"
+              placeholder={t('forms.fullName')}
+              value={form.name}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
             />
-          </div>
-        )}
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="name"
-            placeholder={t('forms.fullName')}
-            value={form.name}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder={t('forms.email')}
-            value={form.email}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-          <select
-            name="tourId"
-            value={form.tourId}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          >
-            <option value="">{t('forms.selectTour')}</option>
-            {tours.map((tour) => (
-              <option key={tour._id} value={tour._id}>
-                {tour.title}
-              </option>
-            ))}
-          </select>
-          
-          <div className="mb-2">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              {t('forms.paymentMethod')}
-            </label>
-            <select 
-              name="paymentMethod" 
-              value={form.paymentMethod} 
-              onChange={handleChange} 
+            <input
+              type="email"
+              name="email"
+              placeholder={t('forms.email')}
+              value={form.email}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+            />
+            <select
+              name="tourId"
+              value={form.tourId}
+              onChange={handleChange}
               className="w-full p-2 border rounded"
             >
-              <option value="cash">{t('forms.cash')}</option>
-              <option value="credit_card">{t('forms.creditCard')}</option>
+              <option value="">{t('forms.selectTour')}</option>
+              {tours.map((tour) => (
+                <option key={tour._id} value={tour._id}>
+                  {tour.title}
+                </option>
+              ))}
             </select>
-          </div>
+            
+            <div className="mb-2">
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                {t('forms.paymentMethod')}
+              </label>
+              <select 
+                name="paymentMethod" 
+                value={form.paymentMethod} 
+                onChange={handleChange} 
+                className="w-full p-2 border rounded"
+              >
+                <option value="cash">{t('forms.cash')}</option>
+                <option value="credit_card">{t('forms.creditCard')}</option>
+              </select>
+            </div>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors"
-          >
-            {t('buttons.submit')}
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors"
+            >
+              {t('buttons.submit')}
+            </button>
+          </form>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+              <h3 className="text-lg font-bold text-green-800 mb-2">
+                {t('booking.confirmed', 'Booking Confirmed!')}
+              </h3>
+              <p className="text-green-700">{t('booking.thankYou', 'Thank you for your booking.')}</p>
+            </div>
+            
+            {loadingDelay ? (
+              <div className="text-center py-4">
+                <Loading message={t('delay.calculating', 'Calculating delay guarantee...')} />
+              </div>
+            ) : delayMetrics ? (
+              <DelayBadge
+                delayRiskScore={delayMetrics.delayRiskScore}
+                estimatedDelay={delayMetrics.estimatedDelay}
+                discountCode={delayMetrics.discountCode}
+              />
+            ) : null}
+            
+            <button
+              onClick={() => {
+                setBookingConfirmed(false);
+                setDelayMetrics(null);
+                setSuccess('');
+              }}
+              className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors"
+            >
+              {t('booking.newBooking', 'Make Another Booking')}
+            </button>
+          </div>
+        )}
       </div>
       
       {recommendedTours.length > 0 && (
@@ -169,7 +222,12 @@ function Booking() {
           <h3 className="text-xl font-bold mb-4">{t('booking.recommendations')}</h3>
           <div className="grid grid-cols-1 gap-4">
             {recommendedTours.map(tour => (
-              <TourCard key={tour._id} tour={tour} />
+              <TourCard 
+                key={tour._id} 
+                tour={tour} 
+                showPackageButton={!!user}
+                userId={user?._id}
+              />
             ))}
           </div>
         </div>

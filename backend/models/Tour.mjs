@@ -31,10 +31,10 @@ const tourSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Text index on title for search functionality
+// Text index on title and description for search functionality
 tourSchema.index({ title: 'text', description: 'text' });
 
-const Tour = mongoose.model('Tour', tourSchema);
+const Tour = mongoose.models.Tour || mongoose.model('Tour', tourSchema);
 
 export default Tour;
 

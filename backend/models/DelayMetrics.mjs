@@ -1,5 +1,7 @@
 /**
  * DelayMetrics model for tracking delay guarantees and risk scores
+ * DelayMetrics Model
+ * Stores delay risk calculations for transfer routes
  */
 
 import mongoose from 'mongoose';
@@ -34,45 +36,32 @@ const delayMetricsSchema = new mongoose.Schema({
   delayRiskScore: {
     type: Number,
     required: [true, 'Delay risk score is required'],
-    min: [0, 'Score must be between 0 and 100'],
-    max: [100, 'Score must be between 0 and 100']
+    min: [0, 'Risk score cannot be negative'],
+    max: [100, 'Risk score cannot exceed 100']
   },
-  estimatedDelayMinutes: {
+  estimatedDelay: {
     type: Number,
     default: 0,
     min: [0, 'Estimated delay cannot be negative']
   },
-  factors: {
-    traffic: { type: Number, default: 0 },
-    weather: { type: Number, default: 0 },
-    timeOfDay: { type: Number, default: 0 },
-    dayOfWeek: { type: Number, default: 0 }
+  discountCode: {
+    type: String,
+    default: null
   },
-  discountGenerated: {
+  discountApplied: {
     type: Boolean,
     default: false
   },
-  discountCode: {
-    type: String,
-    trim: true,
-    sparse: true
-  },
-  discountAmount: {
-    type: Number,
-    min: [0, 'Discount amount cannot be negative'],
-    default: 0
+  calculatedAt: {
+    type: Date,
+    default: Date.now
   }
 }, {
   timestamps: true
 });
 
 // Index for efficient queries
-delayMetricsSchema.index({ booking: 1 });
-delayMetricsSchema.index({ delayRiskScore: 1 });
-delayMetricsSchema.index({ createdAt: -1 });
-
-// Compound index for discount queries
-delayMetricsSchema.index({ discountGenerated: 1, createdAt: -1 });
+delayMetricsSchema.index({ booking: 1, calculatedAt: -1 });
 
 const DelayMetrics = mongoose.model('DelayMetrics', delayMetricsSchema);
 

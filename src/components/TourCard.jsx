@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import PackageModal from './PackageModal';
+import SmartPackageModal from './SmartPackageModal';
+import API from '../utils/api';
 
-function TourCard({ tour, showPackageButton = true }) {
+function TourCard({ tour, showPackageButton = false, userId = null }) {
     const { t, i18n } = useTranslation();
     const currentLang = i18n.language;
     const [showPackageModal, setShowPackageModal] = useState(false);
+    const [packageData, setPackageData] = useState(null);
+    const [loadingPackage, setLoadingPackage] = useState(false);
 
     const getDiscountedPrice = (price, discount) => {
         if (discount <= 0 || discount >= 100) return price;
@@ -20,6 +23,32 @@ function TourCard({ tour, showPackageButton = true }) {
     const getTranslatedDescription = (tour) => {
         const langKey = `description_${currentLang}`;
         return tour[langKey] || tour.description;
+    };
+
+    const handleCreatePackage = async () => {
+        if (!userId) {
+            alert(t('package.loginRequired', 'Please login to create a package'));
+            return;
+        }
+
+        setLoadingPackage(true);
+        try {
+            const response = await API.post('/packages/recommend', { userId });
+            setPackageData(response.data);
+            setShowPackageModal(true);
+        } catch (error) {
+            console.error('Error creating package:', error);
+            alert(t('package.error', 'Failed to create package. Please try again.'));
+        } finally {
+            setLoadingPackage(false);
+        }
+    };
+
+    const handleAcceptPackage = (packageData) => {
+        console.log('Package accepted:', packageData);
+        // In production, this would navigate to booking with the package
+        alert(t('package.bookingRedirect', 'Redirecting to booking...'));
+        setShowPackageModal(false);
     };
 
     const discountedPrice = getDiscountedPrice(tour.price, tour.discount);
@@ -48,38 +77,28 @@ function TourCard({ tour, showPackageButton = true }) {
                 <p className="text-sm text-green-600 mt-2 font-medium">
                     {t('tourCard.noHiddenFees')}
                 </p>
-                
-                {/* Add Create Package Button */}
+
                 {showPackageButton && (
                     <button
-                        onClick={() => setShowPackageModal(true)}
-                        className="mt-3 w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 px-4 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 font-semibold flex items-center justify-center gap-2"
+                        onClick={handleCreatePackage}
+                        disabled={loadingPackage}
+                        className="mt-4 w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-2 px-4 rounded-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                        <svg 
-                            className="w-5 h-5" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                        >
-                            <path 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                strokeWidth={2} 
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" 
-                            />
-                        </svg>
-                        {t('tourCard.createPackage')}
+                        <span>🎁</span>
+                        {loadingPackage 
+                            ? t('package.creating', 'Creating...')
+                            : t('package.createPackage', 'Create Your Package')
+                        }
                     </button>
                 )}
             </div>
-            
-            {/* Package Modal */}
-            {showPackageModal && (
-                <PackageModal
-                    tourId={tour._id}
-                    onClose={() => setShowPackageModal(false)}
-                />
-            )}
+
+            <SmartPackageModal
+                isOpen={showPackageModal}
+                onClose={() => setShowPackageModal(false)}
+                packageData={packageData}
+                onAccept={handleAcceptPackage}
+            />
         </>
     );
 }

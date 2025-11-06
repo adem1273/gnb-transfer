@@ -1,72 +1,104 @@
 /**
  * Package Controller
- * Handles smart package creation and recommendations
+ * Handles smart package recommendations using AI
  */
 
-import { createSmartPackage, createGenericPackage } from '../services/aiService.mjs';
+import Booking from '../models/Booking.mjs';
+import Tour from '../models/Tour.mjs';
+import User from '../models/User.mjs';
+import { generateSmartPackage } from '../services/aiService.mjs';
 
 /**
- * POST /api/packages/create
- * Create a smart package for authenticated user
+ * Generate smart package recommendation for a user
+ * POST /api/packages/recommend
  */
-export const generateSmartPackage = async (req, res) => {
+export async function recommendPackage(req, res) {
   try {
-    const userId = req.user?.id;
-    const { currentTourId } = req.body;
-    
+    const { userId } = req.body;
+
     if (!userId) {
-      return res.apiError('Authentication required', 401);
+      return res.apiError('User ID is required', 400);
     }
-    
-    const result = await createSmartPackage(userId, currentTourId);
-    return res.apiSuccess(result.package, 'Smart package created successfully');
+
+    // Verify user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.apiError('User not found', 404);
+    }
+
+    // Get user's booking history
+    const userBookings = await Booking.find({ user: userId })
+      .populate('tour')
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    // Get available tours
+    const availableTours = await Tour.find().limit(50);
+
+    if (availableTours.length === 0) {
+      return res.apiError('No tours available for recommendation', 404);
+    }
+
+    // Generate smart package using AI
+    const packageRecommendation = await generateSmartPackage(
+      userId,
+      userBookings,
+      availableTours
+    );
+
+    if (!packageRecommendation.success) {
+      return res.apiError(packageRecommendation.error || 'Failed to generate package', 500);
+    }
+
+    return res.apiSuccess(packageRecommendation.package, 'Smart package generated successfully');
+
   } catch (error) {
-    console.error('Error generating smart package:', error);
-    return res.apiError('Failed to generate smart package: ' + error.message, 500);
+    console.error('Error generating package recommendation:', error);
+    return res.apiError('Failed to generate package recommendation', 500);
   }
-};
+}
 
 /**
- * POST /api/packages/generic
- * Create a generic package (for unauthenticated users)
+ * Generate package recommendation for authenticated user
+ * GET /api/packages/my-recommendation
  */
-export const generateGenericPackage = async (req, res) => {
+export async function getMyRecommendation(req, res) {
   try {
-    const { currentTourId } = req.body;
-    
-    const result = await createGenericPackage(currentTourId);
-    return res.apiSuccess(result.package, 'Package created successfully');
-  } catch (error) {
-    console.error('Error generating generic package:', error);
-    return res.apiError('Failed to generate package: ' + error.message, 500);
-  }
-};
+    const userId = req.user.id; // From JWT token
 
-/**
- * GET /api/packages/recommend/:tourId
- * Get package recommendation based on a specific tour
- */
-export const getPackageRecommendation = async (req, res) => {
-  try {
-    const { tourId } = req.params;
-    const userId = req.user?.id;
-    
-    let result;
-    if (userId) {
-      result = await createSmartPackage(userId, tourId);
-    } else {
-      result = await createGenericPackage(tourId);
+    // Get user's booking history
+    const userBookings = await Booking.find({ user: userId })
+      .populate('tour')
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    // Get available tours
+    const availableTours = await Tour.find().limit(50);
+
+    if (availableTours.length === 0) {
+      return res.apiError('No tours available for recommendation', 404);
     }
-    
-    return res.apiSuccess(result.package, 'Package recommendation generated successfully');
+
+    // Generate smart package using AI
+    const packageRecommendation = await generateSmartPackage(
+      userId,
+      userBookings,
+      availableTours
+    );
+
+    if (!packageRecommendation.success) {
+      return res.apiError(packageRecommendation.error || 'Failed to generate package', 500);
+    }
+
+    return res.apiSuccess(packageRecommendation.package, 'Smart package generated successfully');
+
   } catch (error) {
-    console.error('Error getting package recommendation:', error);
-    return res.apiError('Failed to get package recommendation: ' + error.message, 500);
+    console.error('Error generating package recommendation:', error);
+    return res.apiError('Failed to generate package recommendation', 500);
   }
-};
+}
 
 export default {
-  generateSmartPackage,
-  generateGenericPackage,
-  getPackageRecommendation
+  recommendPackage,
+  getMyRecommendation
 };

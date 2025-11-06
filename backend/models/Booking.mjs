@@ -14,7 +14,8 @@ const bookingSchema = new mongoose.Schema({
   tour: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Tour',
-    required: [true, 'Tour reference is required']
+    required: [true, 'Tour reference is required'],
+    index: true
   },
   amount: {
     type: Number,
@@ -23,7 +24,7 @@ const bookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'cancelled', 'completed'],
+    enum: ['pending', 'confirmed', 'cancelled', 'completed', 'paid'],
     default: 'pending'
   }
 }, {
@@ -36,7 +37,7 @@ bookingSchema.index({ user: 1 });
 // Compound index for user + status queries
 bookingSchema.index({ user: 1, status: 1 });
 
-const Booking = mongoose.model('Booking', bookingSchema);
+const Booking = mongoose.models.Booking || mongoose.model('Booking', bookingSchema);
 
 export default Booking;
 

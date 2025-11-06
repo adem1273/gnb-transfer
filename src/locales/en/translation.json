@@ -92,36 +92,53 @@
     "isCampaign": "Campaign",
     "actions": "Actions"
   },
-  "delayBadge": {
-    "title": "On-Time Guarantee",
-    "riskScore": "Delay Risk Score",
-    "guaranteeLevel": "Guarantee Level",
-    "estimatedDelay": "Est. Delay",
+  "delay": {
+    "guarantee": "Delay Guarantee",
+    "lowRisk": "Low Risk",
+    "mediumRisk": "Medium Risk",
+    "highRisk": "High Risk",
+    "riskScore": "Risk Score",
+    "estimatedDelay": "Estimated Delay",
     "minutes": "min",
-    "route": "Route",
-    "distance": "Distance",
-    "duration": "Est. Duration",
-    "excellent": "Excellent",
-    "good": "Good",
-    "moderate": "Moderate",
-    "discountEarned": "Delay Protection Activated!",
-    "discountCode": "Your Discount Code",
-    "save": "Save",
-    "useNextBooking": "Use this code on your next booking for compensation",
-    "infoMessage": "Our delay guarantee protects you with automatic compensation if delays occur."
+    "discountEarned": "Discount Earned!",
+    "copy": "Copy",
+    "discountInfo": "Use this code for your next booking due to potential delay",
+    "guaranteeInfo": "Our delay guarantee ensures you receive compensation if your transfer is delayed more than 15 minutes.",
+    "calculating": "Calculating delay guarantee..."
   },
-  "packageModal": {
-    "title": "AI-Powered Package Deal",
-    "personalizedDesc": "Personalized package based on your preferences",
-    "genericDesc": "Curated package for the best value",
-    "generating": "Creating your personalized package...",
-    "highlights": "Package Highlights",
-    "includedTours": "Included Tours",
-    "originalPrice": "Original Price",
-    "packageDiscount": "Package Discount",
-    "totalPrice": "Total Price",
-    "saveAmount": "You save ${{amount}}!",
-    "bookPackage": "Book This Package",
-    "bookingComingSoon": "Package booking coming soon! Contact us for assistance."
+  "package": {
+    "smartBundle": "Smart Package for You",
+    "recommendedTour": "Recommended Tour",
+    "whyThisTour": "Why this tour?",
+    "bundlePrice": "Bundle Price",
+    "savings": "Your Savings",
+    "packageIncludes": "Package Includes",
+    "transfer": "Airport Transfer",
+    "selectedTour": "Selected Tour Experience",
+    "autoDiscount": "Automatic 15% Discount Applied",
+    "prioritySupport": "Priority Customer Support",
+    "bookNow": "Book This Package",
+    "notNow": "Not Now",
+    "aiPowered": "AI-Powered",
+    "personalizedMessage": "Personalized based on your preferences",
+    "createPackage": "Create Your Package",
+    "creating": "Creating...",
+    "loginRequired": "Please login to create a package",
+    "error": "Failed to create package. Please try again.",
+    "bookingRedirect": "Redirecting to booking..."
+  },
+  "booking": {
+    "recommendations": "Recommended Tours",
+    "confirmed": "Booking Confirmed!",
+    "thankYou": "Thank you for your booking.",
+    "newBooking": "Make Another Booking"
+  },
+  "guarantees": {
+    "fixedPrice": "Fixed Price",
+    "noHiddenFees": "No hidden fees",
+    "freeCancellation": "Free Cancellation",
+    "cancellationPolicy": "Cancel up to 24h before",
+    "flightTracking": "Flight Tracking",
+    "weMonitor": "We monitor your flight"
   }
 }
