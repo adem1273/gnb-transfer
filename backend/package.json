@@ -1,6 +1,11 @@
 {
-  "name": "gnb-pro-backend",
+  "type": "module",
+  "name": "gnb-backend",
   "version": "1.0.0",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node backend/server.mjs",
+    "dev": "nodemon --watch backend --exec node backend/server.mjs"
   "description": "",
   "type": "module",
   "main": "server.mjs",
