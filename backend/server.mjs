@@ -19,6 +19,8 @@ import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
 import userRoutes from './routes/userRoutes.mjs';
 import tourRoutes from './routes/tourRoutes.mjs';
 import bookingRoutes from './routes/bookingRoutes.mjs';
+import delayRoutes from './routes/delayRoutes.mjs';
+import packageRoutes from './routes/packageRoutes.mjs';
 
 const app = express();
 
@@ -36,6 +38,8 @@ app.use(responseMiddleware);
 app.use('/api/users', userRoutes);
 app.use('/api/tours', tourRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/delay', delayRoutes);
+app.use('/api/packages', packageRoutes);
 
 // Health check (registered before listen)
 app.get('/health', (req, res) => {
