@@ -89,5 +89,23 @@
     "discount": "Discount",
     "isCampaign": "Campaign",
     "actions": "Actions"
+  },
+  "delayBadge": {
+    "title": "On-Time Guarantee",
+    "riskScore": "Delay Risk Score",
+    "guaranteeLevel": "Guarantee Level",
+    "estimatedDelay": "Est. Delay",
+    "minutes": "min",
+    "route": "Route",
+    "distance": "Distance",
+    "duration": "Est. Duration",
+    "excellent": "Excellent",
+    "good": "Good",
+    "moderate": "Moderate",
+    "discountEarned": "Delay Protection Activated!",
+    "discountCode": "Your Discount Code",
+    "save": "Save",
+    "useNextBooking": "Use this code on your next booking for compensation",
+    "infoMessage": "Our delay guarantee protects you with automatic compensation if delays occur."
   }
 }

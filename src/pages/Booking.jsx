@@ -6,6 +6,7 @@ import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
 import { useTranslation } from 'react-i18next';
 import TourCard from '../components/TourCard'; // TourCard bileşenini dahil et
+import DelayBadge from '../components/DelayBadge';
 
 function Booking() {
   const [form, setForm] = useState({ name: '', email: '', tourId: '', paymentMethod: 'cash' });
@@ -14,6 +15,7 @@ function Booking() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loadingTours, setLoadingTours] = useState(true);
+  const [completedBookingId, setCompletedBookingId] = useState(null); // Track completed booking
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -70,6 +72,7 @@ function Booking() {
       } else {
         setSuccess(t('messages.bookingCashSuccess'));
         setError('');
+        setCompletedBookingId(res.data._id); // Set completed booking ID to show DelayBadge
         setForm({ name: '', email: '', tourId: '', paymentMethod: 'cash' });
         setRecommendedTours([]);
       }
@@ -96,6 +99,17 @@ function Booking() {
         <h2 className="text-2xl font-bold mb-4">{t('header.booking')}</h2>
         {error && <ErrorMessage message={error} />}
         {success && <p className="text-green-500 mb-2">{success}</p>}
+        
+        {/* Show Delay Badge after successful booking */}
+        {completedBookingId && (
+          <div className="mb-4">
+            <DelayBadge 
+              bookingId={completedBookingId} 
+              origin="airport" 
+              destination="istanbul"
+            />
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
