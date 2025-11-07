@@ -23,7 +23,7 @@ const supportTicketSchema = new mongoose.Schema(
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address'],
     },
-    
+
     // Ticket details
     subject: {
       type: String,
@@ -37,7 +37,7 @@ const supportTicketSchema = new mongoose.Schema(
       trim: true,
       maxlength: [2000, 'Message cannot exceed 2000 characters'],
     },
-    
+
     // Ticket metadata
     status: {
       type: String,
@@ -54,7 +54,7 @@ const supportTicketSchema = new mongoose.Schema(
       enum: ['booking', 'payment', 'general', 'technical', 'other'],
       default: 'general',
     },
-    
+
     // AI context
     aiAttempted: {
       type: Boolean,
@@ -64,19 +64,21 @@ const supportTicketSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-    conversationHistory: [{
-      role: { type: String, enum: ['user', 'assistant', 'system'] },
-      content: String,
-      timestamp: { type: Date, default: Date.now },
-    }],
-    
+    conversationHistory: [
+      {
+        role: { type: String, enum: ['user', 'assistant', 'system'] },
+        content: String,
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
+
     // Language
     language: {
       type: String,
       default: 'en',
       enum: ['en', 'tr', 'de', 'fr', 'es', 'it', 'ru', 'ar'],
     },
-    
+
     // Related entities
     booking: {
       type: mongoose.Schema.Types.ObjectId,
@@ -88,7 +90,7 @@ const supportTicketSchema = new mongoose.Schema(
       ref: 'User',
       default: null,
     },
-    
+
     // Resolution
     resolvedAt: {
       type: Date,

@@ -33,7 +33,13 @@ const router = express.Router();
  */
 router.post('/message', strictRateLimiter, optionalAuth, async (req, res) => {
   try {
-    const { message, language = 'en', mode = 'question', conversationHistory = [], bookingId } = req.body;
+    const {
+      message,
+      language = 'en',
+      mode = 'question',
+      conversationHistory = [],
+      bookingId,
+    } = req.body;
 
     if (!message || message.trim().length === 0) {
       return res.apiError('Message is required', 400);
@@ -50,9 +56,12 @@ router.post('/message', strictRateLimiter, optionalAuth, async (req, res) => {
 
     // If user is authenticated, add their booking information
     if (req.user) {
-      const userBookings = await Booking.find({ 
-        email: req.user.email 
-      }).populate('tour', 'title price').limit(5).lean();
+      const userBookings = await Booking.find({
+        email: req.user.email,
+      })
+        .populate('tour', 'title price')
+        .limit(5)
+        .lean();
       context.userBookings = userBookings;
     }
 
@@ -81,7 +90,7 @@ router.post('/message', strictRateLimiter, optionalAuth, async (req, res) => {
         name: req.user?.name || 'Anonymous',
         email: req.user?.email || 'support@gnbtransfer.com',
         subject: 'AI Chat Assistance Needed',
-        message: message,
+        message,
         category: intent === 'booking' ? 'booking' : 'general',
         aiAttempted: true,
         aiResponse: null,
@@ -95,9 +104,10 @@ router.post('/message', strictRateLimiter, optionalAuth, async (req, res) => {
 
       return res.apiSuccess(
         {
-          message: language === 'tr' 
-            ? 'Üzgünüm, şu anda yardımcı olamıyorum. Destek ekibimiz sizinle iletişime geçecek.'
-            : 'Sorry, I cannot assist right now. Our support team will contact you.',
+          message:
+            language === 'tr'
+              ? 'Üzgünüm, şu anda yardımcı olamıyorum. Destek ekibimiz sizinle iletişime geçecek.'
+              : 'Sorry, I cannot assist right now. Our support team will contact you.',
           needsHumanSupport: true,
           ticketId: ticket._id,
           intent,
@@ -122,7 +132,7 @@ router.post('/message', strictRateLimiter, optionalAuth, async (req, res) => {
     const response = {
       message: aiResult.message,
       intent,
-      recommendations: recommendations.map(t => ({
+      recommendations: recommendations.map((t) => ({
         id: t._id,
         title: t.title,
         price: t.price,
@@ -159,16 +169,15 @@ router.post('/booking/manage', strictRateLimiter, async (req, res) => {
     }
 
     // Find booking
-    const booking = await Booking.findOne({ 
-      _id: bookingId, 
-      email: email.toLowerCase() 
-    }).populate('tour').lean();
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      email: email.toLowerCase(),
+    })
+      .populate('tour')
+      .lean();
 
     if (!booking) {
-      return res.apiError(
-        language === 'tr' ? 'Rezervasyon bulunamadı' : 'Booking not found',
-        404
-      );
+      return res.apiError(language === 'tr' ? 'Rezervasyon bulunamadı' : 'Booking not found', 404);
     }
 
     let responseMessage = '';
@@ -176,9 +185,10 @@ router.post('/booking/manage', strictRateLimiter, async (req, res) => {
 
     switch (action) {
       case 'check':
-        responseMessage = language === 'tr'
-          ? `Rezervasyonunuz: ${booking.tour?.title}. Durum: ${booking.status}. Tutar: ${booking.amount}€`
-          : `Your booking: ${booking.tour?.title}. Status: ${booking.status}. Amount: ${booking.amount}€`;
+        responseMessage =
+          language === 'tr'
+            ? `Rezervasyonunuz: ${booking.tour?.title}. Durum: ${booking.status}. Tutar: ${booking.amount}€`
+            : `Your booking: ${booking.tour?.title}. Status: ${booking.status}. Amount: ${booking.amount}€`;
         break;
 
       case 'cancel':
@@ -188,22 +198,26 @@ router.post('/booking/manage', strictRateLimiter, async (req, res) => {
             400
           );
         }
-        
+
         updatedBooking = await Booking.findByIdAndUpdate(
           bookingId,
           { status: 'cancelled' },
           { new: true }
-        ).populate('tour').lean();
+        )
+          .populate('tour')
+          .lean();
 
-        responseMessage = language === 'tr'
-          ? 'Rezervasyonunuz iptal edildi. Ödeme yaptıysanız, 5-7 iş günü içinde iade edilecektir.'
-          : 'Your booking has been cancelled. If paid, refund will be processed in 5-7 business days.';
+        responseMessage =
+          language === 'tr'
+            ? 'Rezervasyonunuz iptal edildi. Ödeme yaptıysanız, 5-7 iş günü içinde iade edilecektir.'
+            : 'Your booking has been cancelled. If paid, refund will be processed in 5-7 business days.';
         break;
 
       case 'modify':
-        responseMessage = language === 'tr'
-          ? 'Rezervasyonunuzu değiştirmek için lütfen destek ekibimizle iletişime geçin.'
-          : 'To modify your booking, please contact our support team.';
+        responseMessage =
+          language === 'tr'
+            ? 'Rezervasyonunuzu değiştirmek için lütfen destek ekibimizle iletişime geçin.'
+            : 'To modify your booking, please contact our support team.';
         break;
 
       default:
@@ -213,18 +227,21 @@ router.post('/booking/manage', strictRateLimiter, async (req, res) => {
     // Get upsell suggestions
     const upsells = await generateUpsellSuggestions(updatedBooking, language);
 
-    return res.apiSuccess({
-      message: responseMessage,
-      booking: {
-        id: updatedBooking._id,
-        tourTitle: updatedBooking.tour?.title,
-        status: updatedBooking.status,
-        amount: updatedBooking.amount,
-        date: updatedBooking.date,
-        guests: updatedBooking.guests,
+    return res.apiSuccess(
+      {
+        message: responseMessage,
+        booking: {
+          id: updatedBooking._id,
+          tourTitle: updatedBooking.tour?.title,
+          status: updatedBooking.status,
+          amount: updatedBooking.amount,
+          date: updatedBooking.date,
+          guests: updatedBooking.guests,
+        },
+        upsells,
       },
-      upsells,
-    }, 'Booking action completed');
+      'Booking action completed'
+    );
   } catch (error) {
     console.error('Booking management error:', error);
     return res.apiError(`Booking management error: ${error.message}`, 500);
@@ -268,16 +285,17 @@ router.post('/support-ticket', strictRateLimiter, async (req, res) => {
       category,
       language,
       aiAttempted: true,
-      conversationHistory: conversationHistory.map(msg => ({
+      conversationHistory: conversationHistory.map((msg) => ({
         role: msg.role,
         content: msg.content,
         timestamp: msg.timestamp || new Date(),
       })),
     });
 
-    const responseMessage = language === 'tr'
-      ? 'Destek talebiniz oluşturuldu. Ekibimiz en kısa sürede sizinle iletişime geçecek.'
-      : 'Support ticket created. Our team will contact you shortly.';
+    const responseMessage =
+      language === 'tr'
+        ? 'Destek talebiniz oluşturuldu. Ekibimiz en kısa sürede sizinle iletişime geçecek.'
+        : 'Support ticket created. Our team will contact you shortly.';
 
     return res.apiSuccess(
       {
@@ -355,6 +373,7 @@ router.post('/log-upsell', strictRateLimiter, async (req, res) => {
     }
 
     // Log for analytics (could be expanded to separate analytics service)
+    // eslint-disable-next-line no-console
     console.log('Upsell conversion:', {
       bookingId,
       upsellTourId,

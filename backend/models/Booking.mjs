@@ -65,21 +65,23 @@ const bookingSchema = new mongoose.Schema(
         discountCode: { type: String },
       },
     },
-    upsells: [{
-      tourId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tour',
+    upsells: [
+      {
+        tourId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Tour',
+        },
+        type: {
+          type: String,
+          enum: ['tour', 'vip', 'addon'],
+          default: 'tour',
+        },
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
       },
-      type: {
-        type: String,
-        enum: ['tour', 'vip', 'addon'],
-        default: 'tour',
-      },
-      timestamp: {
-        type: Date,
-        default: Date.now,
-      },
-    }],
+    ],
   },
   {
     timestamps: true,

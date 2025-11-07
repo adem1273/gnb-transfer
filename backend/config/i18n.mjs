@@ -21,7 +21,8 @@ const resources = {
         aiUnavailable: 'Sorry, I cannot assist right now. Our support team will contact you.',
         ticketCreated: 'Support ticket created. Our team will contact you shortly.',
         bookingNotFound: 'Booking not found',
-        bookingCancelled: 'Your booking has been cancelled. If paid, refund will be processed in 5-7 business days.',
+        bookingCancelled:
+          'Your booking has been cancelled. If paid, refund will be processed in 5-7 business days.',
         alreadyCancelled: 'Booking already cancelled',
         contactSupport: 'To modify your booking, please contact our support team.',
       },
@@ -37,12 +38,16 @@ const resources = {
         serverError: 'Sunucu hatası',
       },
       chat: {
-        aiUnavailable: 'Üzgünüm, şu anda yardımcı olamıyorum. Destek ekibimiz sizinle iletişime geçecek.',
-        ticketCreated: 'Destek talebiniz oluşturuldu. Ekibimiz en kısa sürede sizinle iletişime geçecek.',
+        aiUnavailable:
+          'Üzgünüm, şu anda yardımcı olamıyorum. Destek ekibimiz sizinle iletişime geçecek.',
+        ticketCreated:
+          'Destek talebiniz oluşturuldu. Ekibimiz en kısa sürede sizinle iletişime geçecek.',
         bookingNotFound: 'Rezervasyon bulunamadı',
-        bookingCancelled: 'Rezervasyonunuz iptal edildi. Ödeme yaptıysanız, 5-7 iş günü içinde iade edilecektir.',
+        bookingCancelled:
+          'Rezervasyonunuz iptal edildi. Ödeme yaptıysanız, 5-7 iş günü içinde iade edilecektir.',
         alreadyCancelled: 'Rezervasyon zaten iptal edildi',
-        contactSupport: 'Rezervasyonunuzu değiştirmek için lütfen destek ekibimizle iletişime geçin.',
+        contactSupport:
+          'Rezervasyonunuzu değiştirmek için lütfen destek ekibimizle iletişime geçin.',
       },
     },
   },
@@ -56,10 +61,12 @@ const resources = {
         serverError: 'Interner Serverfehler',
       },
       chat: {
-        aiUnavailable: 'Entschuldigung, ich kann momentan nicht helfen. Unser Support-Team wird Sie kontaktieren.',
+        aiUnavailable:
+          'Entschuldigung, ich kann momentan nicht helfen. Unser Support-Team wird Sie kontaktieren.',
         ticketCreated: 'Support-Ticket erstellt. Unser Team wird sich in Kürze bei Ihnen melden.',
         bookingNotFound: 'Buchung nicht gefunden',
-        bookingCancelled: 'Ihre Buchung wurde storniert. Bei Zahlung wird die Rückerstattung in 5-7 Werktagen bearbeitet.',
+        bookingCancelled:
+          'Ihre Buchung wurde storniert. Bei Zahlung wird die Rückerstattung in 5-7 Werktagen bearbeitet.',
         alreadyCancelled: 'Buchung bereits storniert',
         contactSupport: 'Um Ihre Buchung zu ändern, kontaktieren Sie bitte unser Support-Team.',
       },
@@ -75,12 +82,15 @@ const resources = {
         serverError: 'Erreur de serveur interne',
       },
       chat: {
-        aiUnavailable: 'Désolé, je ne peux pas aider pour le moment. Notre équipe de support vous contactera.',
+        aiUnavailable:
+          'Désolé, je ne peux pas aider pour le moment. Notre équipe de support vous contactera.',
         ticketCreated: 'Ticket de support créé. Notre équipe vous contactera sous peu.',
         bookingNotFound: 'Réservation introuvable',
-        bookingCancelled: 'Votre réservation a été annulée. Si payé, le remboursement sera traité sous 5-7 jours ouvrables.',
+        bookingCancelled:
+          'Votre réservation a été annulée. Si payé, le remboursement sera traité sous 5-7 jours ouvrables.',
         alreadyCancelled: 'Réservation déjà annulée',
-        contactSupport: 'Pour modifier votre réservation, veuillez contacter notre équipe de support.',
+        contactSupport:
+          'Pour modifier votre réservation, veuillez contacter notre équipe de support.',
       },
     },
   },
@@ -94,12 +104,16 @@ const resources = {
         serverError: 'Error interno del servidor',
       },
       chat: {
-        aiUnavailable: 'Lo siento, no puedo ayudar en este momento. Nuestro equipo de soporte se pondrá en contacto con usted.',
-        ticketCreated: 'Ticket de soporte creado. Nuestro equipo se pondrá en contacto con usted en breve.',
+        aiUnavailable:
+          'Lo siento, no puedo ayudar en este momento. Nuestro equipo de soporte se pondrá en contacto con usted.',
+        ticketCreated:
+          'Ticket de soporte creado. Nuestro equipo se pondrá en contacto con usted en breve.',
         bookingNotFound: 'Reserva no encontrada',
-        bookingCancelled: 'Su reserva ha sido cancelada. Si pagó, el reembolso se procesará en 5-7 días hábiles.',
+        bookingCancelled:
+          'Su reserva ha sido cancelada. Si pagó, el reembolso se procesará en 5-7 días hábiles.',
         alreadyCancelled: 'Reserva ya cancelada',
-        contactSupport: 'Para modificar su reserva, póngase en contacto con nuestro equipo de soporte.',
+        contactSupport:
+          'Para modificar su reserva, póngase en contacto con nuestro equipo de soporte.',
       },
     },
   },
@@ -113,10 +127,12 @@ const resources = {
         serverError: 'Errore interno del server',
       },
       chat: {
-        aiUnavailable: 'Spiacente, non posso aiutare al momento. Il nostro team di supporto ti contatterà.',
+        aiUnavailable:
+          'Spiacente, non posso aiutare al momento. Il nostro team di supporto ti contatterà.',
         ticketCreated: 'Ticket di supporto creato. Il nostro team ti contatterà a breve.',
         bookingNotFound: 'Prenotazione non trovata',
-        bookingCancelled: 'La tua prenotazione è stata cancellata. Se pagato, il rimborso sarà elaborato in 5-7 giorni lavorativi.',
+        bookingCancelled:
+          'La tua prenotazione è stata cancellata. Se pagato, il rimborso sarà elaborato in 5-7 giorni lavorativi.',
         alreadyCancelled: 'Prenotazione già cancellata',
         contactSupport: 'Per modificare la tua prenotazione, contatta il nostro team di supporto.',
       },
@@ -135,7 +151,8 @@ const resources = {
         aiUnavailable: 'Извините, я не могу помочь сейчас. Наша команда поддержки свяжется с вами.',
         ticketCreated: 'Тикет поддержки создан. Наша команда скоро свяжется с вами.',
         bookingNotFound: 'Бронирование не найдено',
-        bookingCancelled: 'Ваше бронирование отменено. Если оплачено, возврат будет обработан в течение 5-7 рабочих дней.',
+        bookingCancelled:
+          'Ваше бронирование отменено. Если оплачено, возврат будет обработан в течение 5-7 рабочих дней.',
         alreadyCancelled: 'Бронирование уже отменено',
         contactSupport: 'Чтобы изменить бронирование, обратитесь в нашу службу поддержки.',
       },

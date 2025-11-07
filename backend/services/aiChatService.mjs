@@ -6,7 +6,6 @@
 
 import OpenAI from 'openai';
 import Tour from '../models/Tour.mjs';
-import Booking from '../models/Booking.mjs';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -105,11 +104,11 @@ export async function generateAIResponse(message, language = 'en', context = {})
     }
 
     const systemPrompt = SYSTEM_PROMPTS[language] || SYSTEM_PROMPTS.en;
-    
+
     // Build context information
     let contextInfo = '';
     if (context.availableTours) {
-      contextInfo += `\n\nAvailable tours: ${context.availableTours.map(t => `${t.title} (${t.price}€)`).join(', ')}`;
+      contextInfo += `\n\nAvailable tours: ${context.availableTours.map((t) => `${t.title} (${t.price}€)`).join(', ')}`;
     }
     if (context.userBookings) {
       contextInfo += `\n\nUser's bookings: ${context.userBookings.length} active bookings`;
@@ -146,7 +145,7 @@ export async function generateAIResponse(message, language = 'en', context = {})
 /**
  * Classify user intent from message
  */
-export async function classifyIntent(message, language = 'en') {
+export async function classifyIntent(message, _language = 'en') {
   try {
     if (!process.env.OPENAI_API_KEY) {
       return { intent: 'general', confidence: 0 };
@@ -186,16 +185,16 @@ Respond with just the category name.`,
 /**
  * Get recommended tours based on user message
  */
-export async function getRecommendedTours(message, language = 'en') {
+export async function getRecommendedTours(message, _language = 'en') {
   try {
     const allTours = await Tour.find({ isActive: true }).limit(10).lean();
-    
+
     if (!process.env.OPENAI_API_KEY || allTours.length === 0) {
       return allTours.slice(0, 3);
     }
 
-    const tourList = allTours.map(t => `${t._id}: ${t.title} - ${t.description}`).join('\n');
-    
+    const tourList = allTours.map((t) => `${t._id}: ${t.title} - ${t.description}`).join('\n');
+
     const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
@@ -213,9 +212,12 @@ ${tourList}`,
       max_tokens: 100,
     });
 
-    const recommendedIds = response.choices[0].message.content.trim().split(',').map(id => id.trim());
-    const recommended = allTours.filter(t => recommendedIds.includes(t._id.toString()));
-    
+    const recommendedIds = response.choices[0].message.content
+      .trim()
+      .split(',')
+      .map((id) => id.trim());
+    const recommended = allTours.filter((t) => recommendedIds.includes(t._id.toString()));
+
     return recommended.length > 0 ? recommended : allTours.slice(0, 3);
   } catch (error) {
     console.error('Tour recommendation error:', error.message);
@@ -229,22 +231,25 @@ ${tourList}`,
  */
 export async function generateUpsellSuggestions(booking, language = 'en') {
   try {
-    const tours = await Tour.find({ isActive: true, _id: { $ne: booking.tourId } }).limit(5).lean();
-    
+    const tours = await Tour.find({ isActive: true, _id: { $ne: booking.tourId } })
+      .limit(5)
+      .lean();
+
     if (tours.length === 0) {
       return [];
     }
 
     // Return VIP and popular tours as upsell suggestions
-    const suggestions = tours.map(tour => ({
+    const suggestions = tours.map((tour) => ({
       type: 'tour',
       tourId: tour._id,
       title: tour.title,
       price: tour.price,
       discount: tour.discount || 0,
-      message: language === 'tr' 
-        ? `${tour.title} turunu da denemeyi düşünür müsünüz?`
-        : `Would you like to try our ${tour.title} tour as well?`,
+      message:
+        language === 'tr'
+          ? `${tour.title} turunu da denemeyi düşünür müsünüz?`
+          : `Would you like to try our ${tour.title} tour as well?`,
     }));
 
     return suggestions.slice(0, 2);
