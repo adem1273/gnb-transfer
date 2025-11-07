@@ -10,6 +10,7 @@ import Booking from '../models/Booking.mjs';
 import Tour from '../models/Tour.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
+import { cacheMiddleware, clearCache } from '../middlewares/cache.mjs';
 import {
   validateBookingCreation,
   validateBookingStatusUpdate,
@@ -45,8 +46,8 @@ router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) =>
       return res.apiError('Name, email, and tourId are required', 400);
     }
 
-    // Verify tour exists
-    const tour = await Tour.findById(tourId);
+    // Verify tour exists (use lean for read-only)
+    const tour = await Tour.findById(tourId).lean();
     if (!tour) {
       return res.apiError('Tour not found', 404);
     }
@@ -67,6 +68,9 @@ router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) =>
       amount: tour.price * (guests || 1),
     });
 
+    // Clear bookings cache when new booking is created
+    clearCache(/^\/api\/bookings/);
+
     return res.apiSuccess(booking, 'Booking created successfully', 201);
   } catch (error) {
     return res.apiError(`Failed to create booking: ${error.message}`, 500);
@@ -84,14 +88,16 @@ router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) =>
  * - Populates tour details (title, price, duration)
  * - Sorted by creation date (newest first)
  * - Limited to 200 results to prevent performance issues
+ * - Cached for 5 minutes (admin data changes frequently)
  */
-router.get('/', requireAuth(['admin']), async (req, res) => {
+router.get('/', requireAuth(['admin']), cacheMiddleware(300), async (req, res) => {
   try {
     const bookings = await Booking.find()
       .populate('tour', 'title price duration')
       .populate('tourId', 'title price duration')
       .sort({ createdAt: -1 })
-      .limit(200);
+      .limit(200)
+      .lean();
 
     return res.apiSuccess(bookings, 'Bookings retrieved successfully');
   } catch (error) {
@@ -106,12 +112,14 @@ router.get('/', requireAuth(['admin']), async (req, res) => {
  * @headers Authorization: Bearer <token>
  * @param   {string} id - MongoDB ObjectId of the booking
  * @returns {object} - Booking object with populated tour details
+ * - Cached for 5 minutes
  */
-router.get('/:id', requireAuth(['admin']), validateMongoId, async (req, res) => {
+router.get('/:id', requireAuth(['admin']), validateMongoId, cacheMiddleware(300), async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id)
       .populate('tour', 'title price duration')
-      .populate('tourId', 'title price duration');
+      .populate('tourId', 'title price duration')
+      .lean();
 
     if (!booking) {
       return res.apiError('Booking not found', 404);
@@ -148,6 +156,9 @@ router.delete(
       if (!booking) {
         return res.apiError('Booking not found', 404);
       }
+
+      // Clear bookings cache
+      clearCache(/^\/api\/bookings/);
 
       return res.apiSuccess(null, 'Booking deleted successfully');
     } catch (error) {
@@ -199,6 +210,9 @@ router.put(
       if (!booking) {
         return res.apiError('Booking not found', 404);
       }
+
+      // Clear bookings cache
+      clearCache(/^\/api\/bookings/);
 
       return res.apiSuccess(booking, 'Booking status updated successfully');
     } catch (error) {

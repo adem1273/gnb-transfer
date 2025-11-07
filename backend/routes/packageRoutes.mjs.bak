@@ -74,24 +74,18 @@ router.post('/recommend', strictRateLimiter, async (req, res) => {
       userLanguage,
     });
 
-    // Log interaction (fetch user doc for write operation)
-    try {
-      const userDoc = await User.findById(userId);
-      if (userDoc && userDoc.interactionLogs) {
-        userDoc.interactionLogs.push({
-          action: 'package_recommendation_viewed',
-          tourId: packageRecommendation.tourId,
-          timestamp: new Date(),
-          metadata: {
-            bundlePrice: packageRecommendation.bundlePrice,
-            discount: packageRecommendation.discount,
-          },
-        });
-        await userDoc.save();
-      }
-    } catch (logError) {
-      // Log error but don't fail the request
-      console.error('Failed to log interaction:', logError);
+    // Log interaction
+    if (user.interactionLogs) {
+      user.interactionLogs.push({
+        action: 'package_recommendation_viewed',
+        tourId: packageRecommendation.tourId,
+        timestamp: new Date(),
+        metadata: {
+          bundlePrice: packageRecommendation.bundlePrice,
+          discount: packageRecommendation.discount,
+        },
+      });
+      await user.save();
     }
 
     return res.apiSuccess(packageRecommendation, 'Smart package generated successfully', 200);
@@ -144,24 +138,18 @@ router.get('/my-recommendation', requireAuth(), cacheMiddleware(600), async (req
       userLanguage,
     });
 
-    // Log interaction (fetch user doc for write operation)
-    try {
-      const userDoc = await User.findById(userId);
-      if (userDoc && userDoc.interactionLogs) {
-        userDoc.interactionLogs.push({
-          action: 'package_recommendation_viewed',
-          tourId: packageRecommendation.tourId,
-          timestamp: new Date(),
-          metadata: {
-            bundlePrice: packageRecommendation.bundlePrice,
-            discount: packageRecommendation.discount,
-          },
-        });
-        await userDoc.save();
-      }
-    } catch (logError) {
-      // Log error but don't fail the request
-      console.error('Failed to log interaction:', logError);
+    // Log interaction
+    if (user.interactionLogs) {
+      user.interactionLogs.push({
+        action: 'package_recommendation_viewed',
+        tourId: packageRecommendation.tourId,
+        timestamp: new Date(),
+        metadata: {
+          bundlePrice: packageRecommendation.bundlePrice,
+          discount: packageRecommendation.discount,
+        },
+      });
+      await user.save();
     }
 
     return res.apiSuccess(packageRecommendation, 'Smart package generated successfully', 200);
