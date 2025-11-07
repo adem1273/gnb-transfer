@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,7 +11,7 @@ function LiveChat() {
   const [bookingId, setBookingId] = useState('');
   const [recommendations, setRecommendations] = useState([]);
   const [upsells, setUpsells] = useState([]);
-  
+
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const messagesEndRef = useRef(null);
@@ -36,7 +36,7 @@ function LiveChat() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    
+
     if (!inputMessage.trim() || isLoading) return;
 
     const userMessage = {
@@ -55,7 +55,7 @@ function LiveChat() {
         'Content-Type': 'application/json',
       };
       if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers.Authorization = `Bearer ${token}`;
       }
 
       const response = await fetch(`${API_URL}/chat/message`, {
@@ -65,7 +65,7 @@ function LiveChat() {
           message: inputMessage,
           language: i18n.language,
           mode: mode || 'question',
-          conversationHistory: messages.slice(-10).map(m => ({
+          conversationHistory: messages.slice(-10).map((m) => ({
             role: m.role,
             content: m.content,
           })),
@@ -86,11 +86,11 @@ function LiveChat() {
         };
 
         setMessages((prev) => [...prev, aiMessage]);
-        
+
         if (data.data.recommendations && data.data.recommendations.length > 0) {
           setRecommendations(data.data.recommendations);
         }
-        
+
         if (data.data.upsells && data.data.upsells.length > 0) {
           setUpsells(data.data.upsells);
         }
@@ -120,9 +120,7 @@ function LiveChat() {
     setMode(selectedMode);
     const modeMessage = {
       role: 'system',
-      content: selectedMode === 'question' 
-        ? t('liveChat.modeQuestion')
-        : t('liveChat.modeBooking'),
+      content: selectedMode === 'question' ? t('liveChat.modeQuestion') : t('liveChat.modeBooking'),
       timestamp: new Date(),
     };
     setMessages((prev) => [...prev, modeMessage]);
@@ -144,11 +142,11 @@ function LiveChat() {
     setIsLoading(true);
     try {
       // Get email from user context or ask inline
-      let email = user?.email;
+      const email = user?.email;
       if (!email) {
         const emailMessage = {
           role: 'system',
-          content: t('forms.email') + ':',
+          content: `${t('forms.email')}:`,
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, emailMessage]);
@@ -180,7 +178,7 @@ function LiveChat() {
           upsells: data.data.upsells || [],
         };
         setMessages((prev) => [...prev, bookingMessage]);
-        
+
         if (data.data.upsells && data.data.upsells.length > 0) {
           setUpsells(data.data.upsells);
         }
@@ -211,7 +209,7 @@ function LiveChat() {
 
   const logUpsell = async (tourId) => {
     if (!bookingId) return;
-    
+
     try {
       await fetch(`${API_URL}/chat/log-upsell`, {
         method: 'POST',
@@ -239,8 +237,8 @@ function LiveChat() {
               <h3 className="font-bold text-lg">{t('liveChat.title')}</h3>
               <p className="text-xs text-blue-100">{t('liveChat.poweredByAI')}</p>
             </div>
-            <button 
-              onClick={() => setIsOpen(false)} 
+            <button
+              onClick={() => setIsOpen(false)}
               className="text-white hover:text-gray-200 text-2xl font-bold"
             >
               &times;
@@ -296,47 +294,49 @@ function LiveChat() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[300px]">
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
+            {messages.map((msg, index) => {
+              // Determine message style
+              let messageStyle = 'bg-gray-100 text-gray-800';
+              if (msg.role === 'user') {
+                messageStyle = 'bg-blue-600 text-white';
+              } else if (msg.role === 'system') {
+                messageStyle = 'bg-gray-100 text-gray-600 text-sm italic';
+              } else if (msg.isError) {
+                messageStyle = 'bg-red-100 text-red-700';
+              }
+
+              return (
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
-                    msg.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : msg.role === 'system'
-                      ? 'bg-gray-100 text-gray-600 text-sm italic'
-                      : msg.isError
-                      ? 'bg-red-100 text-red-700'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
+                  key={index}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                  
-                  {/* Show booking actions */}
-                  {msg.booking && (
-                    <div className="mt-2 pt-2 border-t border-gray-300">
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => handleBookingAction('cancel')}
-                          className="text-xs py-1 px-2 bg-red-500 text-white rounded hover:bg-red-600"
-                        >
-                          {t('liveChat.cancelBooking')}
-                        </button>
-                        <button
-                          onClick={() => handleBookingAction('modify')}
-                          className="text-xs py-1 px-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        >
-                          {t('liveChat.modifyBooking')}
-                        </button>
+                  <div className={`max-w-[80%] p-3 rounded-lg ${messageStyle}`}>
+                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+
+                    {/* Show booking actions */}
+                    {msg.booking && (
+                      <div className="mt-2 pt-2 border-t border-gray-300">
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => handleBookingAction('cancel')}
+                            className="text-xs py-1 px-2 bg-red-500 text-white rounded hover:bg-red-600"
+                          >
+                            {t('liveChat.cancelBooking')}
+                          </button>
+                          <button
+                            onClick={() => handleBookingAction('modify')}
+                            className="text-xs py-1 px-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          >
+                            {t('liveChat.modifyBooking')}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-            
+              );
+            })}
+
             {isLoading && (
               <div className="flex justify-start">
                 <div className="bg-gray-100 text-gray-600 p-3 rounded-lg text-sm">
@@ -345,7 +345,7 @@ function LiveChat() {
                 </div>
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
 
@@ -357,7 +357,10 @@ function LiveChat() {
               </p>
               <div className="space-y-2">
                 {recommendations.slice(0, 3).map((tour) => (
-                  <div key={tour.id} className="flex justify-between items-center text-xs bg-white p-2 rounded">
+                  <div
+                    key={tour.id}
+                    className="flex justify-between items-center text-xs bg-white p-2 rounded"
+                  >
                     <div>
                       <p className="font-semibold">{tour.title}</p>
                       <p className="text-gray-600">{tour.price}€</p>
@@ -437,7 +440,11 @@ function LiveChat() {
           className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all focus:outline-none relative"
         >
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5z" clipRule="evenodd" fillRule="evenodd"></path>
+            <path
+              d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5z"
+              clipRule="evenodd"
+              fillRule="evenodd"
+            ></path>
           </svg>
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
             AI
