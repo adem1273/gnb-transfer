@@ -5,6 +5,7 @@
  */
 
 import express from 'express';
+import mongoose from 'mongoose';
 import SupportTicket from '../models/SupportTicket.mjs';
 import Booking from '../models/Booking.mjs';
 import Tour from '../models/Tour.mjs';
@@ -19,6 +20,9 @@ import {
 } from '../services/aiChatService.mjs';
 
 const router = express.Router();
+
+// Helper to validate MongoDB ObjectId
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 /**
  * @route   POST /api/chat/message
@@ -68,6 +72,10 @@ router.post('/message', strictRateLimiter, optionalAuth, async (req, res) => {
     // If booking mode and bookingId provided, fetch booking details
     let booking = null;
     if (mode === 'booking' && bookingId) {
+      // Validate ObjectId format to prevent injection
+      if (!isValidObjectId(bookingId)) {
+        return res.apiError('Invalid booking ID format', 400);
+      }
       booking = await Booking.findById(bookingId).populate('tour').lean();
       if (booking) {
         context.booking = booking;
@@ -166,6 +174,16 @@ router.post('/booking/manage', strictRateLimiter, async (req, res) => {
 
     if (!bookingId || !email) {
       return res.apiError('Booking ID and email are required', 400);
+    }
+
+    // Validate ObjectId format to prevent injection
+    if (!isValidObjectId(bookingId)) {
+      return res.apiError('Invalid booking ID format', 400);
+    }
+
+    // Validate email format - simple check to prevent ReDoS
+    if (!email.includes('@') || !email.includes('.') || email.length < 5 || email.length > 254) {
+      return res.apiError('Invalid email format', 400);
     }
 
     // Find booking
@@ -353,6 +371,14 @@ router.post('/log-upsell', strictRateLimiter, async (req, res) => {
       return res.apiError('Booking ID and upsell tour ID are required', 400);
     }
 
+    // Validate ObjectId formats to prevent injection
+    if (!isValidObjectId(bookingId)) {
+      return res.apiError('Invalid booking ID format', 400);
+    }
+    if (!isValidObjectId(upsellTourId)) {
+      return res.apiError('Invalid tour ID format', 400);
+    }
+
     // Update booking with upsell information
     const booking = await Booking.findByIdAndUpdate(
       bookingId,
@@ -373,8 +399,9 @@ router.post('/log-upsell', strictRateLimiter, async (req, res) => {
     }
 
     // Log for analytics (could be expanded to separate analytics service)
+    // Using console.log for now - consider implementing winston/pino in production
     // eslint-disable-next-line no-console
-    console.log('Upsell conversion:', {
+    console.log('[ANALYTICS] Upsell conversion:', {
       bookingId,
       upsellTourId,
       upsellType,

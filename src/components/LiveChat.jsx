@@ -130,12 +130,32 @@ function LiveChat() {
 
   const handleBookingAction = async (action) => {
     if (!bookingId) {
-      alert(t('liveChat.enterBookingId'));
+      // Show inline error instead of alert
+      const errorMessage = {
+        role: 'assistant',
+        content: t('liveChat.enterBookingId'),
+        timestamp: new Date(),
+        isError: true,
+      };
+      setMessages((prev) => [...prev, errorMessage]);
       return;
     }
 
     setIsLoading(true);
     try {
+      // Get email from user context or ask inline
+      let email = user?.email;
+      if (!email) {
+        const emailMessage = {
+          role: 'system',
+          content: t('forms.email') + ':',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, emailMessage]);
+        // User needs to type email in chat instead
+        return;
+      }
+
       const response = await fetch(`${API_URL}/chat/booking/manage`, {
         method: 'POST',
         headers: {
@@ -143,7 +163,7 @@ function LiveChat() {
         },
         body: JSON.stringify({
           bookingId,
-          email: user?.email || prompt(t('forms.email')),
+          email,
           action,
           language: i18n.language,
         }),
