@@ -47,7 +47,6 @@ const delayMetricsSchema = new mongoose.Schema(
     discountCode: {
       type: String,
       trim: true,
-      index: true,
     },
     calculatedAt: {
       type: Date,

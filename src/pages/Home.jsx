@@ -7,9 +7,11 @@ import TourCard from '../components/TourCard';
 import API from '../utils/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
+import { useAuth } from '../context/AuthContext';
 
 function Home() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const [featuredReviews, setFeaturedReviews] = useState([]);
   const [campaignTours, setCampaignTours] = useState([]);
   const [popularTours, setPopularTours] = useState([]); // Yeni state: Popüler turlar
@@ -120,7 +122,12 @@ function Home() {
               </h2>
               <div className="grid md:grid-cols-3 gap-6">
                   {popularTours.map(tour => (
-                      <TourCard key={tour._id} tour={tour} />
+                      <TourCard 
+                        key={tour._id} 
+                        tour={tour} 
+                        showPackageButton={!!user}
+                        userId={user?._id}
+                      />
                   ))}
               </div>
           </section>
@@ -134,7 +141,12 @@ function Home() {
               </h2>
               <div className="grid md:grid-cols-3 gap-6">
                   {campaignTours.map(tour => (
-                      <TourCard key={tour._id} tour={tour} />
+                      <TourCard 
+                        key={tour._id} 
+                        tour={tour}
+                        showPackageButton={!!user}
+                        userId={user?._id}
+                      />
                   ))}
               </div>
           </section>

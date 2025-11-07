@@ -89,5 +89,8 @@
     "discount": "折扣",
     "isCampaign": "活动",
     "actions": "操作"
+  },
+  "delay": {
+    "slogan": "如果我们延误，我们付款。"
   }
 }

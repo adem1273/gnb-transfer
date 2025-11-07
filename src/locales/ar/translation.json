@@ -89,5 +89,8 @@
     "discount": "الخصم",
     "isCampaign": "الحملة",
     "actions": "الإجراءات"
+  },
+  "delay": {
+    "slogan": "إذا تأخرنا، ندفع."
   }
 }
