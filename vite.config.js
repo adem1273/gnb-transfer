@@ -23,6 +23,10 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    // Enable HMR for faster development
+    hmr: {
+      overlay: true,
+    },
   },
   resolve: {
     alias: {
@@ -38,32 +42,63 @@ export default defineConfig({
       compress: {
         drop_console: true, // Remove console.logs in production
         drop_debugger: true,
+        pure_funcs: ['console.log'], // Remove console.log calls
       },
     },
     // Optimize chunk size
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Vendor chunk for React libraries (only if present)
+          // Vendor chunk for React libraries
           if (id.includes('node_modules')) {
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
               return 'react-vendor';
             }
-            // i18n chunk (only if present)
+            // i18n chunk
             if (id.includes('i18next') || id.includes('react-i18next')) {
               return 'i18n-vendor';
             }
+            // Animation libraries
+            if (id.includes('framer-motion')) {
+              return 'animation-vendor';
+            }
+            // API and utilities
+            if (id.includes('axios')) {
+              return 'api-vendor';
+            }
           }
         },
+        // Optimize asset file names
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name.split('.');
+          let extType = info[info.length - 1];
+          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
+            extType = 'images';
+          } else if (/woff|woff2/.test(extType)) {
+            extType = 'fonts';
+          }
+          return `assets/${extType}/[name]-[hash][extname]`;
+        },
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
       },
     },
     // Increase chunk size warning limit
     chunkSizeWarningLimit: 1000,
     // Enable source maps for debugging (disable in production if not needed)
     sourcemap: false,
+    // Optimize CSS
+    cssCodeSplit: true,
+    // Target modern browsers for better optimization
+    target: 'es2020',
   },
   // Optimize dependencies
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'axios'],
+  },
+  // Preview server configuration
+  preview: {
+    port: 4173,
+    strictPort: true,
   },
 });
