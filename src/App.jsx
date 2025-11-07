@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { I18nextProvider, useTranslation } from 'react-i18next'; // useTranslation eklendi
 import i18n from './i18n';
@@ -13,25 +13,23 @@ import Feedback from './components/Feedback';
 import ErrorMessage from './components/ErrorMessage';
 // (NOT: AdminLayout ve MainLayout importları kaldırıldı — yerel tanımlar dosyada mevcut)
  
-// Genel Kullanıcı Sayfaları
-import Home from './pages/Home';
-import Tours from './pages/Tours';
-import Booking from './pages/Booking';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Blog from './pages/Blog';
-import BlogPost from './components/BlogPost';
-import StripePayment from './components/StripePayment';
-import Contact from './pages/Contact';
- 
-// Admin Paneli Sayfaları
-import AdminDashboard from './pages/Dashboard';
-import AdminBookings from './pages/Bookings';
-import AdminUsers from './pages/Users';
-import AIAdminPanel from './components/AIAdminPanel';
-import AIMarketingPanel from './components/AIMarketingPanel';
-import VehicleManagement from './pages/VehicleManagement';
-import DriverPanel from './pages/DriverPanel';
+// Lazy load pages for better performance
+const Home = lazy(() => import('./pages/Home'));
+const Tours = lazy(() => import('./pages/Tours'));
+const Booking = lazy(() => import('./pages/Booking'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Blog = lazy(() => import('./pages/Blog'));
+const BlogPost = lazy(() => import('./components/BlogPost'));
+const StripePayment = lazy(() => import('./components/StripePayment'));
+const Contact = lazy(() => import('./pages/Contact'));
+const AdminDashboard = lazy(() => import('./pages/Dashboard'));
+const AdminBookings = lazy(() => import('./pages/Bookings'));
+const AdminUsers = lazy(() => import('./pages/Users'));
+const AIAdminPanel = lazy(() => import('./components/AIAdminPanel'));
+const AIMarketingPanel = lazy(() => import('./components/AIMarketingPanel'));
+const VehicleManagement = lazy(() => import('./pages/VehicleManagement'));
+const DriverPanel = lazy(() => import('./pages/DriverPanel'));
  
  
 // Genel Kullanıcı Düzeni
@@ -86,35 +84,37 @@ function App() {
     <I18nextProvider i18n={i18n}>
       <Router>
         <AuthProvider>
-          <Routes>
-            {/* Ana Kullanıcı Rotaları */}
-            <Route path="/" element={<MainLayout />}> 
-              <Route index element={<Home />} />
-              <Route path="tours" element={<Tours />} />
-              <Route path="booking" element={<Booking />} />
-              <Route path="login" element={<Login />} />
-              <Route path="register" element={<Register />} />
-              <Route path="blog" element={<Blog />} />
-              <Route path="blog/:id" element={<BlogPost />} />
-              <Route path="payment" element={<StripePayment />} />
-              <Route path="reviews" element={<Feedback />} />
-              <Route path="contact" element={<Contact />} />
-            </Route>
+          <Suspense fallback={<Loading />}>
+            <Routes>
+              {/* Ana Kullanıcı Rotaları */}
+              <Route path="/" element={<MainLayout />}> 
+                <Route index element={<Home />} />
+                <Route path="tours" element={<Tours />} />
+                <Route path="booking" element={<Booking />} />
+                <Route path="login" element={<Login />} />
+                <Route path="register" element={<Register />} />
+                <Route path="blog" element={<Blog />} />
+                <Route path="blog/:id" element={<BlogPost />} />
+                <Route path="payment" element={<StripePayment />} />
+                <Route path="reviews" element={<Feedback />} />
+                <Route path="contact" element={<Contact />} />
+              </Route>
  
-            {/* Admin Paneli Rotaları (Korunmuş) */}
-            <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']}><AdminLayout /></PrivateRoute>}> 
-              <Route index element={<AdminDashboard />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="bookings" element={<AdminBookings />} />
-              <Route path="ai" element={<AIAdminPanel />} />
-              <Route path="marketing" element={<AIMarketingPanel />} />
-              <Route path="vehicles" element={<VehicleManagement />} />
-            </Route>
-            
-            {/* Sürücü Paneli Rotası */}
-            <Route path="/driver" element={<PrivateRoute allowedRoles={['driver']}><DriverPanel /></PrivateRoute>} />
-          </Routes>
+              {/* Admin Paneli Rotaları (Korunmuş) */}
+              <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']}><AdminLayout /></PrivateRoute>}> 
+                <Route index element={<AdminDashboard />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="bookings" element={<AdminBookings />} />
+                <Route path="ai" element={<AIAdminPanel />} />
+                <Route path="marketing" element={<AIMarketingPanel />} />
+                <Route path="vehicles" element={<VehicleManagement />} />
+              </Route>
+              
+              {/* Sürücü Paneli Rotası */}
+              <Route path="/driver" element={<PrivateRoute allowedRoles={['driver']}><DriverPanel /></PrivateRoute>} />
+            </Routes>
+          </Suspense>
         </AuthProvider>
       </Router>
     </I18nextProvider>
