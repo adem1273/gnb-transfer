@@ -24,10 +24,11 @@ const MAX_BATCH_SIZE = 10; // Process max 10 requests together
 
 /**
  * Generate cache key for request deduplication
+ * Using SHA-256 for better security and collision resistance
  */
 function generateCacheKey(messages, model) {
   const content = JSON.stringify({ messages, model });
-  return crypto.createHash('md5').update(content).digest('hex');
+  return crypto.createHash('sha256').update(content).digest('hex');
 }
 
 /**
