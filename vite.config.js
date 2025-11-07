@@ -42,7 +42,6 @@ export default defineConfig({
       compress: {
         drop_console: true, // Remove console.logs in production
         drop_debugger: true,
-        pure_funcs: ['console.log'], // Remove console.log calls
       },
     },
     // Optimize chunk size

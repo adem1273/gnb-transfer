@@ -7,11 +7,12 @@ function Loading({ message = 'Loading...', fullScreen = false }) {
     : "flex flex-col justify-center items-center py-12";
 
   return (
-    <div className={containerClass} role="status" aria-live="polite">
+    <div className={containerClass} role="status" aria-live="polite" aria-label={message}>
       <motion.div
         className="relative w-16 h-16 mb-4"
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        aria-hidden="true"
       >
         <div className="absolute inset-0 border-4 border-blue-200 rounded-full"></div>
         <div className="absolute inset-0 border-4 border-transparent border-t-blue-600 rounded-full"></div>
@@ -27,7 +28,7 @@ function Loading({ message = 'Loading...', fullScreen = false }) {
       </motion.p>
 
       {/* Animated dots */}
-      <motion.div className="flex gap-1 mt-2">
+      <motion.div className="flex gap-1 mt-2" aria-hidden="true">
         {[0, 1, 2].map((i) => (
           <motion.div
             key={i}

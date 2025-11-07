@@ -27,7 +27,10 @@ function Tours() {
         setFilteredTours(res.data);
         setLoading(false);
       } catch (err) {
-        console.error(err);
+        // Keep console.error for production debugging
+        if (process.env.NODE_ENV !== 'production') {
+          console.error(err);
+        }
         setError('Failed to load tours.');
         setLoading(false);
       }
