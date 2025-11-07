@@ -4,6 +4,7 @@
  */
 
 import NodeCache from 'node-cache';
+import crypto from 'crypto';
 
 // Cache for AI recommendations (TTL: 1 hour)
 const packageCache = new NodeCache({ stdTTL: 3600 });
@@ -63,9 +64,9 @@ async function calculateMockDelayRisk({ origin, destination, scheduledTime }) {
     },
   };
 
-  // Cache the result
-  const cacheKey = `delay_${origin}_${destination}`;
-  delayCache.set(cacheKey, result);
+  // Cache the result with hour-specific key
+  const resultCacheKey = `delay_${origin}_${destination}_h${hour}`;
+  delayCache.set(resultCacheKey, result);
 
   return result;
 }
@@ -146,7 +147,9 @@ async function generateRuleBasedPackage({ bookingHistory, availableTours, userLa
  * @returns {Promise<Object>} Delay risk data
  */
 export async function calculateDelayRisk({ origin, destination, scheduledTime = new Date() }) {
-  const cacheKey = `delay_${origin}_${destination}`;
+  // Create cache key with time component to account for peak hours
+  const hour = scheduledTime.getHours();
+  const cacheKey = `delay_${origin}_${destination}_h${hour}`;
   const cached = delayCache.get(cacheKey);
 
   if (cached) {
@@ -154,16 +157,8 @@ export async function calculateDelayRisk({ origin, destination, scheduledTime = 
   }
 
   try {
-    // Check if OpenRouteService API key is available
-    const apiKey = process.env.OPENROUTE_API_KEY;
-
-    if (apiKey) {
-      // Try to use real API (implementation would require actual coordinates)
-      // For now, we'll use enhanced mock calculation
-      return await calculateMockDelayRisk({ origin, destination, scheduledTime });
-    }
-
     // Fallback to mock calculation
+    // TODO: In production, implement real API integration with OpenRouteService
     return await calculateMockDelayRisk({ origin, destination, scheduledTime });
   } catch (error) {
     console.error('Delay calculation error:', error.message);
@@ -191,9 +186,10 @@ export function generateDiscountCode(delayMinutes) {
   if (delayMinutes <= 15) return null;
 
   const timestamp = Date.now().toString(36).toUpperCase().slice(-4);
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  // Use cryptographically secure random bytes for security
+  const randomBytes = crypto.randomBytes(4).toString('hex').toUpperCase();
 
-  return `DELAY${delayMinutes}-${timestamp}${random}`;
+  return `DELAY${delayMinutes}-${timestamp}${randomBytes}`;
 }
 
 /**

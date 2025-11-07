@@ -64,7 +64,6 @@ delayMetricsSchema.index({ booking: 1, createdAt: -1 });
 // Index for discount code lookups
 delayMetricsSchema.index({ discountCode: 1 }, { sparse: true });
 
-const DelayMetrics =
-  mongoose.models.DelayMetrics || mongoose.model('DelayMetrics', delayMetricsSchema);
+const DelayMetrics = mongoose.model('DelayMetrics', delayMetricsSchema);
 
 export default DelayMetrics;
