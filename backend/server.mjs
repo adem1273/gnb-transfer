@@ -14,11 +14,10 @@ import { getCacheStats } from './middlewares/cache.mjs';
 import userRoutes from './routes/userRoutes.mjs';
 import tourRoutes from './routes/tourRoutes.mjs';
 import bookingRoutes from './routes/bookingRoutes.mjs';
+import delayRoutes from './routes/delayRoutes.mjs';
+import packageRoutes from './routes/packageRoutes.mjs';
 
 dotenv.config();
-// AI features disabled for Phase 1 - no AI implementation in this phase
-// import delayRoutes from './routes/delayRoutes.mjs';
-// import packageRoutes from './routes/packageRoutes.mjs';
 
 const app = express();
 
@@ -54,9 +53,8 @@ app.use(responseMiddleware);
 app.use('/api/users', userRoutes);
 app.use('/api/tours', tourRoutes);
 app.use('/api/bookings', bookingRoutes);
-// AI features disabled for Phase 1
-// app.use('/api/delay', delayRoutes);
-// app.use('/api/packages', packageRoutes);
+app.use('/api/delay', delayRoutes);
+app.use('/api/packages', packageRoutes);
 
 // Health check endpoint (registered before other routes)
 app.get('/api/health', async (req, res) => {
