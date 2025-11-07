@@ -50,18 +50,22 @@ export function trackRequest(method, path, statusCode, responseTime) {
 
   // Track by endpoint (simplified path)
   const simplifiedPath = path.split('?')[0].replace(/\/[0-9a-f]{24}/gi, '/:id');
-  if (!metrics.requests.byEndpoint[simplifiedPath]) {
-    metrics.requests.byEndpoint[simplifiedPath] = {
-      count: 0,
-      avgResponseTime: 0,
-      totalResponseTime: 0,
-    };
+  
+  // Prevent prototype pollution by checking for dangerous keys
+  if (simplifiedPath !== '__proto__' && simplifiedPath !== 'constructor' && simplifiedPath !== 'prototype') {
+    if (!metrics.requests.byEndpoint[simplifiedPath]) {
+      metrics.requests.byEndpoint[simplifiedPath] = {
+        count: 0,
+        avgResponseTime: 0,
+        totalResponseTime: 0,
+      };
+    }
+    metrics.requests.byEndpoint[simplifiedPath].count++;
+    metrics.requests.byEndpoint[simplifiedPath].totalResponseTime += responseTime;
+    metrics.requests.byEndpoint[simplifiedPath].avgResponseTime =
+      metrics.requests.byEndpoint[simplifiedPath].totalResponseTime /
+      metrics.requests.byEndpoint[simplifiedPath].count;
   }
-  metrics.requests.byEndpoint[simplifiedPath].count++;
-  metrics.requests.byEndpoint[simplifiedPath].totalResponseTime += responseTime;
-  metrics.requests.byEndpoint[simplifiedPath].avgResponseTime =
-    metrics.requests.byEndpoint[simplifiedPath].totalResponseTime /
-    metrics.requests.byEndpoint[simplifiedPath].count;
 
   // Update performance metrics
   metrics.performance.totalResponseTime += responseTime;
