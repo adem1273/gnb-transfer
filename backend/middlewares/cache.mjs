@@ -15,15 +15,15 @@ const cache = new NodeCache({
 });
 
 /**
- * Middleware to cache GET requests
+ * Middleware to cache GET and HEAD requests
  * @param {number} duration - Cache duration in seconds (default: 600 = 10 minutes)
  * @returns {Function} Express middleware function
  */
 export const cacheMiddleware =
   (duration = 600) =>
   (req, res, next) => {
-    // Only cache GET requests
-    if (req.method !== 'GET') {
+    // Only cache GET and HEAD requests (HEAD is semantically equivalent to GET)
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
       return next();
     }
 
@@ -40,7 +40,9 @@ export const cacheMiddleware =
 
     // Override res.json to cache the response
     res.json = (body) => {
-      // Only cache successful responses
+      // Cache successful responses (200 OK)
+      // Note: We only cache 200 responses. Other 2xx codes (201, 204) are typically
+      // for mutations and should not be cached. This is intentional for safety.
       if (res.statusCode === 200) {
         cache.set(key, body, duration);
       }
