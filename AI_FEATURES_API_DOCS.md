@@ -91,7 +91,7 @@ Retrieve stored delay metrics for a specific booking.
 ```
 
 #### Get All Delay Metrics (Admin Only)
-**GET** `/api/delay/` (requires admin authentication)
+**GET** `/api/delay/admin/all` (requires admin authentication)
 
 **Query Parameters:**
 - `page` (default: 1)
@@ -243,7 +243,8 @@ Clear cached package recommendation for a user.
   delayRiskScore: Number,    // 0-100
   estimatedDelay: Number,    // minutes
   discountCode: String,      // null if delay <= 15 min
-  calculatedAt: Date
+  calculatedAt: Date,
+  // Auto-deleted after 90 days via TTL index
 }
 ```
 
