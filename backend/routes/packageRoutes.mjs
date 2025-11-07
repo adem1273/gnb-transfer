@@ -6,6 +6,7 @@
  */
 
 import express from 'express';
+import mongoose from 'mongoose';
 import Booking from '../models/Booking.mjs';
 import Tour from '../models/Tour.mjs';
 import User from '../models/User.mjs';
@@ -28,6 +29,11 @@ router.post('/recommend', strictRateLimiter, async (req, res) => {
 
     if (!userId) {
       return res.apiError('User ID is required', 400);
+    }
+
+    // Validate userId is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.apiError('Invalid user ID format', 400);
     }
 
     // Get user data

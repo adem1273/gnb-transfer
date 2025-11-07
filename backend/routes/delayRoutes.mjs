@@ -6,6 +6,7 @@
  */
 
 import express from 'express';
+import mongoose from 'mongoose';
 import DelayMetrics from '../models/DelayMetrics.mjs';
 import Booking from '../models/Booking.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
@@ -30,6 +31,11 @@ router.post('/calculate', strictRateLimiter, async (req, res) => {
     // Validate required fields
     if (!bookingId || !origin || !destination) {
       return res.apiError('Booking ID, origin, and destination are required', 400);
+    }
+
+    // Validate bookingId is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+      return res.apiError('Invalid booking ID format', 400);
     }
 
     // Verify booking exists
@@ -99,6 +105,11 @@ router.post('/calculate', strictRateLimiter, async (req, res) => {
 router.get('/:bookingId', async (req, res) => {
   try {
     const { bookingId } = req.params;
+
+    // Validate bookingId is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+      return res.apiError('Invalid booking ID format', 400);
+    }
 
     const delayMetrics = await DelayMetrics.findOne({ booking: bookingId })
       .populate('booking', 'name email date status')
