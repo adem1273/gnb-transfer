@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sentry/node": "^10.23.0",
     "bcrypt": "^5.1.1",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
@@ -29,7 +30,9 @@
     "mongoose": "^8.19.1",
     "node-cache": "^5.1.2",
     "openai": "^4.20.1",
-    "stripe": "^15.1.0"
+    "stripe": "^15.1.0",
+    "winston": "^3.18.3",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "eslint": "^8.57.1",
