@@ -6,6 +6,7 @@
  */
 
 import express from 'express';
+import mongoose from 'mongoose';
 import Booking from '../models/Booking.mjs';
 import Tour from '../models/Tour.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
@@ -44,6 +45,12 @@ router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) =>
     // Validate required fields
     if (!name || !email || !tourId) {
       return res.apiError('Name, email, and tourId are required', 400);
+    }
+
+    // Additional ObjectId validation (defense in depth)
+    // Note: validateBookingCreation middleware already validates this with isMongoId()
+    if (!mongoose.Types.ObjectId.isValid(tourId)) {
+      return res.apiError('Invalid tour ID format', 400);
     }
 
     // Verify tour exists (use lean for read-only)
