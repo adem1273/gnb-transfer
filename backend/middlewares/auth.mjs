@@ -105,8 +105,39 @@ export const requireRole =
  */
 export const requireAdmin = requireRole('admin');
 
+/**
+ * Optional authentication middleware - sets req.user if valid token exists
+ * Does not reject requests without tokens
+ *
+ * @returns {Function} Express middleware function
+ *
+ * @example
+ * // Route accessible to both authenticated and non-authenticated users
+ * router.get('/tours', optionalAuth, handler);
+ */
+export const optionalAuth = (req, res, next) => {
+  if (!JWT_SECRET) {
+    return next();
+  }
+
+  const authHeader = req.headers?.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next();
+  }
+
+  const token = authHeader.slice(7);
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.user = payload;
+  } catch (err) {
+    // Token invalid/expired, but continue without user
+  }
+  return next();
+};
+
 export default {
   requireAuth,
   requireRole,
   requireAdmin,
+  optionalAuth,
 };
