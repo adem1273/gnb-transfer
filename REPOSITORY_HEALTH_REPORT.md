@@ -11,7 +11,7 @@
 
 Bu rapor, GNB Transfer deposunun genel durumunu değerlendirmektedir. Proje genel olarak **sağlıklı ve çalışır durumda**, ancak bazı küçük iyileştirme alanları bulunmaktadır.
 
-**This report evaluates the overall status of the GNB Transfer repository. The project is generally **healthy and functional**, but there are some minor areas for improvement.**
+This report evaluates the overall status of the GNB Transfer repository. The project is generally **healthy and functional**, but there are some minor areas for improvement.
 
 ---
 
@@ -145,7 +145,7 @@ Bu rapor, GNB Transfer deposunun genel durumunu değerlendirmektedir. Proje gene
 
 **Warning:** MongoDB connection fails in CI environment (expected)
 ```
-querySrv EREFUSED _mongodb._tcp.cluster0.6ekjdsm.mongodb.net
+querySrv EREFUSED _mongodb._tcp.[cluster-address].mongodb.net
 ```
 
 **Impact:** NONE in production - Server continues without database (graceful degradation)  

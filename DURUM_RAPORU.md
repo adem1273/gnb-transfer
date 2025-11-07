@@ -1,5 +1,5 @@
 # GNB Transfer - Depo Durum Raporu
-## Suan repomda ki herşey duzgun çalışır durumdami?
+## Şuan repomdaki her şey düzgün çalışır durumda mı?
 
 **Tarih:** 7 Kasım 2025  
 **Durum:** ✅ **EVET, HER ŞEY DÜZGÜN ÇALIŞIYOR!**
