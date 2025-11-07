@@ -9,7 +9,7 @@ export function initSentry(app) {
   // Only initialize if DSN is provided
   if (!process.env.SENTRY_DSN) {
     logger.info('Sentry DSN not configured, skipping Sentry initialization');
-    return;
+    return null;
   }
 
   try {

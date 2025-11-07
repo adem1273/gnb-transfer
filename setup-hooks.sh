@@ -38,13 +38,6 @@ if [ -f "$HOOKS_DIR/pre-commit" ]; then
         chmod +x "$GIT_HOOKS_DIR/pre-commit"
         echo "✅ Pre-commit hook installed (copied)"
     fi
-else
-    echo "❌ Error: pre-commit hook not found"
-    exit 1
-fi
-
-# Configure git to use our hooks directory (optional, for Git 2.9+)
-git config core.hooksPath "$HOOKS_DIR" 2>/dev/null && echo "✅ Git configured to use custom hooks directory" || true
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

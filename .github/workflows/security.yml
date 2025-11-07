@@ -71,8 +71,9 @@ jobs:
       - name: Run npm audit
         working-directory: ${{ matrix.directory }}
         run: |
-          npm audit --audit-level=moderate || true
-          npm audit --json > audit-results.json || true
+          npm audit --audit-level=moderate
+          npm audit --json > audit-results.json
+        continue-on-error: true
 
       - name: Upload audit results
         uses: actions/upload-artifact@v4

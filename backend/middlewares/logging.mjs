@@ -33,7 +33,7 @@ export function requestLogger(req, res, next) {
       responseTime: `${responseTime}ms`,
     });
 
-    return res.send(data);
+    return originalSend.call(res, data);
   };
 
   next();
