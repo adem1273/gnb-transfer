@@ -1,5 +1,10 @@
 name: Database Backup
 
+# Automated MongoDB database backup with 7-day retention policy
+# - GitHub Artifacts: 7 days retention (included)
+# - AWS S3: 30 days retention (optional, requires AWS configuration)
+# Run schedule: Daily at 3 AM UTC
+
 on:
   schedule:
     # Run daily backup at 3 AM UTC
