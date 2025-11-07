@@ -16,6 +16,7 @@ import tourRoutes from './routes/tourRoutes.mjs';
 import bookingRoutes from './routes/bookingRoutes.mjs';
 import delayRoutes from './routes/delayRoutes.mjs';
 import packageRoutes from './routes/packageRoutes.mjs';
+import chatRoutes from './routes/chatRoutes.mjs';
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use('/api/tours', tourRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/delay', delayRoutes);
 app.use('/api/packages', packageRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check endpoint (registered before other routes)
 app.get('/api/health', async (req, res) => {

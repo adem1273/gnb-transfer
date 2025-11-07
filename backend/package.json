@@ -24,9 +24,11 @@
     "express-rate-limit": "^8.2.1",
     "express-validator": "^7.3.0",
     "helmet": "^8.1.0",
+    "i18next": "^23.7.6",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.1",
     "node-cache": "^5.1.2",
+    "openai": "^4.20.1",
     "stripe": "^15.1.0"
   },
   "devDependencies": {
