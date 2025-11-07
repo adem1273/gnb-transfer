@@ -1,0 +1,30 @@
+services:
+  # Backend Web Service
+  - type: web
+    name: gnb-transfer-backend
+    runtime: node
+    env: node
+    region: oregon # Free tier available in specific regions
+    plan: free # Free tier plan
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        sync: false # Set via Render dashboard
+      - key: JWT_SECRET
+        generateValue: true # Auto-generate secure secret
+      - key: STRIPE_SECRET_KEY
+        sync: false # Set via Render dashboard
+      - key: CORS_ORIGINS
+        sync: false # Set via Render dashboard
+      - key: BCRYPT_ROUNDS
+        value: 10
+    healthCheckPath: /api/health
+    autoDeploy: true
+    scaling:
+      minInstances: 1
+      maxInstances: 1

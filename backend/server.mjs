@@ -9,6 +9,7 @@ import compression from 'compression';
 import { responseMiddleware } from './middlewares/response.mjs';
 import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
 import { errorHandler } from './middlewares/errorHandler.mjs';
+import { getCacheStats } from './middlewares/cache.mjs';
 
 import userRoutes from './routes/userRoutes.mjs';
 import tourRoutes from './routes/tourRoutes.mjs';
@@ -57,8 +58,31 @@ app.use('/api/bookings', bookingRoutes);
 // app.use('/api/delay', delayRoutes);
 // app.use('/api/packages', packageRoutes);
 
-// Health check (registered before listen)
-app.get('/health', (req, res) => {
+// Health check endpoint (registered before other routes)
+app.get('/api/health', async (req, res) => {
+  const healthStatus = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    database: {
+      connected: mongoose.connection.readyState === 1,
+      state: ['disconnected', 'connected', 'connecting', 'disconnecting'][
+        mongoose.connection.readyState
+      ],
+    },
+    cache: getCacheStats(),
+    memory: {
+      used: Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100, // MB
+      total: Math.round((process.memoryUsage().heapTotal / 1024 / 1024) * 100) / 100, // MB
+    },
+  };
+
+  return res.apiSuccess(healthStatus, 'Server is healthy');
+});
+
+// Legacy health check (for backward compatibility)
+app.get('/health', async (req, res) => {
   res.apiSuccess({ status: 'ok' }, 'Server is running');
 });
 

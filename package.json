@@ -5,8 +5,9 @@
   "main": "backend/server.mjs",
   "scripts": {
     "start": "node backend/server.mjs",
-    "dev": "concurrently \"npm run dev --prefix backend\"",
-    "build": "echo 'No frontend build needed'",
+    "dev": "concurrently \"npm run dev --prefix backend\" \"vite\"",
+    "build": "vite build",
+    "preview": "vite preview",
     "install-all": "npm install && npm install --prefix backend",
     "lint": "eslint src --ext .js,.jsx",
     "lint:fix": "eslint src --ext .js,.jsx --fix",
@@ -34,13 +35,18 @@
     "stripe": "^15.1.0"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.0",
     "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",
     "nodemon": "^3.1.0",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "terser": "^5.44.1",
+    "vite": "^7.2.1",
+    "vite-plugin-compression": "^0.5.1",
+    "vite-plugin-imagemin": "^0.6.1"
   },
   "engines": {
     "node": ">=18"
