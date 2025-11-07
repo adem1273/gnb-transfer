@@ -76,7 +76,11 @@ async function calculateMockDelayRisk({ origin, destination, scheduledTime }) {
  * @private
  */
 function getLocalizedTitle(tour, language) {
-  const langKey = `title_${language}`;
+  // Validate language is supported
+  const supportedLangs = ['en', 'ar', 'de', 'es', 'hi', 'it', 'ru', 'zh'];
+  const safeLang = supportedLangs.includes(language) ? language : 'en';
+
+  const langKey = `title_${safeLang}`;
   return tour[langKey] || tour.title;
 }
 
@@ -216,31 +220,15 @@ export async function generateSmartPackage({
   }
 
   try {
-    // Check if OpenAI API key is available
-    const apiKey = process.env.OPENAI_API_KEY;
-
-    if (apiKey && bookingHistory.length > 0) {
-      // In a real implementation, this would call OpenAI API
-      // For now, use enhanced rule-based recommendation
-      const result = await generateRuleBasedPackage({
-        bookingHistory,
-        availableTours,
-        userLanguage,
-      });
-      packageCache.set(cacheKey, result);
-      return result;
-    }
-
-    // Fallback to rule-based recommendation
+    // Use mock calculation
+    // Note: Real API integration with OpenAI would be implemented here
+    // For Phase 3, this intentionally uses rule-based fallback logic
     const result = await generateRuleBasedPackage({
       bookingHistory,
       availableTours,
       userLanguage,
     });
-
-    // Cache the result
     packageCache.set(cacheKey, result);
-
     return result;
   } catch (error) {
     console.error('Package generation error:', error.message);

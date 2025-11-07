@@ -116,14 +116,14 @@ router.get('/:bookingId', async (req, res) => {
 });
 
 /**
- * @route   GET /api/delay/all
+ * @route   GET /api/delay/admin/all
  * @desc    Get all delay metrics (admin only)
  * @access  Private (admin)
  * @query   {number} page - Page number (default: 1)
  * @query   {number} limit - Items per page (default: 50)
  * @returns {object} Paginated delay metrics
  */
-router.get('/', requireAuth(['admin']), async (req, res) => {
+router.get('/admin/all', requireAuth(['admin']), async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 50;

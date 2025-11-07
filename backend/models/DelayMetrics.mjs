@@ -64,6 +64,9 @@ delayMetricsSchema.index({ booking: 1, createdAt: -1 });
 // Index for discount code lookups
 delayMetricsSchema.index({ discountCode: 1 }, { sparse: true });
 
+// TTL index to automatically delete old metrics after 90 days
+delayMetricsSchema.index({ createdAt: 1 }, { expireAfterSeconds: 7776000 }); // 90 days
+
 const DelayMetrics = mongoose.model('DelayMetrics', delayMetricsSchema);
 
 export default DelayMetrics;
