@@ -49,9 +49,11 @@ function makeRequest(url, options = {}) {
       headers: options.headers || {},
     };
 
+    let bodyData = null;
     if (options.body) {
+      bodyData = JSON.stringify(options.body);
       requestOptions.headers['Content-Type'] = 'application/json';
-      requestOptions.headers['Content-Length'] = Buffer.byteLength(JSON.stringify(options.body));
+      requestOptions.headers['Content-Length'] = Buffer.byteLength(bodyData);
     }
 
     const req = http.request(requestOptions, (res) => {
@@ -77,8 +79,8 @@ function makeRequest(url, options = {}) {
 
     req.on('error', reject);
 
-    if (options.body) {
-      req.write(JSON.stringify(options.body));
+    if (bodyData) {
+      req.write(bodyData);
     }
 
     req.end();
