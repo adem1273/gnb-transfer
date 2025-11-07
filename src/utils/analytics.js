@@ -192,6 +192,8 @@ export const trackContactFormSubmit = (formType) => {
 };
 
 export const trackNewsletterSignup = (email) => {
+  // Note: Email is not sent to analytics for privacy compliance
+  // Only tracking the signup event itself
   trackEvent('newsletter_signup', {
     method: 'website_footer',
   });
