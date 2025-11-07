@@ -45,7 +45,6 @@ const CheckoutForm = ({ bookingId }) => {
       } else {
         setError(null);
         setSucceeded(true);
-        console.log('Payment succeeded:', paymentIntent);
       }
     } catch (err) {
       setError('An unexpected error occurred.');
