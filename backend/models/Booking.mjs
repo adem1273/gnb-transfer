@@ -55,6 +55,16 @@ const bookingSchema = new mongoose.Schema(
       default: 'pending',
       index: true,
     },
+    aiMetadata: {
+      isAIPackage: { type: Boolean, default: false },
+      packageDiscount: { type: Number, default: 0 },
+      recommendationId: { type: String },
+      delayGuarantee: {
+        riskScore: { type: Number },
+        estimatedDelay: { type: Number },
+        discountCode: { type: String },
+      },
+    },
   },
   {
     timestamps: true,

@@ -44,6 +44,22 @@ const userSchema = new mongoose.Schema(
       minlength: [6, 'Password must be at least 6 characters'],
     },
     role: { type: String, enum: ['user', 'admin', 'driver'], default: 'user' },
+    preferences: {
+      language: { type: String, default: 'en' },
+      tourCategories: [{ type: String }],
+      priceRange: {
+        min: { type: Number, default: 0 },
+        max: { type: Number, default: 10000 },
+      },
+    },
+    interactionLogs: [
+      {
+        action: { type: String, required: true },
+        tourId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tour' },
+        timestamp: { type: Date, default: Date.now },
+        metadata: { type: mongoose.Schema.Types.Mixed },
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -104,7 +104,8 @@
     "copy": "Copy",
     "discountInfo": "Use this code for your next booking due to potential delay",
     "guaranteeInfo": "Our delay guarantee ensures you receive compensation if your transfer is delayed more than 15 minutes.",
-    "calculating": "Calculating delay guarantee..."
+    "calculating": "Calculating delay guarantee...",
+    "slogan": "If we delay, we pay."
   },
   "package": {
     "smartBundle": "Smart Package for You",

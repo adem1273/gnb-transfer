@@ -89,5 +89,8 @@
     "discount": "Rabatt",
     "isCampaign": "Kampagne",
     "actions": "Aktionen"
+  },
+  "delay": {
+    "slogan": "Wenn wir verspätet sind, zahlen wir."
   }
 }
