@@ -1,18 +1,18 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
-import { I18nextProvider, useTranslation } from 'react-i18next'; // useTranslation eklendi
+import { I18nextProvider, useTranslation } from 'react-i18next';
 import i18n from './i18n';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import Sidebar from './components/Sidebar';
 import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Loading from './components/Loading';
-import LiveChat from './components/LiveChat';
-import Feedback from './components/Feedback';
 import ErrorMessage from './components/ErrorMessage';
-// (NOT: AdminLayout ve MainLayout importları kaldırıldı — yerel tanımlar dosyada mevcut)
- 
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Eager load critical components
+import Header from './components/Header';
+import Footer from './components/Footer';
+import Sidebar from './components/Sidebar';
+
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
 const Tours = lazy(() => import('./pages/Tours'));
@@ -21,8 +21,10 @@ const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./components/BlogPost'));
-const StripePayment = lazy(() => import('./components/StripePayment'));
 const Contact = lazy(() => import('./pages/Contact'));
+
+// Lazy load payment and admin components (heavy)
+const StripePayment = lazy(() => import('./components/StripePayment'));
 const AdminDashboard = lazy(() => import('./pages/Dashboard'));
 const AdminBookings = lazy(() => import('./pages/Bookings'));
 const AdminUsers = lazy(() => import('./pages/Users'));
@@ -30,7 +32,10 @@ const AIAdminPanel = lazy(() => import('./components/AIAdminPanel'));
 const AIMarketingPanel = lazy(() => import('./components/AIMarketingPanel'));
 const VehicleManagement = lazy(() => import('./pages/VehicleManagement'));
 const DriverPanel = lazy(() => import('./pages/DriverPanel'));
- 
+
+// Lazy load optional components (only load when needed)
+const LiveChat = lazy(() => import('./components/LiveChat'));
+const Feedback = lazy(() => import('./components/Feedback'));
  
 // Genel Kullanıcı Düzeni
 const MainLayout = () => {
@@ -56,7 +61,9 @@ const MainLayout = () => {
         </div>
       </main>
       <Footer />
-      <LiveChat />
+      <Suspense fallback={null}>
+        <LiveChat />
+      </Suspense>
     </div>
   );
 };
@@ -81,11 +88,12 @@ const AdminLayout = () => {
  
 function App() {
   return (
-    <I18nextProvider i18n={i18n}>
-      <Router>
-        <AuthProvider>
-          <Suspense fallback={<Loading />}>
-            <Routes>
+    <ErrorBoundary fallbackMessage="GNB Transfer application encountered an error. Please refresh the page.">
+      <I18nextProvider i18n={i18n}>
+        <Router>
+          <AuthProvider>
+            <Suspense fallback={<Loading />}>
+              <Routes>
               {/* Ana Kullanıcı Rotaları */}
               <Route path="/" element={<MainLayout />}> 
                 <Route index element={<Home />} />
@@ -96,7 +104,7 @@ function App() {
                 <Route path="blog" element={<Blog />} />
                 <Route path="blog/:id" element={<BlogPost />} />
                 <Route path="payment" element={<StripePayment />} />
-                <Route path="reviews" element={<Feedback />} />
+                <Route path="reviews" element={<Suspense fallback={<Loading />}><Feedback /></Suspense>} />
                 <Route path="contact" element={<Contact />} />
               </Route>
  
@@ -118,6 +126,7 @@ function App() {
         </AuthProvider>
       </Router>
     </I18nextProvider>
+    </ErrorBoundary>
   );
 }
  

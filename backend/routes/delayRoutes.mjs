@@ -11,6 +11,7 @@ import DelayMetrics from '../models/DelayMetrics.mjs';
 import Booking from '../models/Booking.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
+import { cacheMiddleware, clearCache } from '../middlewares/cache.mjs';
 import { calculateDelayRisk, generateDiscountCode } from '../services/aiService.mjs';
 
 const router = express.Router();
@@ -38,8 +39,8 @@ router.post('/calculate', strictRateLimiter, async (req, res) => {
       return res.apiError('Invalid booking ID format', 400);
     }
 
-    // Verify booking exists
-    const booking = await Booking.findById(bookingId);
+    // Verify booking exists (use lean for read-only)
+    const booking = await Booking.findById(bookingId).lean();
     if (!booking) {
       return res.apiError('Booking not found', 404);
     }
@@ -79,6 +80,9 @@ router.post('/calculate', strictRateLimiter, async (req, res) => {
       },
     });
 
+    // Clear delay cache for this booking
+    clearCache(`/api/delay/${bookingId}`);
+
     return res.apiSuccess(
       {
         delayRiskScore: delayData.delayRiskScore,
@@ -101,8 +105,9 @@ router.post('/calculate', strictRateLimiter, async (req, res) => {
  * @access  Public
  * @param   {string} bookingId - MongoDB ObjectId of the booking
  * @returns {object} Delay metrics
+ * - Cached for 10 minutes
  */
-router.get('/:bookingId', async (req, res) => {
+router.get('/:bookingId', cacheMiddleware(600), async (req, res) => {
   try {
     const { bookingId } = req.params;
 
@@ -113,7 +118,8 @@ router.get('/:bookingId', async (req, res) => {
 
     const delayMetrics = await DelayMetrics.findOne({ booking: bookingId })
       .populate('booking', 'name email date status')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     if (!delayMetrics) {
       return res.apiError('No delay metrics found for this booking', 404);
@@ -133,8 +139,9 @@ router.get('/:bookingId', async (req, res) => {
  * @query   {number} page - Page number (default: 1)
  * @query   {number} limit - Items per page (default: 50)
  * @returns {object} Paginated delay metrics
+ * - Cached for 5 minutes (admin data)
  */
-router.get('/admin/all', requireAuth(['admin']), async (req, res) => {
+router.get('/admin/all', requireAuth(['admin']), cacheMiddleware(300), async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 50;
@@ -145,7 +152,8 @@ router.get('/admin/all', requireAuth(['admin']), async (req, res) => {
         .populate('booking', 'name email date status amount')
         .sort({ createdAt: -1 })
         .limit(limit)
-        .skip(skip),
+        .skip(skip)
+        .lean(),
       DelayMetrics.countDocuments(),
     ]);
 

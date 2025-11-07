@@ -97,6 +97,12 @@ bookingSchema.index({ email: 1 });
 // Compound index for tourId lookups
 bookingSchema.index({ tourId: 1, status: 1 });
 
+// Additional performance indexes
+bookingSchema.index({ date: 1 }); // Date-based queries
+bookingSchema.index({ createdAt: -1 }); // Recent bookings
+bookingSchema.index({ tour: 1, date: 1 }); // Tour availability queries
+bookingSchema.index({ user: 1, createdAt: -1 }); // User booking history
+
 const Booking = mongoose.models.Booking || mongoose.model('Booking', bookingSchema);
 
 export default Booking;

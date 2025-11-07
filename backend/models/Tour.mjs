@@ -70,6 +70,11 @@ tourSchema.index({ title: 'text', description: 'text' });
 // Compound index for campaign tours
 tourSchema.index({ isCampaign: 1, price: -1 });
 
+// Additional performance indexes for filtering and sorting
+tourSchema.index({ price: 1 }); // Price range queries
+tourSchema.index({ duration: 1 }); // Duration-based filtering
+tourSchema.index({ createdAt: -1 }); // Recent tours
+
 const Tour = mongoose.models.Tour || mongoose.model('Tour', tourSchema);
 
 export default Tour;

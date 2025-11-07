@@ -1,11 +1,13 @@
 /**
  * AI Chat Service - OpenAI integration for LiveChat assistant
+ * Now uses batch processing for cost optimization
  *
  * @module services/aiChatService
  */
 
 import OpenAI from 'openai';
 import Tour from '../models/Tour.mjs';
+import { batchAIRequest, directAIRequest } from './aiBatchService.mjs';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -96,6 +98,7 @@ Rispondi sempre in italiano a meno che l'utente non parli un'altra lingua.`,
 
 /**
  * Generate AI response based on user message and context
+ * Uses batch processing for cost optimization
  */
 export async function generateAIResponse(message, language = 'en', context = {}) {
   try {
@@ -120,18 +123,12 @@ export async function generateAIResponse(message, language = 'en', context = {})
       { role: 'user', content: message },
     ];
 
-    const response = await openai.chat.completions.create({
+    // Use batch processing for cost optimization
+    return await batchAIRequest(messages, {
       model: 'gpt-3.5-turbo',
-      messages,
       temperature: 0.7,
-      max_tokens: 500,
+      maxTokens: 500,
     });
-
-    return {
-      success: true,
-      message: response.choices[0].message.content,
-      usage: response.usage,
-    };
   } catch (error) {
     console.error('AI response generation error:', error.message);
     return {
@@ -144,6 +141,7 @@ export async function generateAIResponse(message, language = 'en', context = {})
 
 /**
  * Classify user intent from message
+ * Uses batch processing for cost optimization
  */
 export async function classifyIntent(message, _language = 'en') {
   try {
@@ -151,12 +149,10 @@ export async function classifyIntent(message, _language = 'en') {
       return { intent: 'general', confidence: 0 };
     }
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: `Classify the user's intent into one of these categories:
+    const messages = [
+      {
+        role: 'system',
+        content: `Classify the user's intent into one of these categories:
 - booking: User wants to make, check, or modify a booking
 - tour_info: User wants information about tours
 - payment: User has payment-related questions
@@ -164,14 +160,22 @@ export async function classifyIntent(message, _language = 'en') {
 - general: General inquiry or chitchat
 
 Respond with just the category name.`,
-        },
-        { role: 'user', content: message },
-      ],
+      },
+      { role: 'user', content: message },
+    ];
+
+    // Use batch processing
+    const result = await batchAIRequest(messages, {
+      model: 'gpt-3.5-turbo',
       temperature: 0.3,
-      max_tokens: 20,
+      maxTokens: 20,
     });
 
-    const intent = response.choices[0].message.content.trim().toLowerCase();
+    if (!result.success) {
+      return { intent: 'general', confidence: 0 };
+    }
+
+    const intent = result.message.trim().toLowerCase();
     return {
       intent,
       confidence: 0.8,
@@ -184,6 +188,7 @@ Respond with just the category name.`,
 
 /**
  * Get recommended tours based on user message
+ * Uses batch processing for cost optimization
  */
 export async function getRecommendedTours(message, _language = 'en') {
   try {
@@ -195,27 +200,30 @@ export async function getRecommendedTours(message, _language = 'en') {
 
     const tourList = allTours.map((t) => `${t._id}: ${t.title} - ${t.description}`).join('\n');
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: `Based on the user's message, recommend the top 3 most relevant tours from this list. 
+    const messages = [
+      {
+        role: 'system',
+        content: `Based on the user's message, recommend the top 3 most relevant tours from this list. 
 Respond with only the tour IDs separated by commas (e.g., "id1,id2,id3").
 
 Available tours:
 ${tourList}`,
-        },
-        { role: 'user', content: message },
-      ],
+      },
+      { role: 'user', content: message },
+    ];
+
+    // Use batch processing
+    const result = await batchAIRequest(messages, {
+      model: 'gpt-3.5-turbo',
       temperature: 0.5,
-      max_tokens: 100,
+      maxTokens: 100,
     });
 
-    const recommendedIds = response.choices[0].message.content
-      .trim()
-      .split(',')
-      .map((id) => id.trim());
+    if (!result.success) {
+      return allTours.slice(0, 3);
+    }
+
+    const recommendedIds = result.message.trim().split(',').map((id) => id.trim());
     const recommended = allTours.filter((t) => recommendedIds.includes(t._id.toString()));
 
     return recommended.length > 0 ? recommended : allTours.slice(0, 3);
@@ -261,6 +269,7 @@ export async function generateUpsellSuggestions(booking, language = 'en') {
 
 /**
  * Translate missing i18n keys using AI
+ * Uses batch processing for cost optimization
  */
 export async function translateText(text, targetLanguage) {
   try {
@@ -279,20 +288,22 @@ export async function translateText(text, targetLanguage) {
       ar: 'Arabic',
     };
 
-    const response = await openai.chat.completions.create({
+    const messages = [
+      {
+        role: 'system',
+        content: `Translate the following text to ${languageNames[targetLanguage] || targetLanguage}. Respond with only the translation, nothing else.`,
+      },
+      { role: 'user', content: text },
+    ];
+
+    // Use batch processing
+    const result = await batchAIRequest(messages, {
       model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: `Translate the following text to ${languageNames[targetLanguage] || targetLanguage}. Respond with only the translation, nothing else.`,
-        },
-        { role: 'user', content: text },
-      ],
       temperature: 0.3,
-      max_tokens: 200,
+      maxTokens: 200,
     });
 
-    return response.choices[0].message.content.trim();
+    return result.success ? result.message.trim() : text;
   } catch (error) {
     console.error('Translation error:', error.message);
     return text;

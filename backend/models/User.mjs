@@ -64,6 +64,11 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Performance indexes
+userSchema.index({ email: 1 }); // Email lookup optimization (unique already creates index)
+userSchema.index({ role: 1 }); // Role-based queries
+userSchema.index({ 'preferences.language': 1 }); // Language-based filtering
+
 /**
  * Pre-save middleware to hash password
  *

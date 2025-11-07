@@ -12,6 +12,7 @@ import Tour from '../models/Tour.mjs';
 import User from '../models/User.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
+import { cacheMiddleware } from '../middlewares/cache.mjs';
 import { generateSmartPackage, clearPackageCache } from '../services/aiService.mjs';
 
 const router = express.Router();
@@ -36,25 +37,27 @@ router.post('/recommend', strictRateLimiter, async (req, res) => {
       return res.apiError('Invalid user ID format', 400);
     }
 
-    // Get user data
-    const user = await User.findById(userId);
+    // Get user data (use lean for read-only)
+    const user = await User.findById(userId).lean();
     if (!user) {
       return res.apiError('User not found', 404);
     }
 
-    // Get user's booking history
+    // Get user's booking history (use lean for read-only)
     const bookingHistory = await Booking.find({ user: userId })
       .populate(
         'tour',
         'title title_ar title_ru title_es title_zh title_hi title_de title_it price'
       )
       .sort({ createdAt: -1 })
-      .limit(20);
+      .limit(20)
+      .lean();
 
-    // Get available tours
+    // Get available tours (use lean for read-only)
     const availableTours = await Tour.find({ availableSeats: { $gt: 0 } })
       .sort({ price: -1 })
-      .limit(50);
+      .limit(50)
+      .lean();
 
     if (availableTours.length === 0) {
       return res.apiError('No tours available at the moment', 404);
@@ -71,18 +74,24 @@ router.post('/recommend', strictRateLimiter, async (req, res) => {
       userLanguage,
     });
 
-    // Log interaction
-    if (user.interactionLogs) {
-      user.interactionLogs.push({
-        action: 'package_recommendation_viewed',
-        tourId: packageRecommendation.tourId,
-        timestamp: new Date(),
-        metadata: {
-          bundlePrice: packageRecommendation.bundlePrice,
-          discount: packageRecommendation.discount,
-        },
-      });
-      await user.save();
+    // Log interaction (fetch user doc for write operation)
+    try {
+      const userDoc = await User.findById(userId);
+      if (userDoc && userDoc.interactionLogs) {
+        userDoc.interactionLogs.push({
+          action: 'package_recommendation_viewed',
+          tourId: packageRecommendation.tourId,
+          timestamp: new Date(),
+          metadata: {
+            bundlePrice: packageRecommendation.bundlePrice,
+            discount: packageRecommendation.discount,
+          },
+        });
+        await userDoc.save();
+      }
+    } catch (logError) {
+      // Log error but don't fail the request
+      console.error('Failed to log interaction:', logError);
     }
 
     return res.apiSuccess(packageRecommendation, 'Smart package generated successfully', 200);
@@ -97,32 +106,35 @@ router.post('/recommend', strictRateLimiter, async (req, res) => {
  * @desc    Get package recommendation for authenticated user
  * @access  Private
  * @returns {object} Package recommendation with 15% discount
+ * - Cached for 10 minutes per user
  */
-router.get('/my-recommendation', requireAuth(), async (req, res) => {
+router.get('/my-recommendation', requireAuth(), cacheMiddleware(600), async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Get user's booking history
+    // Get user's booking history (use lean for read-only)
     const bookingHistory = await Booking.find({ user: userId })
       .populate(
         'tour',
         'title title_ar title_ru title_es title_zh title_hi title_de title_it price'
       )
       .sort({ createdAt: -1 })
-      .limit(20);
+      .limit(20)
+      .lean();
 
-    // Get available tours
+    // Get available tours (use lean for read-only)
     const availableTours = await Tour.find({ availableSeats: { $gt: 0 } })
       .sort({ price: -1 })
-      .limit(50);
+      .limit(50)
+      .lean();
 
     if (availableTours.length === 0) {
       return res.apiError('No tours available at the moment', 404);
     }
 
-    // Get user's preferred language
-    const user = await User.findById(userId);
-    const userLanguage = user.preferences?.language || 'en';
+    // Get user's preferred language (use lean for read-only)
+    const user = await User.findById(userId).lean();
+    const userLanguage = user?.preferences?.language || 'en';
 
     // Generate package recommendation
     const packageRecommendation = await generateSmartPackage({
@@ -132,18 +144,24 @@ router.get('/my-recommendation', requireAuth(), async (req, res) => {
       userLanguage,
     });
 
-    // Log interaction
-    if (user.interactionLogs) {
-      user.interactionLogs.push({
-        action: 'package_recommendation_viewed',
-        tourId: packageRecommendation.tourId,
-        timestamp: new Date(),
-        metadata: {
-          bundlePrice: packageRecommendation.bundlePrice,
-          discount: packageRecommendation.discount,
-        },
-      });
-      await user.save();
+    // Log interaction (fetch user doc for write operation)
+    try {
+      const userDoc = await User.findById(userId);
+      if (userDoc && userDoc.interactionLogs) {
+        userDoc.interactionLogs.push({
+          action: 'package_recommendation_viewed',
+          tourId: packageRecommendation.tourId,
+          timestamp: new Date(),
+          metadata: {
+            bundlePrice: packageRecommendation.bundlePrice,
+            discount: packageRecommendation.discount,
+          },
+        });
+        await userDoc.save();
+      }
+    } catch (logError) {
+      // Log error but don't fail the request
+      console.error('Failed to log interaction:', logError);
     }
 
     return res.apiSuccess(packageRecommendation, 'Smart package generated successfully', 200);

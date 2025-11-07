@@ -65,6 +65,12 @@ export default defineConfig({
             if (id.includes('axios')) {
               return 'api-vendor';
             }
+            // Stripe libraries
+            if (id.includes('stripe')) {
+              return 'stripe-vendor';
+            }
+            // All other node_modules
+            return 'vendor';
           }
         },
         // Optimize asset file names
@@ -93,7 +99,16 @@ export default defineConfig({
   },
   // Optimize dependencies
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'axios'],
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      'framer-motion',
+      'axios',
+      'i18next',
+      'react-i18next',
+    ],
+    exclude: ['@stripe/stripe-js', '@stripe/react-stripe-js'], // Load on demand
   },
   // Preview server configuration
   preview: {
