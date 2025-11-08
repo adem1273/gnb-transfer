@@ -33,6 +33,14 @@ const AIMarketingPanel = lazy(() => import('./components/AIMarketingPanel'));
 const VehicleManagement = lazy(() => import('./pages/VehicleManagement'));
 const DriverPanel = lazy(() => import('./pages/DriverPanel'));
 
+// Lazy load new admin panel features
+const ModuleManagement = lazy(() => import('./pages/ModuleManagement'));
+const CampaignRules = lazy(() => import('./pages/CampaignRules'));
+const AIInsights = lazy(() => import('./pages/AIInsights'));
+const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
+const CalendarView = lazy(() => import('./pages/CalendarView'));
+const ActivityLogs = lazy(() => import('./pages/ActivityLogs'));
+
 // Lazy load optional components (only load when needed)
 const LiveChat = lazy(() => import('./components/LiveChat'));
 const Feedback = lazy(() => import('./components/Feedback'));
@@ -109,7 +117,7 @@ function App() {
               </Route>
  
               {/* Admin Paneli Rotaları (Korunmuş) */}
-              <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']}><AdminLayout /></PrivateRoute>}> 
+              <Route path="/admin" element={<PrivateRoute allowedRoles={['admin', 'manager']}><AdminLayout /></PrivateRoute>}> 
                 <Route index element={<AdminDashboard />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="users" element={<AdminUsers />} />
@@ -117,6 +125,12 @@ function App() {
                 <Route path="ai" element={<AIAdminPanel />} />
                 <Route path="marketing" element={<AIMarketingPanel />} />
                 <Route path="vehicles" element={<VehicleManagement />} />
+                <Route path="modules" element={<ModuleManagement />} />
+                <Route path="campaigns" element={<CampaignRules />} />
+                <Route path="insights" element={<AIInsights />} />
+                <Route path="notifications" element={<NotificationSettings />} />
+                <Route path="calendar" element={<CalendarView />} />
+                <Route path="logs" element={<ActivityLogs />} />
               </Route>
               
               {/* Sürücü Paneli Rotası */}
