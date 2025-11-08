@@ -58,10 +58,12 @@ const createTransporter = () => {
 const getEmailConfig = async () => {
   try {
     const settings = await AdminSettings.findOne();
-    return settings?.emailConfig || {
-      fromEmail: 'noreply@gnbtransfer.com',
-      fromName: 'GNB Transfer',
-    };
+    return (
+      settings?.emailConfig || {
+        fromEmail: 'noreply@gnbtransfer.com',
+        fromName: 'GNB Transfer',
+      }
+    );
   } catch (error) {
     console.error('Failed to get email config:', error);
     return {

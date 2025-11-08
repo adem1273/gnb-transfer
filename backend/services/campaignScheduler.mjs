@@ -18,7 +18,7 @@ import logger from '../config/logger.mjs';
 /**
  * Apply campaign rules to tours
  */
-const applyCampaignRules = async () => {
+export const applyCampaignRules = async () => {
   try {
     const now = new Date();
 
@@ -36,67 +36,65 @@ const applyCampaignRules = async () => {
 
     logger.info(`Processing ${activeCampaigns.length} active campaigns`);
 
-    for (const campaign of activeCampaigns) {
-      let query = {};
+    // Process campaigns with Promise.all to avoid sequential await
+    await Promise.all(
+      activeCampaigns.map(async (campaign) => {
+        let query = {};
 
-      // Build query based on condition type
-      switch (campaign.conditionType) {
-        case 'city':
-          query = { location: new RegExp(campaign.target, 'i') };
-          break;
-        case 'tourType':
-          query = { category: new RegExp(campaign.target, 'i') };
-          break;
-        case 'dayOfWeek':
-          // This would require more complex logic with tour schedules
-          // For now, skip this type
-          continue;
-        default:
-          // Unknown condition type
-          continue;
-      }
+        // Build query based on condition type
+        switch (campaign.conditionType) {
+          case 'city':
+            query = { location: new RegExp(campaign.target, 'i') };
+            break;
+          case 'tourType':
+            query = { category: new RegExp(campaign.target, 'i') };
+            break;
+          case 'dayOfWeek':
+          default:
+            // Skip unsupported or unknown condition types
+            return;
+        }
 
-      // Find matching tours
-      const matchingTours = await Tour.find(query);
+        // Find matching tours
+        const matchingTours = await Tour.find(query);
 
-      if (matchingTours.length === 0) {
-        continue;
-      }
+        if (matchingTours.length === 0) {
+          return;
+        }
 
-      // Apply discount to matching tours
-      let updatedCount = 0;
-      for (const tour of matchingTours) {
-        const originalPrice = tour.price;
-        const discountedPrice = originalPrice * (1 - campaign.discountRate / 100);
+        // Apply discount to matching tours using bulk update
+        const updatePromises = matchingTours.map((tour) => {
+          const originalPrice = tour.price;
+          const discountedPrice = originalPrice * (1 - campaign.discountRate / 100);
 
-        // Store campaign info in tour metadata (if field exists)
-        await Tour.updateOne(
-          { _id: tour._id },
-          {
-            $set: {
-              price: Math.round(discountedPrice * 100) / 100, // Round to 2 decimals
-              discountInfo: {
-                campaignId: campaign._id,
-                campaignName: campaign.name,
-                originalPrice,
-                discountRate: campaign.discountRate,
-                appliedAt: now,
+          return Tour.updateOne(
+            { _id: tour._id },
+            {
+              $set: {
+                price: Math.round(discountedPrice * 100) / 100,
+                discountInfo: {
+                  campaignId: campaign._id,
+                  campaignName: campaign.name,
+                  originalPrice,
+                  discountRate: campaign.discountRate,
+                  appliedAt: now,
+                },
               },
-            },
-          }
+            }
+          );
+        });
+
+        await Promise.all(updatePromises);
+
+        // Update applied count
+        await CampaignRule.updateOne(
+          { _id: campaign._id },
+          { $inc: { appliedCount: matchingTours.length } }
         );
 
-        updatedCount++;
-      }
-
-      // Update applied count
-      await CampaignRule.updateOne(
-        { _id: campaign._id },
-        { $inc: { appliedCount: updatedCount } }
-      );
-
-      logger.info(`Campaign "${campaign.name}" applied to ${updatedCount} tours`);
-    }
+        logger.info(`Campaign "${campaign.name}" applied to ${matchingTours.length} tours`);
+      })
+    );
 
     logger.info('Campaign rules applied successfully');
   } catch (error) {

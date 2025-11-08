@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-dotenv.config();
 
 import express from 'express';
 import mongoose from 'mongoose';
@@ -27,6 +26,7 @@ import adminRoutes from './routes/adminRoutes.mjs';
 // Initialize campaign scheduler
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
 
+dotenv.config();
 
 // Initialize Sentry early
 const sentryHandlers = initSentry(express());
@@ -79,7 +79,6 @@ app.use('/api/packages', packageRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/admin', adminRoutes);
 
-
 // Health check endpoint (registered before other routes)
 app.get('/api/health', async (req, res) => {
   const healthStatus = {
@@ -124,16 +123,15 @@ app.get('/api/ready', async (req, res) => {
       },
       'Server is ready'
     );
-  } else {
-    return res.status(503).json({
-      success: false,
-      error: 'Service not ready',
-      details: {
-        database: mongoose.connection.readyState === 1 ? 'connected' : 'not connected',
-        uptime: process.uptime(),
-      },
-    });
   }
+  return res.status(503).json({
+    success: false,
+    error: 'Service not ready',
+    details: {
+      database: mongoose.connection.readyState === 1 ? 'connected' : 'not connected',
+      uptime: process.uptime(),
+    },
+  });
 });
 
 // Metrics endpoint (JSON format)

@@ -121,22 +121,28 @@ router.get('/', requireAuth(['admin']), cacheMiddleware(300), async (req, res) =
  * @returns {object} - Booking object with populated tour details
  * - Cached for 5 minutes
  */
-router.get('/:id', requireAuth(['admin']), validateMongoId, cacheMiddleware(300), async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id)
-      .populate('tour', 'title price duration')
-      .populate('tourId', 'title price duration')
-      .lean();
+router.get(
+  '/:id',
+  requireAuth(['admin']),
+  validateMongoId,
+  cacheMiddleware(300),
+  async (req, res) => {
+    try {
+      const booking = await Booking.findById(req.params.id)
+        .populate('tour', 'title price duration')
+        .populate('tourId', 'title price duration')
+        .lean();
 
-    if (!booking) {
-      return res.apiError('Booking not found', 404);
+      if (!booking) {
+        return res.apiError('Booking not found', 404);
+      }
+
+      return res.apiSuccess(booking, 'Booking retrieved successfully');
+    } catch (error) {
+      return res.apiError(`Failed to fetch booking: ${error.message}`, 500);
     }
-
-    return res.apiSuccess(booking, 'Booking retrieved successfully');
-  } catch (error) {
-    return res.apiError(`Failed to fetch booking: ${error.message}`, 500);
   }
-});
+);
 
 /**
  * @route   DELETE /api/bookings/:id
@@ -252,9 +258,7 @@ router.get('/calendar', requireAuth(['admin', 'manager']), async (req, res) => {
       if (endDate) filter.bookingDate.$lte = new Date(endDate);
     }
 
-    const bookings = await Booking.find(filter)
-      .populate('tour', 'name')
-      .sort({ bookingDate: 1 });
+    const bookings = await Booking.find(filter).populate('tour', 'name').sort({ bookingDate: 1 });
 
     // Format for calendar
     const calendarEvents = bookings.map((booking) => {

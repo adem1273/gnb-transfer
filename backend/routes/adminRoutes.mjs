@@ -6,7 +6,7 @@ import Booking from '../models/Booking.mjs';
 import Tour from '../models/Tour.mjs';
 import User from '../models/User.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
-import { logAdminAction, createAdminLog } from '../middlewares/adminLogger.mjs';
+import { logAdminAction } from '../middlewares/adminLogger.mjs';
 import { clearModuleCache } from '../middlewares/moduleGuard.mjs';
 import { applyCampaignRules } from '../services/campaignScheduler.mjs';
 
@@ -20,7 +20,7 @@ const router = express.Router();
 router.get('/settings', requireAuth(['admin', 'manager']), async (req, res) => {
   try {
     let settings = await AdminSettings.findOne();
-    
+
     if (!settings) {
       // Create default settings
       settings = await AdminSettings.create({
@@ -60,7 +60,7 @@ router.patch(
       const { activeModules, notificationSettings, emailConfig } = req.body;
 
       let settings = await AdminSettings.findOne();
-      
+
       if (!settings) {
         settings = new AdminSettings();
       }
@@ -71,7 +71,10 @@ router.patch(
         clearModuleCache(); // Clear cache when modules change
       }
       if (notificationSettings) {
-        settings.notificationSettings = { ...settings.notificationSettings, ...notificationSettings };
+        settings.notificationSettings = {
+          ...settings.notificationSettings,
+          ...notificationSettings,
+        };
       }
       if (emailConfig) {
         settings.emailConfig = { ...settings.emailConfig, ...emailConfig };
@@ -113,7 +116,8 @@ router.post(
   logAdminAction('CAMPAIGN_CREATE', (req) => ({ type: 'Campaign', name: req.body.name })),
   async (req, res) => {
     try {
-      const { name, description, conditionType, target, discountRate, startDate, endDate, active } = req.body;
+      const { name, description, conditionType, target, discountRate, startDate, endDate, active } =
+        req.body;
 
       // Validation
       if (!name || !conditionType || !target || !discountRate || !startDate || !endDate) {
@@ -254,21 +258,21 @@ router.get('/insights', requireAuth(['admin', 'manager']), async (req, res) => {
       }
     });
 
-    const mostPopularTourId = Object.keys(tourBookings).reduce((a, b) =>
-      tourBookings[a] > tourBookings[b] ? a : b
-    , null);
+    const tourIds = Object.keys(tourBookings);
+    const mostPopularTourId =
+      tourIds.length > 0
+        ? tourIds.reduce((a, b) => (tourBookings[a] > tourBookings[b] ? a : b))
+        : null;
 
-    const mostPopularTour = mostPopularTourId
-      ? await Tour.findById(mostPopularTourId)
-      : null;
+    const mostPopularTour = mostPopularTourId ? await Tour.findById(mostPopularTourId) : null;
 
     // Revenue trend (last 7 days)
-    const last7Days = [];
-    for (let i = 6; i >= 0; i--) {
+    const last7Days = Array.from({ length: 7 }, (_, index) => {
+      const i = 6 - index;
       const date = new Date();
       date.setDate(date.getDate() - i);
       date.setHours(0, 0, 0, 0);
-      
+
       const nextDate = new Date(date);
       nextDate.setDate(nextDate.getDate() + 1);
 
@@ -278,12 +282,13 @@ router.get('/insights', requireAuth(['admin', 'manager']), async (req, res) => {
 
       const dayRevenue = dayBookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
 
-      last7Days.push({
+      return {
         date: date.toISOString().split('T')[0],
         revenue: dayRevenue,
         bookings: dayBookings.length,
-      });
-    }
+      };
+    });
+
 
     // Generate insights summary
     const insights = {
@@ -336,7 +341,7 @@ router.get('/logs', requireAuth(['admin']), async (req, res) => {
     if (action) filter.action = action;
     if (userId) filter['user.id'] = userId;
     if (targetType) filter['target.type'] = targetType;
-    
+
     if (startDate || endDate) {
       filter.createdAt = {};
       if (startDate) filter.createdAt.$gte = new Date(startDate);

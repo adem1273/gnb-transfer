@@ -223,7 +223,10 @@ ${tourList}`,
       return allTours.slice(0, 3);
     }
 
-    const recommendedIds = result.message.trim().split(',').map((id) => id.trim());
+    const recommendedIds = result.message
+      .trim()
+      .split(',')
+      .map((id) => id.trim());
     const recommended = allTours.filter((t) => recommendedIds.includes(t._id.toString()));
 
     return recommended.length > 0 ? recommended : allTours.slice(0, 3);

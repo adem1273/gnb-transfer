@@ -34,5 +34,6 @@ const adminSettingsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const AdminSettings = mongoose.models.AdminSettings || mongoose.model('AdminSettings', adminSettingsSchema);
+const AdminSettings =
+  mongoose.models.AdminSettings || mongoose.model('AdminSettings', adminSettingsSchema);
 export default AdminSettings;

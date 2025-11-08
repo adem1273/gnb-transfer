@@ -43,5 +43,6 @@ campaignRuleSchema.pre('save', function (next) {
   return next();
 });
 
-const CampaignRule = mongoose.models.CampaignRule || mongoose.model('CampaignRule', campaignRuleSchema);
+const CampaignRule =
+  mongoose.models.CampaignRule || mongoose.model('CampaignRule', campaignRuleSchema);
 export default CampaignRule;
