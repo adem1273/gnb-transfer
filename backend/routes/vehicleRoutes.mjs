@@ -22,8 +22,17 @@ router.get('/', requireAuth(['admin', 'manager']), async (req, res) => {
     const { status, type, page = 1, limit = 20 } = req.query;
 
     const filter = {};
-    if (status) filter.status = status;
-    if (type) filter.type = type;
+    // Validate and whitelist status values
+    const validStatuses = ['available', 'in-use', 'maintenance', 'retired'];
+    if (status && validStatuses.includes(status)) {
+      filter.status = status;
+    }
+    
+    // Validate and whitelist type values
+    const validTypes = ['sedan', 'suv', 'van', 'minibus', 'luxury', 'economy'];
+    if (type && validTypes.includes(type)) {
+      filter.type = type;
+    }
 
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
 

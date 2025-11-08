@@ -161,6 +161,11 @@ router.post('/complete-booking', requireAuth(['admin', 'manager', 'user']), asyn
       return res.apiError('User ID is required', 400);
     }
 
+    // Validate ObjectId format
+    if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.apiError('Invalid user ID format', 400);
+    }
+
     // Find referral where this user was referred
     const referral = await Referral.findOne({ 'referredUsers.user': userId });
 

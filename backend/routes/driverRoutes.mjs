@@ -23,7 +23,11 @@ router.get('/', requireAuth(['admin', 'manager']), async (req, res) => {
     const { status, page = 1, limit = 20 } = req.query;
 
     const filter = {};
-    if (status) filter.status = status;
+    // Validate and whitelist status values
+    const validStatuses = ['active', 'inactive', 'on-duty', 'off-duty'];
+    if (status && validStatuses.includes(status)) {
+      filter.status = status;
+    }
 
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
 
@@ -100,6 +104,11 @@ router.post('/', requireAuth(['admin']), async (req, res) => {
     }
 
     // Check if user exists and has driver role
+    // Validate userId format before querying
+    if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.apiError('Invalid user ID format', 400);
+    }
+    
     const user = await User.findById(userId);
     if (!user) {
       return res.apiError('User not found', 404);
@@ -217,6 +226,11 @@ router.post('/:id/assign-vehicle', requireAuth(['admin']), async (req, res) => {
 
     if (!vehicleId) {
       return res.apiError('Vehicle ID is required', 400);
+    }
+
+    // Validate ObjectId format
+    if (!vehicleId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.apiError('Invalid vehicle ID format', 400);
     }
 
     const vehicle = await Vehicle.findById(vehicleId);

@@ -21,9 +21,21 @@ router.get('/', requireAuth(['admin', 'manager', 'support']), async (req, res) =
     const { status, priority, category, page = 1, limit = 20 } = req.query;
 
     const filter = {};
-    if (status) filter.status = status;
-    if (priority) filter.priority = priority;
-    if (category) filter.category = category;
+    // Validate and whitelist values
+    const validStatuses = ['open', 'in-progress', 'resolved', 'closed'];
+    if (status && validStatuses.includes(status)) {
+      filter.status = status;
+    }
+    
+    const validPriorities = ['low', 'medium', 'high', 'urgent'];
+    if (priority && validPriorities.includes(priority)) {
+      filter.priority = priority;
+    }
+    
+    const validCategories = ['booking', 'payment', 'general', 'technical', 'other'];
+    if (category && validCategories.includes(category)) {
+      filter.category = category;
+    }
 
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
 
