@@ -161,9 +161,27 @@ router.patch(
       const { id } = req.params;
       const updates = req.body;
 
+      // Whitelist allowed fields for update
+      const allowedFields = [
+        'name',
+        'description',
+        'conditionType',
+        'target',
+        'discountRate',
+        'startDate',
+        'endDate',
+        'active',
+      ];
+      const sanitizedUpdates = {};
+      allowedFields.forEach((field) => {
+        if (updates[field] !== undefined) {
+          sanitizedUpdates[field] = updates[field];
+        }
+      });
+
       const campaign = await CampaignRule.findByIdAndUpdate(
         id,
-        { $set: updates },
+        { $set: sanitizedUpdates },
         { new: true, runValidators: true }
       );
 
@@ -336,11 +354,37 @@ router.get('/logs', requireAuth(['admin']), async (req, res) => {
   try {
     const { action, userId, targetType, startDate, endDate, page = 1, limit = 50 } = req.query;
 
-    // Build filter
+    // Build filter with whitelisted values
     const filter = {};
-    if (action) filter.action = action;
-    if (userId) filter['user.id'] = userId;
-    if (targetType) filter['target.type'] = targetType;
+    
+    // Whitelist action values
+    const validActions = [
+      'CREATE',
+      'UPDATE',
+      'DELETE',
+      'LOGIN',
+      'LOGOUT',
+      'VIEW',
+      'EXPORT',
+      'SETTINGS_CHANGE',
+      'CAMPAIGN_CREATE',
+      'CAMPAIGN_UPDATE',
+      'CAMPAIGN_DELETE',
+    ];
+    if (action && validActions.includes(action)) {
+      filter.action = action;
+    }
+    
+    // Validate ObjectId format for userId
+    if (userId && /^[0-9a-fA-F]{24}$/.test(userId)) {
+      filter['user.id'] = userId;
+    }
+    
+    // Whitelist target type values
+    const validTargetTypes = ['User', 'Booking', 'Tour', 'Settings', 'Campaign'];
+    if (targetType && validTargetTypes.includes(targetType)) {
+      filter['target.type'] = targetType;
+    }
 
     if (startDate || endDate) {
       filter.createdAt = {};
@@ -384,11 +428,24 @@ router.get('/logs/export', requireAuth(['admin']), async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
+    // Build filter (dates are validated by Date constructor)
+    // Date validation: Invalid dates become NaN which MongoDB safely ignores
     const filter = {};
     if (startDate || endDate) {
       filter.createdAt = {};
-      if (startDate) filter.createdAt.$gte = new Date(startDate);
-      if (endDate) filter.createdAt.$lte = new Date(endDate);
+      // Date constructor validates and sanitizes input
+      if (startDate) {
+        const parsedStart = new Date(startDate);
+        if (!Number.isNaN(parsedStart.getTime())) {
+          filter.createdAt.$gte = parsedStart;
+        }
+      }
+      if (endDate) {
+        const parsedEnd = new Date(endDate);
+        if (!Number.isNaN(parsedEnd.getTime())) {
+          filter.createdAt.$lte = parsedEnd;
+        }
+      }
     }
 
     const logs = await AdminLog.find(filter).sort({ createdAt: -1 }).limit(10000);

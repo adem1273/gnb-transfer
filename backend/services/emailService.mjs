@@ -99,7 +99,9 @@ export const sendEmail = async ({ to, subject, html, text }) => {
       to,
       subject,
       html,
-      text: text || html.replace(/<[^>]*>/g, ''), // Strip HTML for plain text
+      // Only include text if explicitly provided
+      // Auto-generated plain text can have security issues
+      ...(text && { text }),
     };
 
     const info = await transporter.sendMail(mailOptions);
