@@ -40,10 +40,14 @@ const AIInsights = lazy(() => import('./pages/AIInsights'));
 const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
 const CalendarView = lazy(() => import('./pages/CalendarView'));
 const ActivityLogs = lazy(() => import('./pages/ActivityLogs'));
+const FinancePanel = lazy(() => import('./pages/FinancePanel'));
+const CouponManagement = lazy(() => import('./pages/CouponManagement'));
+const ReferralProgram = lazy(() => import('./pages/ReferralProgram'));
 
 // Lazy load optional components (only load when needed)
 const LiveChat = lazy(() => import('./components/LiveChat'));
 const Feedback = lazy(() => import('./components/Feedback'));
+const FAQBot = lazy(() => import('./components/FAQBot'));
  
 // Genel Kullanıcı Düzeni
 const MainLayout = () => {
@@ -114,6 +118,7 @@ function App() {
                 <Route path="payment" element={<StripePayment />} />
                 <Route path="reviews" element={<Suspense fallback={<Loading />}><Feedback /></Suspense>} />
                 <Route path="contact" element={<Contact />} />
+                <Route path="faq" element={<Suspense fallback={<Loading />}><FAQBot /></Suspense>} />
               </Route>
  
               {/* Admin Paneli Rotaları (Korunmuş) */}
@@ -131,6 +136,9 @@ function App() {
                 <Route path="notifications" element={<NotificationSettings />} />
                 <Route path="calendar" element={<CalendarView />} />
                 <Route path="logs" element={<ActivityLogs />} />
+                <Route path="finance" element={<FinancePanel />} />
+                <Route path="coupons" element={<CouponManagement />} />
+                <Route path="referrals" element={<ReferralProgram />} />
               </Route>
               
               {/* Sürücü Paneli Rotası */}
