@@ -22,6 +22,11 @@ import bookingRoutes from './routes/bookingRoutes.mjs';
 import delayRoutes from './routes/delayRoutes.mjs';
 import packageRoutes from './routes/packageRoutes.mjs';
 import chatRoutes from './routes/chatRoutes.mjs';
+import adminRoutes from './routes/adminRoutes.mjs';
+
+// Initialize campaign scheduler
+import { initCampaignScheduler } from './services/campaignScheduler.mjs';
+
 
 // Initialize Sentry early
 const sentryHandlers = initSentry(express());
@@ -72,6 +77,8 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/delay', delayRoutes);
 app.use('/api/packages', packageRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/admin', adminRoutes);
+
 
 // Health check endpoint (registered before other routes)
 app.get('/api/health', async (req, res) => {
@@ -179,6 +186,9 @@ if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
 }
 
 await connectDB();
+
+// Initialize campaign scheduler after DB connection
+initCampaignScheduler();
 
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
