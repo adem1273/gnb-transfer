@@ -17,7 +17,7 @@ const openai = new OpenAI({
 const batchCache = new NodeCache({ stdTTL: 3600 });
 
 // Pending batch queue
-let batchQueue = [];
+const batchQueue = [];
 let batchTimer = null;
 const BATCH_DELAY_MS = 2000; // Wait 2 seconds to collect requests
 const MAX_BATCH_SIZE = 10; // Process max 10 requests together
@@ -43,8 +43,8 @@ async function processBatch() {
   // Process all requests in parallel
   const results = await Promise.allSettled(
     batch.map(async (item) => {
-      const cacheKey = item.cacheKey;
-      
+      const { cacheKey } = item;
+
       // Check cache first
       const cached = batchCache.get(cacheKey);
       if (cached) {

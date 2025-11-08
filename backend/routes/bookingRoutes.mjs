@@ -121,22 +121,28 @@ router.get('/', requireAuth(['admin']), cacheMiddleware(300), async (req, res) =
  * @returns {object} - Booking object with populated tour details
  * - Cached for 5 minutes
  */
-router.get('/:id', requireAuth(['admin']), validateMongoId, cacheMiddleware(300), async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id)
-      .populate('tour', 'title price duration')
-      .populate('tourId', 'title price duration')
-      .lean();
+router.get(
+  '/:id',
+  requireAuth(['admin']),
+  validateMongoId,
+  cacheMiddleware(300),
+  async (req, res) => {
+    try {
+      const booking = await Booking.findById(req.params.id)
+        .populate('tour', 'title price duration')
+        .populate('tourId', 'title price duration')
+        .lean();
 
-    if (!booking) {
-      return res.apiError('Booking not found', 404);
+      if (!booking) {
+        return res.apiError('Booking not found', 404);
+      }
+
+      return res.apiSuccess(booking, 'Booking retrieved successfully');
+    } catch (error) {
+      return res.apiError(`Failed to fetch booking: ${error.message}`, 500);
     }
-
-    return res.apiSuccess(booking, 'Booking retrieved successfully');
-  } catch (error) {
-    return res.apiError(`Failed to fetch booking: ${error.message}`, 500);
   }
-});
+);
 
 /**
  * @route   DELETE /api/bookings/:id
@@ -227,5 +233,67 @@ router.put(
     }
   }
 );
+
+/**
+ * @route   GET /api/bookings/calendar
+ * @desc    Get bookings formatted for calendar view
+ * @access  Private (admin, manager)
+ * @query   {string} [startDate] - Start date filter (ISO 8601)
+ * @query   {string} [endDate] - End date filter (ISO 8601)
+ * @returns {array} - Array of bookings with calendar-friendly format
+ *
+ * Response format:
+ * - Each booking includes: id, title, start, end, status, color
+ * - Color-coded by status: confirmed (green), pending (yellow), cancelled (red)
+ */
+router.get('/calendar', requireAuth(['admin', 'manager']), async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    // Build date filter
+    const filter = {};
+    if (startDate || endDate) {
+      filter.bookingDate = {};
+      if (startDate) filter.bookingDate.$gte = new Date(startDate);
+      if (endDate) filter.bookingDate.$lte = new Date(endDate);
+    }
+
+    const bookings = await Booking.find(filter).populate('tour', 'name').sort({ bookingDate: 1 });
+
+    // Format for calendar
+    const calendarEvents = bookings.map((booking) => {
+      let color = '#gray';
+      switch (booking.status) {
+        case 'confirmed':
+          color = '#10b981'; // green
+          break;
+        case 'pending':
+          color = '#f59e0b'; // yellow
+          break;
+        case 'cancelled':
+          color = '#ef4444'; // red
+          break;
+        default:
+          color = '#6b7280'; // gray
+      }
+
+      return {
+        id: booking._id,
+        title: `${booking.name} - ${booking.tour?.name || 'Tour'}`,
+        start: booking.bookingDate || booking.createdAt,
+        end: booking.bookingDate || booking.createdAt,
+        status: booking.status,
+        color,
+        email: booking.email,
+        guests: booking.guests,
+        totalPrice: booking.totalPrice,
+      };
+    });
+
+    return res.apiSuccess(calendarEvents, 'Calendar events retrieved successfully');
+  } catch (error) {
+    return res.apiError(`Failed to fetch calendar events: ${error.message}`, 500);
+  }
+});
 
 export default router;

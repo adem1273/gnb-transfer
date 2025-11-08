@@ -16,10 +16,10 @@ export function initSentry(app) {
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
       environment: process.env.NODE_ENV || 'development',
-      
+
       // Set sample rate for performance monitoring
       tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-      
+
       // Integrations
       integrations: [
         // Express integration
@@ -36,7 +36,7 @@ export function initSentry(app) {
           delete event.request.headers.authorization;
           delete event.request.headers.cookie;
         }
-        
+
         // Remove sensitive data from request body
         if (event.request && event.request.data) {
           if (typeof event.request.data === 'object') {
@@ -47,17 +47,12 @@ export function initSentry(app) {
             event.request.data = sanitized;
           }
         }
-        
+
         return event;
       },
 
       // Ignore specific errors
-      ignoreErrors: [
-        'NotFoundError',
-        'ValidationError',
-        'CastError',
-        /jwt/i,
-      ],
+      ignoreErrors: ['NotFoundError', 'ValidationError', 'CastError', /jwt/i],
     });
 
     logger.info('Sentry initialized successfully');
