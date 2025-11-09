@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ErrorMessage from '../components/ErrorMessage';
 import { useTranslation } from 'react-i18next'; // <-- Yeni import
@@ -58,6 +58,20 @@ function Login() {
           {t('header.login')}
         </button>
       </form>
+      <div className="mt-4 text-center space-y-2">
+        <Link
+          to="/forgot-password"
+          className="text-blue-600 hover:text-blue-700 text-sm"
+        >
+          {t('auth.forgotPassword')}
+        </Link>
+        <div>
+          <span className="text-gray-600 text-sm">{t('auth.noAccount')} </span>
+          <Link to="/register" className="text-blue-600 hover:text-blue-700 text-sm">
+            {t('auth.register')}
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

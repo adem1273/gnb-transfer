@@ -40,7 +40,25 @@
     "cash": "Cash on Arrival",
     "creditCard": "Credit Card (Online)",
     "login": "Login",
-    "register": "Register"
+    "register": "Register",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password"
+  },
+  "auth": {
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "sendResetLink": "Send Reset Link",
+    "backToLogin": "Back to Login",
+    "noAccount": "Don't have an account?",
+    "register": "Register",
+    "forgotPasswordDescription": "Enter your email address and we'll send you a link to reset your password.",
+    "resetPasswordDescription": "Enter your new password below."
+  },
+  "common": {
+    "loading": "Loading..."
   },
   "messages": {
     "allFieldsRequired": "All fields are required.",
@@ -52,7 +70,16 @@
     "loadToursFailed": "Failed to load tours.",
     "bookingFailed": "Booking failed. Please try again.",
     "bookingDescription": "Book your tour or transfer with GNB Transfer.",
-    "bookingKeywords": "GNB Transfer, Booking, Airport Transfer, Tours"
+    "bookingKeywords": "GNB Transfer, Booking, Airport Transfer, Tours",
+    "emailRequired": "Email is required.",
+    "forgotPasswordFailed": "Failed to send reset email. Please try again.",
+    "checkEmail": "Check Your Email",
+    "resetEmailSent": "If that email exists in our system, a password reset link has been sent. Please check your email.",
+    "passwordMinLength": "Password must be at least 6 characters.",
+    "passwordsDoNotMatch": "Passwords do not match.",
+    "resetPasswordFailed": "Failed to reset password. The link may be invalid or expired.",
+    "passwordResetSuccess": "Password Reset Successful!",
+    "redirectingToLogin": "Redirecting to login page..."
   },
   "footer": {
     "allRightsReserved": "All rights reserved."

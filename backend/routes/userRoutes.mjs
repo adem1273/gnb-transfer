@@ -4,9 +4,11 @@
 
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import User from '../models/User.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
+import { sendEmail } from '../services/emailService.mjs';
 import {
   validateUserRegistration,
   validateUserLogin,
@@ -235,5 +237,134 @@ router.delete(
     }
   }
 );
+
+/**
+ * @route   POST /api/users/forgot-password
+ * @desc    Request password reset email
+ * @access  Public
+ * @body    {string} email - User's email address
+ * @returns {object} - Success message
+ *
+ * Security measures:
+ * - Rate limited to 3 requests per 15 minutes
+ * - Generates cryptographically secure random token
+ * - Token expires after 1 hour
+ * - Generic success message (doesn't reveal if email exists)
+ */
+router.post('/forgot-password', strictRateLimiter, async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.apiError('Email is required', 400);
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    // Always return success to prevent email enumeration
+    if (!user) {
+      return res.apiSuccess(
+        null,
+        'If that email exists, a password reset link has been sent'
+      );
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Save hashed token and expiry to user
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    // Send email with reset link
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+    
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Password Reset Request - GNB Transfer',
+        html: `
+          <h1>Password Reset Request</h1>
+          <p>Hello ${user.name},</p>
+          <p>You requested a password reset for your GNB Transfer account.</p>
+          <p>Click the link below to reset your password (valid for 1 hour):</p>
+          <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a>
+          <p>Or copy and paste this URL into your browser:</p>
+          <p>${resetUrl}</p>
+          <p>If you didn't request this, please ignore this email.</p>
+          <p>Best regards,<br>GNB Transfer Team</p>
+        `,
+      });
+    } catch (emailError) {
+      console.error('Failed to send reset email:', emailError);
+      // Clear the reset token if email fails
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save();
+      return res.apiError('Failed to send reset email. Please try again later.', 500);
+    }
+
+    return res.apiSuccess(
+      null,
+      'If that email exists, a password reset link has been sent'
+    );
+  } catch (error) {
+    return res.apiError(`Failed to process request: ${error.message}`, 500);
+  }
+});
+
+/**
+ * @route   POST /api/users/reset-password/:token
+ * @desc    Reset password using token
+ * @access  Public
+ * @param   {string} token - Reset token from email
+ * @body    {string} password - New password (min 6 characters)
+ * @returns {object} - Success message
+ *
+ * Security measures:
+ * - Rate limited to 5 requests per 15 minutes
+ * - Validates token hasn't expired
+ * - Clears reset token after successful reset
+ * - Password is hashed by User model pre-save hook
+ */
+router.post('/reset-password/:token', strictRateLimiter, async (req, res) => {
+  try {
+    const { password } = req.body;
+    const { token } = req.params;
+
+    if (!password) {
+      return res.apiError('Password is required', 400);
+    }
+
+    if (password.length < 6) {
+      return res.apiError('Password must be at least 6 characters', 400);
+    }
+
+    // Hash the token from URL to compare with stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find user with valid token that hasn't expired
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.apiError('Invalid or expired reset token', 400);
+    }
+
+    // Update password and clear reset fields
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    return res.apiSuccess(null, 'Password reset successful. You can now login with your new password.');
+  } catch (error) {
+    return res.apiError(`Failed to reset password: ${error.message}`, 500);
+  }
+});
 
 export default router;

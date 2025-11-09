@@ -64,6 +64,8 @@ const userSchema = new mongoose.Schema(
         metadata: { type: mongoose.Schema.Types.Mixed },
       },
     ],
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );
