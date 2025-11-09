@@ -39,7 +39,7 @@
     "i18next-browser-languagedetector": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
     "leaflet": "^1.9.4",
-    "mongoose": "^8.3.2",
+    "mongoose": "^8.19.3",
     "openai": "^4.20.1",
     "react": "^18.2.0",
     "react-big-calendar": "^1.19.4",
