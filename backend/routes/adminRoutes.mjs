@@ -6,6 +6,7 @@ import Booking from '../models/Booking.mjs';
 import Tour from '../models/Tour.mjs';
 import User from '../models/User.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
+import { requirePermission, requireAnyPermission } from '../config/permissions.mjs';
 import { logAdminAction } from '../middlewares/adminLogger.mjs';
 import { clearModuleCache } from '../middlewares/moduleGuard.mjs';
 import { applyCampaignRules } from '../services/campaignScheduler.mjs';
@@ -15,9 +16,9 @@ const router = express.Router();
 /**
  * @route   GET /api/admin/settings
  * @desc    Get admin settings
- * @access  Private (admin, manager)
+ * @access  Private (requires settings.view permission)
  */
-router.get('/settings', requireAuth(['admin', 'manager']), async (req, res) => {
+router.get('/settings', requireAuth(), requirePermission('settings.view'), async (req, res) => {
   try {
     let settings = await AdminSettings.findOne();
 
@@ -49,11 +50,12 @@ router.get('/settings', requireAuth(['admin', 'manager']), async (req, res) => {
 /**
  * @route   PATCH /api/admin/settings
  * @desc    Update admin settings
- * @access  Private (admin only)
+ * @access  Private (requires settings.update permission)
  */
 router.patch(
   '/settings',
-  requireAuth(['admin']),
+  requireAuth(),
+  requirePermission('settings.update'),
   logAdminAction('SETTINGS_CHANGE', { type: 'Settings', name: 'Admin Settings' }),
   async (req, res) => {
     try {

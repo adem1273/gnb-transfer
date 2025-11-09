@@ -186,6 +186,34 @@ router.get('/profile', requireAuth(), async (req, res) => {
 });
 
 /**
+ * @route   GET /api/users/permissions
+ * @desc    Get current user's permissions based on role
+ * @access  Private (requires valid JWT token)
+ * @headers Authorization: Bearer <token>
+ * @returns {object} - User permissions
+ */
+router.get('/permissions', requireAuth(), async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.apiError('Not authenticated', 401);
+    }
+
+    const { getRolePermissions } = await import('../config/permissions.mjs');
+    const permissions = getRolePermissions(req.user.role);
+
+    return res.apiSuccess(
+      {
+        role: req.user.role,
+        permissions,
+      },
+      'Permissions retrieved successfully'
+    );
+  } catch (error) {
+    return res.apiError(`Failed to retrieve permissions: ${error.message}`, 500);
+  }
+});
+
+/**
  * @route   GET /api/users
  * @desc    Get all users (limited to 100)
  * @access  Private (admin only)
