@@ -1,8 +1,9 @@
 #!/usr/bin/env node
+/* eslint-disable no-console, no-restricted-syntax, radix */
 
 /**
  * Test Environment Verification Script
- * 
+ *
  * Checks if the environment is properly configured for running API tests
  */
 
@@ -10,7 +11,6 @@ import { createRequire } from 'module';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs';
-import path from 'path';
 
 const execAsync = promisify(exec);
 const require = createRequire(import.meta.url);
@@ -38,13 +38,13 @@ try {
   const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
   const requiredDeps = ['jest', 'supertest', '@jest/globals'];
   const missingDeps = [];
-  
+
   for (const dep of requiredDeps) {
     if (!pkg.devDependencies?.[dep]) {
       missingDeps.push(dep);
     }
   }
-  
+
   if (missingDeps.length === 0) {
     console.log('   ✅ All test dependencies installed\n');
   } else {
@@ -59,12 +59,7 @@ try {
 
 // Check 3: Test files
 console.log('3️⃣  Checking test files...');
-const requiredFiles = [
-  'tests/api.test.mjs',
-  'tests/setup.mjs',
-  'jest.config.mjs',
-  '.env.test'
-];
+const requiredFiles = ['tests/api.test.mjs', 'tests/setup.mjs', 'jest.config.mjs', '.env.test'];
 
 let allFilesExist = true;
 for (const file of requiredFiles) {
@@ -85,10 +80,10 @@ console.log('4️⃣  Checking MongoDB connection...');
 try {
   const dotenv = await import('dotenv');
   dotenv.config({ path: '.env.test' });
-  
+
   const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/gnb-transfer-test';
   console.log(`   📍 MongoDB URI: ${mongoUri}`);
-  
+
   // Try to connect to MongoDB
   try {
     const mongoose = await import('mongoose');
@@ -119,7 +114,9 @@ try {
     console.log('   ✅ Test script configured in package.json\n');
   } else {
     console.log('   ⚠️  Test script not properly configured');
-    console.log('   Expected: "test": "NODE_OPTIONS=\'--experimental-vm-modules\' jest --config jest.config.mjs"\n');
+    console.log(
+      '   Expected: "test": "NODE_OPTIONS=\'--experimental-vm-modules\' jest --config jest.config.mjs"\n'
+    );
   }
 } catch (error) {
   console.log('   ❌ Could not check test script\n');

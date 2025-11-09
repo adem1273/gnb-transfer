@@ -1,6 +1,6 @@
 /**
  * Support Routes
- * 
+ *
  * @module routes/supportRoutes
  * @description Customer support ticket management endpoints
  */
@@ -26,12 +26,12 @@ router.get('/', requireAuth(['admin', 'manager', 'support']), async (req, res) =
     if (status && validStatuses.includes(status)) {
       filter.status = status;
     }
-    
+
     const validPriorities = ['low', 'medium', 'high', 'urgent'];
     if (priority && validPriorities.includes(priority)) {
       filter.priority = priority;
     }
-    
+
     const validCategories = ['booking', 'payment', 'general', 'technical', 'other'];
     if (category && validCategories.includes(category)) {
       filter.category = category;
@@ -54,9 +54,9 @@ router.get('/', requireAuth(['admin', 'manager', 'support']), async (req, res) =
       {
         $group: {
           _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
+          count: { $sum: 1 },
+        },
+      },
     ]);
 
     return res.apiSuccess({
@@ -65,12 +65,12 @@ router.get('/', requireAuth(['admin', 'manager', 'support']), async (req, res) =
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),
         total,
-        pages: Math.ceil(total / parseInt(limit, 10))
+        pages: Math.ceil(total / parseInt(limit, 10)),
       },
       stats: stats.reduce((acc, item) => {
         acc[item._id] = item.count;
         return acc;
-      }, {})
+      }, {}),
     });
   } catch (error) {
     console.error('Error fetching support tickets:', error);
@@ -126,7 +126,7 @@ router.post('/', async (req, res) => {
       language,
       bookingId,
       aiResponse,
-      conversationHistory
+      conversationHistory,
     } = req.body;
 
     // Validate required fields
@@ -142,7 +142,7 @@ router.post('/', async (req, res) => {
       category: category || 'general',
       priority: priority || 'medium',
       language: language || 'en',
-      status: 'open'
+      status: 'open',
     };
 
     // Add optional fields
@@ -175,7 +175,7 @@ router.patch('/:id', requireAuth(['admin', 'manager', 'support']), async (req, r
     const allowedFields = ['status', 'priority', 'resolution'];
 
     const updates = {};
-    allowedFields.forEach(field => {
+    allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
@@ -191,7 +191,9 @@ router.patch('/:id', requireAuth(['admin', 'manager', 'support']), async (req, r
       req.params.id,
       { $set: updates },
       { new: true, runValidators: true }
-    ).populate('user', 'name email').populate('resolvedBy', 'name email');
+    )
+      .populate('user', 'name email')
+      .populate('resolvedBy', 'name email');
 
     if (!ticket) {
       return res.apiError('Ticket not found', 404);
@@ -248,8 +250,8 @@ router.get('/my/tickets', requireAuth(['admin', 'manager', 'user']), async (req,
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),
         total,
-        pages: Math.ceil(total / parseInt(limit, 10))
-      }
+        pages: Math.ceil(total / parseInt(limit, 10)),
+      },
     });
   } catch (error) {
     console.error('Error fetching user tickets:', error);
@@ -273,7 +275,7 @@ router.get('/stats/overview', requireAuth(['admin', 'manager', 'support']), asyn
     // Average resolution time
     const resolvedTickets = await SupportTicket.find({
       status: { $in: ['resolved', 'closed'] },
-      resolvedAt: { $exists: true }
+      resolvedAt: { $exists: true },
     });
 
     let avgResolutionTime = 0;
@@ -291,9 +293,9 @@ router.get('/stats/overview', requireAuth(['admin', 'manager', 'support']), asyn
       {
         $group: {
           _id: '$priority',
-          count: { $sum: 1 }
-        }
-      }
+          count: { $sum: 1 },
+        },
+      },
     ]);
 
     return res.apiSuccess({
@@ -306,7 +308,7 @@ router.get('/stats/overview', requireAuth(['admin', 'manager', 'support']), asyn
       byPriority: byPriority.reduce((acc, item) => {
         acc[item._id] = item.count;
         return acc;
-      }, {})
+      }, {}),
     });
   } catch (error) {
     console.error('Error fetching support stats:', error);

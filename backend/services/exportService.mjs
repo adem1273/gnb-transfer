@@ -1,6 +1,6 @@
 /**
  * Export Service
- * 
+ *
  * @module services/exportService
  * @description Export bookings, users, and revenue data to CSV and PDF formats
  */
@@ -14,7 +14,7 @@ import logger from '../config/logger.mjs';
 
 /**
  * Export bookings to CSV
- * 
+ *
  * @param {Object} filters - Query filters
  * @returns {Promise<string>} - CSV string
  */
@@ -36,7 +36,7 @@ export const exportBookingsCSV = async (filters = {}) => {
       { label: 'Amount', value: 'amount' },
       { label: 'Status', value: 'status' },
       { label: 'Payment Method', value: 'paymentMethod' },
-      { label: 'Created At', value: 'createdAt' }
+      { label: 'Created At', value: 'createdAt' },
     ];
 
     const parser = new Parser({ fields });
@@ -51,16 +51,13 @@ export const exportBookingsCSV = async (filters = {}) => {
 
 /**
  * Export users to CSV
- * 
+ *
  * @param {Object} filters - Query filters
  * @returns {Promise<string>} - CSV string
  */
 export const exportUsersCSV = async (filters = {}) => {
   try {
-    const users = await User.find(filters)
-      .select('-password')
-      .sort({ createdAt: -1 })
-      .lean();
+    const users = await User.find(filters).select('-password').sort({ createdAt: -1 }).lean();
 
     const fields = [
       { label: 'User ID', value: '_id' },
@@ -68,7 +65,7 @@ export const exportUsersCSV = async (filters = {}) => {
       { label: 'Email', value: 'email' },
       { label: 'Role', value: 'role' },
       { label: 'Language', value: 'preferences.language' },
-      { label: 'Registered At', value: 'createdAt' }
+      { label: 'Registered At', value: 'createdAt' },
     ];
 
     const parser = new Parser({ fields });
@@ -83,7 +80,7 @@ export const exportUsersCSV = async (filters = {}) => {
 
 /**
  * Export revenue report to CSV
- * 
+ *
  * @param {Date} startDate - Start date
  * @param {Date} endDate - End date
  * @returns {Promise<string>} - CSV string
@@ -98,42 +95,42 @@ export const exportRevenueCSV = async (startDate, endDate) => {
       {
         $match: {
           createdAt: dateFilter,
-          status: { $in: ['confirmed', 'completed', 'paid'] }
-        }
+          status: { $in: ['confirmed', 'completed', 'paid'] },
+        },
       },
       {
         $lookup: {
           from: 'tours',
           localField: 'tour',
           foreignField: '_id',
-          as: 'tourData'
-        }
+          as: 'tourData',
+        },
       },
       {
-        $unwind: { path: '$tourData', preserveNullAndEmptyArrays: true }
+        $unwind: { path: '$tourData', preserveNullAndEmptyArrays: true },
       },
       {
         $group: {
           _id: {
             date: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-            tour: '$tourData.title'
+            tour: '$tourData.title',
           },
           bookingCount: { $sum: 1 },
           totalRevenue: { $sum: '$amount' },
-          avgBookingValue: { $avg: '$amount' }
-        }
+          avgBookingValue: { $avg: '$amount' },
+        },
       },
       {
-        $sort: { '_id.date': -1 }
-      }
+        $sort: { '_id.date': -1 },
+      },
     ]);
 
-    const revenueData = bookings.map(item => ({
+    const revenueData = bookings.map((item) => ({
       date: item._id.date,
       tour: item._id.tour || 'N/A',
       bookings: item.bookingCount,
       revenue: Math.round(item.totalRevenue * 100) / 100,
-      avgValue: Math.round(item.avgBookingValue * 100) / 100
+      avgValue: Math.round(item.avgBookingValue * 100) / 100,
     }));
 
     const fields = [
@@ -141,7 +138,7 @@ export const exportRevenueCSV = async (startDate, endDate) => {
       { label: 'Tour', value: 'tour' },
       { label: 'Bookings', value: 'bookings' },
       { label: 'Revenue', value: 'revenue' },
-      { label: 'Avg Booking Value', value: 'avgValue' }
+      { label: 'Avg Booking Value', value: 'avgValue' },
     ];
 
     const parser = new Parser({ fields });
@@ -156,7 +153,7 @@ export const exportRevenueCSV = async (startDate, endDate) => {
 
 /**
  * Generate revenue report PDF
- * 
+ *
  * @param {Date} startDate - Start date
  * @param {Date} endDate - End date
  * @returns {Promise<PDFDocument>} - PDF document stream
@@ -168,10 +165,12 @@ export const generateRevenuePDF = async (startDate, endDate) => {
     // Header
     doc.fontSize(20).text('GNB Transfer - Revenue Report', { align: 'center' });
     doc.moveDown();
-    doc.fontSize(12).text(
-      `Period: ${startDate ? new Date(startDate).toLocaleDateString() : 'All Time'} - ${endDate ? new Date(endDate).toLocaleDateString() : 'Present'}`,
-      { align: 'center' }
-    );
+    doc
+      .fontSize(12)
+      .text(
+        `Period: ${startDate ? new Date(startDate).toLocaleDateString() : 'All Time'} - ${endDate ? new Date(endDate).toLocaleDateString() : 'Present'}`,
+        { align: 'center' }
+      );
     doc.moveDown();
 
     // Get data
@@ -181,7 +180,7 @@ export const generateRevenuePDF = async (startDate, endDate) => {
 
     const bookings = await Booking.find({
       createdAt: dateFilter,
-      status: { $in: ['confirmed', 'completed', 'paid'] }
+      status: { $in: ['confirmed', 'completed', 'paid'] },
     }).populate('tour', 'title');
 
     // Summary statistics
@@ -199,15 +198,15 @@ export const generateRevenuePDF = async (startDate, endDate) => {
 
     // Top tours
     const tourRevenue = new Map();
-    bookings.forEach(booking => {
+    bookings.forEach((booking) => {
       if (booking.tour) {
         const tourId = booking.tour._id.toString();
         const tourTitle = booking.tour.title;
-        
+
         if (!tourRevenue.has(tourId)) {
           tourRevenue.set(tourId, { title: tourTitle, revenue: 0, count: 0 });
         }
-        
+
         const data = tourRevenue.get(tourId);
         data.revenue += booking.amount || 0;
         data.count += 1;
@@ -223,17 +222,12 @@ export const generateRevenuePDF = async (startDate, endDate) => {
     doc.fontSize(10);
 
     topTours.forEach((tour, index) => {
-      doc.text(
-        `${index + 1}. ${tour.title}: $${tour.revenue.toFixed(2)} (${tour.count} bookings)`
-      );
+      doc.text(`${index + 1}. ${tour.title}: $${tour.revenue.toFixed(2)} (${tour.count} bookings)`);
     });
 
     // Footer
     doc.moveDown(2);
-    doc.fontSize(8).text(
-      `Generated on ${new Date().toLocaleString()}`,
-      { align: 'center' }
-    );
+    doc.fontSize(8).text(`Generated on ${new Date().toLocaleString()}`, { align: 'center' });
 
     doc.end();
     return doc;
@@ -245,7 +239,7 @@ export const generateRevenuePDF = async (startDate, endDate) => {
 
 /**
  * Generate bookings report PDF
- * 
+ *
  * @param {Object} filters - Query filters
  * @returns {Promise<PDFDocument>} - PDF document stream
  */
@@ -286,7 +280,7 @@ export const generateBookingsPDF = async (filters = {}) => {
 
     // Table rows
     doc.fontSize(9);
-    bookings.slice(0, 30).forEach(booking => {
+    bookings.slice(0, 30).forEach((booking) => {
       // Check if we need a new page
       if (currentY > 700) {
         doc.addPage();
@@ -297,7 +291,7 @@ export const generateBookingsPDF = async (filters = {}) => {
       const customer = booking.name || booking.user?.name || 'N/A';
       const tour = booking.tour?.title?.substring(0, 20) || 'N/A';
       const amount = `$${(booking.amount || 0).toFixed(2)}`;
-      const status = booking.status;
+      const { status } = booking;
 
       doc.text(date, col1, currentY, { width: 90 });
       doc.text(customer, col2, currentY, { width: 140 });
@@ -309,12 +303,9 @@ export const generateBookingsPDF = async (filters = {}) => {
     });
 
     // Footer
-    doc.fontSize(8).text(
-      `Generated on ${new Date().toLocaleString()}`,
-      50,
-      750,
-      { align: 'center' }
-    );
+    doc
+      .fontSize(8)
+      .text(`Generated on ${new Date().toLocaleString()}`, 50, 750, { align: 'center' });
 
     doc.end();
     return doc;
@@ -329,5 +320,5 @@ export default {
   exportUsersCSV,
   exportRevenueCSV,
   generateRevenuePDF,
-  generateBookingsPDF
+  generateBookingsPDF,
 };

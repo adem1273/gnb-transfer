@@ -1,6 +1,6 @@
 /**
  * Finance Routes
- * 
+ *
  * @module routes/financeRoutes
  * @description Finance panel endpoints for revenue tracking and reporting
  */
@@ -15,7 +15,7 @@ import {
   exportUsersCSV,
   exportRevenueCSV,
   generateRevenuePDF,
-  generateBookingsPDF
+  generateBookingsPDF,
 } from '../services/exportService.mjs';
 
 const router = express.Router();
@@ -39,7 +39,7 @@ router.get('/overview', requireAuth(['admin', 'manager']), async (req, res) => {
     // Get bookings
     const bookings = await Booking.find({
       ...query,
-      status: { $in: ['confirmed', 'completed', 'paid'] }
+      status: { $in: ['confirmed', 'completed', 'paid'] },
     });
 
     // Calculate metrics
@@ -48,19 +48,19 @@ router.get('/overview', requireAuth(['admin', 'manager']), async (req, res) => {
     const avgBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
 
     // Estimate costs (30% of revenue for simplicity)
-    const estimatedCosts = totalRevenue * 0.30;
+    const estimatedCosts = totalRevenue * 0.3;
     const estimatedProfit = totalRevenue - estimatedCosts;
     const profitMargin = totalRevenue > 0 ? (estimatedProfit / totalRevenue) * 100 : 0;
 
     // Monthly breakdown
     const monthlyData = new Map();
-    bookings.forEach(booking => {
+    bookings.forEach((booking) => {
       const month = new Date(booking.createdAt).toISOString().substring(0, 7);
-      
+
       if (!monthlyData.has(month)) {
         monthlyData.set(month, { bookings: 0, revenue: 0 });
       }
-      
+
       const data = monthlyData.get(month);
       data.bookings += 1;
       data.revenue += booking.amount || 0;
@@ -71,7 +71,7 @@ router.get('/overview', requireAuth(['admin', 'manager']), async (req, res) => {
         month,
         bookings: data.bookings,
         revenue: Math.round(data.revenue * 100) / 100,
-        estimatedProfit: Math.round((data.revenue * 0.70) * 100) / 100
+        estimatedProfit: Math.round(data.revenue * 0.7 * 100) / 100,
       }))
       .sort((a, b) => a.month.localeCompare(b.month));
 
@@ -89,10 +89,10 @@ router.get('/overview', requireAuth(['admin', 'manager']), async (req, res) => {
         avgBookingValue: Math.round(avgBookingValue * 100) / 100,
         estimatedCosts: Math.round(estimatedCosts * 100) / 100,
         estimatedProfit: Math.round(estimatedProfit * 100) / 100,
-        profitMargin: Math.round(profitMargin * 100) / 100
+        profitMargin: Math.round(profitMargin * 100) / 100,
       },
       monthlyBreakdown,
-      paymentMethods
+      paymentMethods,
     });
   } catch (error) {
     console.error('Error fetching finance overview:', error);
@@ -112,12 +112,12 @@ router.get('/forecast', requireAuth(['admin', 'manager']), async (req, res) => {
 
     const [bookingForecast, revenueForecast] = await Promise.all([
       getBookingForecast(daysToForecast),
-      getRevenueForecast(daysToForecast)
+      getRevenueForecast(daysToForecast),
     ]);
 
     return res.apiSuccess({
       bookingForecast,
-      revenueForecast
+      revenueForecast,
     });
   } catch (error) {
     console.error('Error generating forecast:', error);
@@ -204,7 +204,7 @@ router.get('/export/revenue-pdf', requireAuth(['admin', 'manager']), async (req,
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=revenue-report.pdf');
-    
+
     pdfDoc.pipe(res);
   } catch (error) {
     console.error('Error generating revenue PDF:', error);
@@ -233,7 +233,7 @@ router.get('/export/bookings-pdf', requireAuth(['admin', 'manager']), async (req
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=bookings-report.pdf');
-    
+
     pdfDoc.pipe(res);
   } catch (error) {
     console.error('Error generating bookings PDF:', error);

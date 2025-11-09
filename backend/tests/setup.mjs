@@ -1,6 +1,8 @@
+/* eslint-disable no-underscore-dangle */
+
 /**
  * Jest test setup file
- * 
+ *
  * This file runs before all tests and sets up the test environment
  */
 

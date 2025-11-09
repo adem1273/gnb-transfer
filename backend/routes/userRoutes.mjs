@@ -291,10 +291,7 @@ router.post('/forgot-password', strictRateLimiter, async (req, res) => {
 
     // Always return success to prevent email enumeration
     if (!user) {
-      return res.apiSuccess(
-        null,
-        'If that email exists, a password reset link has been sent'
-      );
+      return res.apiSuccess(null, 'If that email exists, a password reset link has been sent');
     }
 
     // Generate reset token
@@ -308,7 +305,7 @@ router.post('/forgot-password', strictRateLimiter, async (req, res) => {
 
     // Send email with reset link
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
-    
+
     try {
       await sendEmail({
         to: user.email,
@@ -334,10 +331,7 @@ router.post('/forgot-password', strictRateLimiter, async (req, res) => {
       return res.apiError('Failed to send reset email. Please try again later.', 500);
     }
 
-    return res.apiSuccess(
-      null,
-      'If that email exists, a password reset link has been sent'
-    );
+    return res.apiSuccess(null, 'If that email exists, a password reset link has been sent');
   } catch (error) {
     return res.apiError(`Failed to process request: ${error.message}`, 500);
   }
@@ -389,7 +383,10 @@ router.post('/reset-password/:token', strictRateLimiter, async (req, res) => {
     user.resetPasswordExpires = undefined;
     await user.save();
 
-    return res.apiSuccess(null, 'Password reset successful. You can now login with your new password.');
+    return res.apiSuccess(
+      null,
+      'Password reset successful. You can now login with your new password.'
+    );
   } catch (error) {
     return res.apiError(`Failed to reset password: ${error.message}`, 500);
   }

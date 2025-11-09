@@ -309,7 +309,6 @@ router.get('/insights', requireAuth(['admin', 'manager']), async (req, res) => {
       };
     });
 
-
     // Generate insights summary
     const insights = {
       summary: {
@@ -358,7 +357,7 @@ router.get('/logs', requireAuth(['admin']), async (req, res) => {
 
     // Build filter with whitelisted values
     const filter = {};
-    
+
     // Whitelist action values
     const validActions = [
       'CREATE',
@@ -376,12 +375,12 @@ router.get('/logs', requireAuth(['admin']), async (req, res) => {
     if (action && validActions.includes(action)) {
       filter.action = action;
     }
-    
+
     // Validate ObjectId format for userId
     if (userId && /^[0-9a-fA-F]{24}$/.test(userId)) {
       filter['user.id'] = userId;
     }
-    
+
     // Whitelist target type values
     const validTargetTypes = ['User', 'Booking', 'Tour', 'Settings', 'Campaign'];
     if (targetType && validTargetTypes.includes(targetType)) {
@@ -489,11 +488,11 @@ router.get('/logs/export', requireAuth(['admin']), async (req, res) => {
 router.get('/analytics', requireAuth(['admin', 'manager']), async (req, res) => {
   try {
     const { period = '30days' } = req.query;
-    
+
     // Calculate date range based on period
     const now = new Date();
-    let startDate = new Date();
-    
+    const startDate = new Date();
+
     switch (period) {
       case '7days':
         startDate.setDate(now.getDate() - 7);
@@ -512,10 +511,12 @@ router.get('/analytics', requireAuth(['admin', 'manager']), async (req, res) => 
     }
 
     // Fetch data
-    const bookings = await Booking.find({ 
-      createdAt: { $gte: startDate } 
-    }).populate('tour', 'title price').lean();
-    
+    const bookings = await Booking.find({
+      createdAt: { $gte: startDate },
+    })
+      .populate('tour', 'title price')
+      .lean();
+
     const allBookings = await Booking.find().lean();
     const users = await User.find().lean();
     const tours = await Tour.find().lean();
@@ -541,7 +542,7 @@ router.get('/analytics', requireAuth(['admin', 'manager']), async (req, res) => 
 
     // Revenue by tour
     const revenueByTour = {};
-    bookings.forEach(b => {
+    bookings.forEach((b) => {
       const tourName = b.tour?.title || 'Unknown';
       revenueByTour[tourName] = (revenueByTour[tourName] || 0) + (b.amount || 0);
     });
@@ -554,7 +555,7 @@ router.get('/analytics', requireAuth(['admin', 'manager']), async (req, res) => 
 
     // Bookings by tour
     const bookingsByTour = {};
-    bookings.forEach(b => {
+    bookings.forEach((b) => {
       const tourName = b.tour?.title || 'Unknown';
       bookingsByTour[tourName] = (bookingsByTour[tourName] || 0) + 1;
     });
@@ -571,73 +572,76 @@ router.get('/analytics', requireAuth(['admin', 'manager']), async (req, res) => 
       const date = new Date();
       date.setDate(date.getDate() - i);
       date.setHours(0, 0, 0, 0);
-      
+
       const nextDate = new Date(date);
       nextDate.setDate(nextDate.getDate() + 1);
-      
-      const dayBookings = bookings.filter(b => {
+
+      const dayBookings = bookings.filter((b) => {
         const bookingDate = new Date(b.createdAt);
         return bookingDate >= date && bookingDate < nextDate;
       });
-      
+
       const revenue = dayBookings.reduce((sum, b) => sum + (b.amount || 0), 0);
-      
+
       dailyRevenue.push({
         date: date.toISOString().split('T')[0],
         revenue: Math.round(revenue * 100) / 100,
-        bookings: dayBookings.length
+        bookings: dayBookings.length,
       });
     }
 
     // Growth metrics (compare with previous period)
     const previousPeriodStart = new Date(startDate);
-    previousPeriodStart.setDate(previousPeriodStart.getDate() - (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    const previousBookings = allBookings.filter(b => {
+    previousPeriodStart.setDate(
+      previousPeriodStart.getDate() - (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    const previousBookings = allBookings.filter((b) => {
       const bookingDate = new Date(b.createdAt);
       return bookingDate >= previousPeriodStart && bookingDate < startDate;
     });
-    
+
     const previousRevenue = previousBookings.reduce((sum, b) => sum + (b.amount || 0), 0);
-    
-    const revenueGrowth = previousRevenue > 0 
-      ? ((totalRevenue - previousRevenue) / previousRevenue) * 100 
-      : 0;
-    
-    const bookingsGrowth = previousBookings.length > 0
-      ? ((totalBookings - previousBookings.length) / previousBookings.length) * 100
-      : 0;
+
+    const revenueGrowth =
+      previousRevenue > 0 ? ((totalRevenue - previousRevenue) / previousRevenue) * 100 : 0;
+
+    const bookingsGrowth =
+      previousBookings.length > 0
+        ? ((totalBookings - previousBookings.length) / previousBookings.length) * 100
+        : 0;
 
     // User growth (new users in period)
-    const newUsers = users.filter(u => new Date(u.createdAt) >= startDate).length;
-    const previousUsers = users.filter(u => {
+    const newUsers = users.filter((u) => new Date(u.createdAt) >= startDate).length;
+    const previousUsers = users.filter((u) => {
       const userDate = new Date(u.createdAt);
       return userDate >= previousPeriodStart && userDate < startDate;
     }).length;
-    
-    const userGrowth = previousUsers > 0
-      ? ((newUsers - previousUsers) / previousUsers) * 100
-      : 0;
+
+    const userGrowth = previousUsers > 0 ? ((newUsers - previousUsers) / previousUsers) * 100 : 0;
 
     // Response
-    return res.apiSuccess({
-      summary: {
-        totalRevenue: Math.round(totalRevenue * 100) / 100,
-        totalBookings,
-        totalUsers,
-        totalTours,
-        avgBookingValue: Math.round(avgBookingValue * 100) / 100,
-        revenueGrowth: Math.round(revenueGrowth * 10) / 10,
-        bookingsGrowth: Math.round(bookingsGrowth * 10) / 10,
-        userGrowth: Math.round(userGrowth * 10) / 10,
+    return res.apiSuccess(
+      {
+        summary: {
+          totalRevenue: Math.round(totalRevenue * 100) / 100,
+          totalBookings,
+          totalUsers,
+          totalTours,
+          avgBookingValue: Math.round(avgBookingValue * 100) / 100,
+          revenueGrowth: Math.round(revenueGrowth * 10) / 10,
+          bookingsGrowth: Math.round(bookingsGrowth * 10) / 10,
+          userGrowth: Math.round(userGrowth * 10) / 10,
+        },
+        statusBreakdown,
+        paymentMethodBreakdown,
+        topTours,
+        mostBookedTours,
+        dailyRevenue,
+        period,
       },
-      statusBreakdown,
-      paymentMethodBreakdown,
-      topTours,
-      mostBookedTours,
-      dailyRevenue,
-      period,
-    }, 'Analytics retrieved successfully');
+      'Analytics retrieved successfully'
+    );
   } catch (error) {
     console.error('Error fetching analytics:', error);
     return res.apiError('Failed to fetch analytics', 500);

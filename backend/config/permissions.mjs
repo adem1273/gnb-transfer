@@ -1,9 +1,9 @@
 /**
  * Role-Based Access Control (RBAC) Configuration
- * 
+ *
  * @module config/permissions
  * @description Defines granular permissions for each role in the system
- * 
+ *
  * Roles:
  * - superadmin: Full system access (all permissions)
  * - admin: Standard admin access (most operations except sensitive system config)
@@ -20,14 +20,14 @@ export const PERMISSIONS = {
   'users.update': ['superadmin', 'admin'],
   'users.delete': ['superadmin', 'admin'],
   'users.changeRole': ['superadmin'],
-  
+
   // Tour Management
   'tours.view': ['superadmin', 'admin', 'manager', 'support', 'driver'],
   'tours.create': ['superadmin', 'admin', 'manager'],
   'tours.update': ['superadmin', 'admin', 'manager'],
   'tours.delete': ['superadmin', 'admin'],
   'tours.pricing': ['superadmin', 'admin', 'manager'],
-  
+
   // Booking Management
   'bookings.view': ['superadmin', 'admin', 'manager', 'support', 'driver'],
   'bookings.viewAll': ['superadmin', 'admin', 'manager', 'support'],
@@ -36,55 +36,55 @@ export const PERMISSIONS = {
   'bookings.updateStatus': ['superadmin', 'admin', 'manager', 'support', 'driver'],
   'bookings.delete': ['superadmin', 'admin'],
   'bookings.cancel': ['superadmin', 'admin', 'manager', 'support'],
-  
+
   // Analytics & Reports
   'analytics.view': ['superadmin', 'admin', 'manager'],
   'analytics.export': ['superadmin', 'admin', 'manager'],
   'analytics.financial': ['superadmin', 'admin'],
-  
+
   // Settings & Configuration
   'settings.view': ['superadmin', 'admin', 'manager'],
   'settings.update': ['superadmin', 'admin'],
   'settings.modules': ['superadmin'],
   'settings.security': ['superadmin'],
-  
+
   // Campaign Management
   'campaigns.view': ['superadmin', 'admin', 'manager'],
   'campaigns.create': ['superadmin', 'admin', 'manager'],
   'campaigns.update': ['superadmin', 'admin', 'manager'],
   'campaigns.delete': ['superadmin', 'admin'],
-  
+
   // Coupon Management
   'coupons.view': ['superadmin', 'admin', 'manager'],
   'coupons.create': ['superadmin', 'admin', 'manager'],
   'coupons.update': ['superadmin', 'admin', 'manager'],
   'coupons.delete': ['superadmin', 'admin'],
-  
+
   // Referral Management
   'referrals.view': ['superadmin', 'admin', 'manager'],
   'referrals.manage': ['superadmin', 'admin', 'manager'],
-  
+
   // Support Tickets
   'support.view': ['superadmin', 'admin', 'manager', 'support'],
   'support.respond': ['superadmin', 'admin', 'manager', 'support'],
   'support.close': ['superadmin', 'admin', 'manager', 'support'],
-  
+
   // Vehicle & Driver Management
   'vehicles.view': ['superadmin', 'admin', 'manager'],
   'vehicles.create': ['superadmin', 'admin', 'manager'],
   'vehicles.update': ['superadmin', 'admin', 'manager'],
   'vehicles.delete': ['superadmin', 'admin'],
-  
+
   'drivers.view': ['superadmin', 'admin', 'manager'],
   'drivers.create': ['superadmin', 'admin', 'manager'],
   'drivers.update': ['superadmin', 'admin', 'manager'],
   'drivers.delete': ['superadmin', 'admin'],
-  
+
   // AI Features
   'ai.insights': ['superadmin', 'admin', 'manager'],
   'ai.recommendations': ['superadmin', 'admin', 'manager'],
   'ai.chat': ['superadmin', 'admin', 'manager', 'support'],
-  
+
   // Logs & Audit
   'logs.view': ['superadmin', 'admin'],
   'logs.export': ['superadmin', 'admin'],
@@ -111,9 +111,7 @@ export function hasPermission(role, permission) {
  * @returns {string[]} - Array of permission names
  */
 export function getRolePermissions(role) {
-  return Object.keys(PERMISSIONS).filter(permission => 
-    PERMISSIONS[permission].includes(role)
-  );
+  return Object.keys(PERMISSIONS).filter((permission) => PERMISSIONS[permission].includes(role));
 }
 
 /**
@@ -126,14 +124,11 @@ export function requirePermission(permission) {
     if (!req.user) {
       return res.apiError('Authentication required', 401);
     }
-    
+
     if (!hasPermission(req.user.role, permission)) {
-      return res.apiError(
-        `Insufficient permissions. Required: ${permission}`,
-        403
-      );
+      return res.apiError(`Insufficient permissions. Required: ${permission}`, 403);
     }
-    
+
     next();
   };
 }
@@ -149,18 +144,16 @@ export function requireAnyPermission(...permissions) {
     if (!req.user) {
       return res.apiError('Authentication required', 401);
     }
-    
-    const hasAny = permissions.some(permission => 
-      hasPermission(req.user.role, permission)
-    );
-    
+
+    const hasAny = permissions.some((permission) => hasPermission(req.user.role, permission));
+
     if (!hasAny) {
       return res.apiError(
         `Insufficient permissions. Required one of: ${permissions.join(', ')}`,
         403
       );
     }
-    
+
     next();
   };
 }
@@ -176,18 +169,16 @@ export function requireAllPermissions(...permissions) {
     if (!req.user) {
       return res.apiError('Authentication required', 401);
     }
-    
-    const hasAll = permissions.every(permission => 
-      hasPermission(req.user.role, permission)
-    );
-    
+
+    const hasAll = permissions.every((permission) => hasPermission(req.user.role, permission));
+
     if (!hasAll) {
       return res.apiError(
         `Insufficient permissions. Required all of: ${permissions.join(', ')}`,
         403
       );
     }
-    
+
     next();
   };
 }

@@ -1,6 +1,6 @@
 /**
  * Coupon Routes
- * 
+ *
  * @module routes/couponRoutes
  * @description Coupon management and validation endpoints
  */
@@ -40,8 +40,8 @@ router.get('/', requireAuth(['admin', 'manager']), async (req, res) => {
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),
         total,
-        pages: Math.ceil(total / parseInt(limit, 10))
-      }
+        pages: Math.ceil(total / parseInt(limit, 10)),
+      },
     });
   } catch (error) {
     console.error('Error fetching coupons:', error);
@@ -89,7 +89,7 @@ router.post('/', requireAuth(['admin']), async (req, res) => {
       validFrom,
       validUntil,
       active,
-      applicableTours
+      applicableTours,
     } = req.body;
 
     // Validate required fields
@@ -120,7 +120,7 @@ router.post('/', requireAuth(['admin']), async (req, res) => {
       validUntil: new Date(validUntil),
       active: active !== undefined ? active : true,
       applicableTours: applicableTours || [],
-      createdBy: req.user.id
+      createdBy: req.user.id,
     });
 
     return res.apiSuccess(coupon, 'Coupon created successfully');
@@ -148,11 +148,11 @@ router.patch('/:id', requireAuth(['admin']), async (req, res) => {
       'validFrom',
       'validUntil',
       'active',
-      'applicableTours'
+      'applicableTours',
     ];
 
     const updates = {};
-    allowedFields.forEach(field => {
+    allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
@@ -167,7 +167,9 @@ router.patch('/:id', requireAuth(['admin']), async (req, res) => {
       req.params.id,
       { $set: updates },
       { new: true, runValidators: true }
-    ).populate('createdBy', 'name email').populate('applicableTours', 'title');
+    )
+      .populate('createdBy', 'name email')
+      .populate('applicableTours', 'title');
 
     if (!coupon) {
       return res.apiError('Coupon not found', 404);
@@ -236,10 +238,10 @@ router.post('/validate', async (req, res) => {
         code: coupon.code,
         description: coupon.description,
         discountType: coupon.discountType,
-        discountValue: coupon.discountValue
+        discountValue: coupon.discountValue,
       },
       discountAmount: Math.round(discountAmount * 100) / 100,
-      finalAmount: Math.round(finalAmount * 100) / 100
+      finalAmount: Math.round(finalAmount * 100) / 100,
     });
   } catch (error) {
     console.error('Error validating coupon:', error);

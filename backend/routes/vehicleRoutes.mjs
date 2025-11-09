@@ -1,6 +1,6 @@
 /**
  * Vehicle Routes
- * 
+ *
  * @module routes/vehicleRoutes
  * @description Vehicle management endpoints
  */
@@ -27,7 +27,7 @@ router.get('/', requireAuth(['admin', 'manager']), async (req, res) => {
     if (status && validStatuses.includes(status)) {
       filter.status = status;
     }
-    
+
     // Validate and whitelist type values
     const validTypes = ['sedan', 'suv', 'van', 'minibus', 'luxury', 'economy'];
     if (type && validTypes.includes(type)) {
@@ -50,8 +50,8 @@ router.get('/', requireAuth(['admin', 'manager']), async (req, res) => {
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),
         total,
-        pages: Math.ceil(total / parseInt(limit, 10))
-      }
+        pages: Math.ceil(total / parseInt(limit, 10)),
+      },
     });
   } catch (error) {
     console.error('Error fetching vehicles:', error);
@@ -66,8 +66,10 @@ router.get('/', requireAuth(['admin', 'manager']), async (req, res) => {
  */
 router.get('/:id', requireAuth(['admin', 'manager']), async (req, res) => {
   try {
-    const vehicle = await Vehicle.findById(req.params.id)
-      .populate('currentDriver', 'name email phone licenseNumber');
+    const vehicle = await Vehicle.findById(req.params.id).populate(
+      'currentDriver',
+      'name email phone licenseNumber'
+    );
 
     if (!vehicle) {
       return res.apiError('Vehicle not found', 404);
@@ -102,11 +104,21 @@ router.post('/', requireAuth(['admin']), async (req, res) => {
       registrationExpiry,
       lastMaintenanceDate,
       nextMaintenanceDate,
-      notes
+      notes,
     } = req.body;
 
     // Validate required fields
-    if (!model || !brand || !year || !plateNumber || !color || !type || !capacity || !insuranceExpiry || !registrationExpiry) {
+    if (
+      !model ||
+      !brand ||
+      !year ||
+      !plateNumber ||
+      !color ||
+      !type ||
+      !capacity ||
+      !insuranceExpiry ||
+      !registrationExpiry
+    ) {
       return res.apiError('Missing required fields', 400);
     }
 
@@ -131,7 +143,7 @@ router.post('/', requireAuth(['admin']), async (req, res) => {
       registrationExpiry: new Date(registrationExpiry),
       lastMaintenanceDate: lastMaintenanceDate ? new Date(lastMaintenanceDate) : null,
       nextMaintenanceDate: nextMaintenanceDate ? new Date(nextMaintenanceDate) : null,
-      notes: notes || ''
+      notes: notes || '',
     });
 
     return res.apiSuccess(vehicle, 'Vehicle created successfully');
@@ -164,11 +176,11 @@ router.patch('/:id', requireAuth(['admin']), async (req, res) => {
       'lastMaintenanceDate',
       'nextMaintenanceDate',
       'notes',
-      'images'
+      'images',
     ];
 
     const updates = {};
-    allowedFields.forEach(field => {
+    allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
@@ -207,7 +219,7 @@ router.delete('/:id', requireAuth(['admin']), async (req, res) => {
     // If vehicle is assigned to a driver, unassign it first
     if (vehicle.currentDriver) {
       await Driver.findByIdAndUpdate(vehicle.currentDriver, {
-        $set: { vehicleAssigned: null }
+        $set: { vehicleAssigned: null },
       });
     }
 
@@ -237,19 +249,19 @@ router.get('/stats/overview', requireAuth(['admin', 'manager']), async (req, res
       {
         $group: {
           _id: '$type',
-          count: { $sum: 1 }
-        }
-      }
+          count: { $sum: 1 },
+        },
+      },
     ]);
 
     // Vehicles needing maintenance soon
     const maintenanceDue = await Vehicle.countDocuments({
-      nextMaintenanceDate: { $lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }
+      nextMaintenanceDate: { $lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
     });
 
     // Insurance expiring soon
     const insuranceExpiring = await Vehicle.countDocuments({
-      insuranceExpiry: { $lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }
+      insuranceExpiry: { $lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
     });
 
     return res.apiSuccess({
@@ -263,8 +275,8 @@ router.get('/stats/overview', requireAuth(['admin', 'manager']), async (req, res
       }, {}),
       alerts: {
         maintenanceDue,
-        insuranceExpiring
-      }
+        insuranceExpiring,
+      },
     });
   } catch (error) {
     console.error('Error fetching vehicle stats:', error);

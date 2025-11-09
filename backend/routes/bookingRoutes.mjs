@@ -40,7 +40,8 @@ const router = express.Router();
  */
 router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) => {
   try {
-    const { name, email, phone, tourId, paymentMethod, guests, date, pickupLocation, notes } = req.body;
+    const { name, email, phone, tourId, paymentMethod, guests, date, pickupLocation, notes } =
+      req.body;
 
     // Validate required fields
     if (!name || !email || !tourId) {

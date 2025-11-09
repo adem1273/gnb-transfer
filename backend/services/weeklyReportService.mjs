@@ -1,6 +1,6 @@
 /**
  * Weekly Report Service
- * 
+ *
  * @module services/weeklyReportService
  * @description Sends weekly booking summary emails to administrators
  */
@@ -14,7 +14,7 @@ import logger from '../config/logger.mjs';
 
 /**
  * Generate weekly booking summary
- * 
+ *
  * @returns {Promise<Object>} - Weekly summary data
  */
 const generateWeeklySummary = async () => {
@@ -25,7 +25,7 @@ const generateWeeklySummary = async () => {
     // Get weekly bookings
     const weeklyBookings = await Booking.find({
       createdAt: { $gte: oneWeekAgo },
-      status: { $in: ['confirmed', 'completed', 'paid'] }
+      status: { $in: ['confirmed', 'completed', 'paid'] },
     }).populate('tour');
 
     // Calculate statistics
@@ -35,15 +35,15 @@ const generateWeeklySummary = async () => {
 
     // Find most popular tour
     const tourBookings = new Map();
-    weeklyBookings.forEach(booking => {
+    weeklyBookings.forEach((booking) => {
       if (booking.tour) {
         const tourId = booking.tour._id.toString();
         const tourTitle = booking.tour.title;
-        
+
         if (!tourBookings.has(tourId)) {
           tourBookings.set(tourId, { title: tourTitle, count: 0, revenue: 0 });
         }
-        
+
         const tourData = tourBookings.get(tourId);
         tourData.count += 1;
         tourData.revenue += booking.amount || 0;
@@ -60,14 +60,14 @@ const generateWeeklySummary = async () => {
       completed: 0,
       paid: 0,
       pending: 0,
-      cancelled: 0
+      cancelled: 0,
     };
 
     const allWeeklyBookings = await Booking.find({
-      createdAt: { $gte: oneWeekAgo }
+      createdAt: { $gte: oneWeekAgo },
     });
 
-    allWeeklyBookings.forEach(booking => {
+    allWeeklyBookings.forEach((booking) => {
       if (statusCounts.hasOwnProperty(booking.status)) {
         statusCounts[booking.status] += 1;
       }
@@ -75,34 +75,37 @@ const generateWeeklySummary = async () => {
 
     // Get new users
     const newUsers = await User.countDocuments({
-      createdAt: { $gte: oneWeekAgo }
+      createdAt: { $gte: oneWeekAgo },
     });
 
     // Compare with previous week
     const twoWeeksAgo = new Date(now - 14 * 24 * 60 * 60 * 1000);
     const previousWeekBookings = await Booking.countDocuments({
       createdAt: { $gte: twoWeeksAgo, $lt: oneWeekAgo },
-      status: { $in: ['confirmed', 'completed', 'paid'] }
+      status: { $in: ['confirmed', 'completed', 'paid'] },
     });
 
-    const bookingGrowth = previousWeekBookings > 0
-      ? ((totalBookings - previousWeekBookings) / previousWeekBookings * 100).toFixed(1)
-      : totalBookings > 0 ? 100 : 0;
+    const bookingGrowth =
+      previousWeekBookings > 0
+        ? (((totalBookings - previousWeekBookings) / previousWeekBookings) * 100).toFixed(1)
+        : totalBookings > 0
+          ? 100
+          : 0;
 
     return {
       period: {
         start: oneWeekAgo.toISOString().split('T')[0],
-        end: now.toISOString().split('T')[0]
+        end: now.toISOString().split('T')[0],
       },
       summary: {
         totalBookings,
         totalRevenue: Math.round(totalRevenue * 100) / 100,
         avgBookingValue: Math.round(avgBookingValue * 100) / 100,
         newUsers,
-        bookingGrowth: parseFloat(bookingGrowth)
+        bookingGrowth: parseFloat(bookingGrowth),
       },
       topTours,
-      statusBreakdown: statusCounts
+      statusBreakdown: statusCounts,
     };
   } catch (error) {
     logger.error('Failed to generate weekly summary:', { error: error.message });
@@ -120,8 +123,8 @@ export const sendWeeklySummary = async () => {
     const summary = await generateWeeklySummary();
 
     // Get all admin users
-    const admins = await User.find({ 
-      role: { $in: ['admin', 'manager'] }
+    const admins = await User.find({
+      role: { $in: ['admin', 'manager'] },
     });
 
     if (admins.length === 0) {
@@ -176,7 +179,9 @@ export const sendWeeklySummary = async () => {
               <div class="stat-value">${summary.summary.newUsers}</div>
             </div>
 
-            ${summary.topTours.length > 0 ? `
+            ${
+              summary.topTours.length > 0
+                ? `
             <div class="stat-box">
               <h3 style="margin-top: 0;">🏆 Top Performing Tours</h3>
               <table>
@@ -188,17 +193,23 @@ export const sendWeeklySummary = async () => {
                   </tr>
                 </thead>
                 <tbody>
-                  ${summary.topTours.map(tour => `
+                  ${summary.topTours
+                    .map(
+                      (tour) => `
                     <tr>
                       <td>${tour.title}</td>
                       <td>${tour.count}</td>
                       <td>$${tour.revenue.toFixed(2)}</td>
                     </tr>
-                  `).join('')}
+                  `
+                    )
+                    .join('')}
                 </tbody>
               </table>
             </div>
-            ` : ''}
+            `
+                : ''
+            }
 
             <div class="stat-box">
               <h3 style="margin-top: 0;">📈 Booking Status Breakdown</h3>
@@ -223,11 +234,11 @@ export const sendWeeklySummary = async () => {
     `;
 
     // Send to all admins
-    const emailPromises = admins.map(admin =>
+    const emailPromises = admins.map((admin) =>
       sendEmail({
         to: admin.email,
         subject: `📊 Weekly Booking Summary - ${summary.period.start} to ${summary.period.end}`,
-        html
+        html,
       })
     );
 
@@ -238,7 +249,7 @@ export const sendWeeklySummary = async () => {
     return {
       success: true,
       recipientCount: admins.length,
-      summary
+      summary,
     };
   } catch (error) {
     logger.error('Failed to send weekly summary:', { error: error.message });
@@ -254,7 +265,7 @@ export const initWeeklyReportScheduler = () => {
   // Schedule to run every Monday at 9:00 AM
   cron.schedule('0 9 * * 1', () => {
     logger.info('Running scheduled weekly report');
-    sendWeeklySummary().catch(error => {
+    sendWeeklySummary().catch((error) => {
       logger.error('Scheduled weekly report failed:', { error: error.message });
     });
   });
@@ -265,5 +276,5 @@ export const initWeeklyReportScheduler = () => {
 export default {
   initWeeklyReportScheduler,
   sendWeeklySummary,
-  generateWeeklySummary
+  generateWeeklySummary,
 };

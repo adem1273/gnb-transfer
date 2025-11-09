@@ -1,6 +1,6 @@
 /**
  * FAQ Bot Routes
- * 
+ *
  * @module routes/faqRoutes
  * @description FAQ bot endpoints for customer support
  */

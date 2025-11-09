@@ -1,6 +1,6 @@
 /**
  * Smart Tour Recommendation Service
- * 
+ *
  * @module services/recommendationService
  * @description Provides intelligent tour recommendations based on booking frequency, ratings, and destinations
  */
@@ -11,7 +11,7 @@ import logger from '../config/logger.mjs';
 
 /**
  * Get smart tour recommendations based on booking patterns
- * 
+ *
  * @param {Object} options - Recommendation options
  * @param {number} options.limit - Number of recommendations to return
  * @param {string} options.userId - Optional user ID for personalized recommendations
@@ -23,8 +23,8 @@ export const getSmartRecommendations = async ({ limit = 10, userId = null } = {}
     const bookingStats = await Booking.aggregate([
       {
         $match: {
-          status: { $in: ['confirmed', 'completed', 'paid'] }
-        }
+          status: { $in: ['confirmed', 'completed', 'paid'] },
+        },
       },
       {
         $group: {
@@ -36,28 +36,28 @@ export const getSmartRecommendations = async ({ limit = 10, userId = null } = {}
             $sum: {
               $cond: [
                 {
-                  $gte: ['$createdAt', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)]
+                  $gte: ['$createdAt', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)],
                 },
                 1,
-                0
-              ]
-            }
-          }
-        }
+                0,
+              ],
+            },
+          },
+        },
       },
       {
         $lookup: {
           from: 'tours',
           localField: '_id',
           foreignField: '_id',
-          as: 'tourData'
-        }
+          as: 'tourData',
+        },
       },
       {
         $unwind: {
           path: '$tourData',
-          preserveNullAndEmptyArrays: false
-        }
+          preserveNullAndEmptyArrays: false,
+        },
       },
       {
         $addFields: {
@@ -69,21 +69,17 @@ export const getSmartRecommendations = async ({ limit = 10, userId = null } = {}
               { $multiply: ['$recentBookings', 5] },
               // Bonus for tours with discounts
               {
-                $cond: [
-                  { $gt: ['$tourData.discount', 0] },
-                  10,
-                  0
-                ]
-              }
-            ]
-          }
-        }
+                $cond: [{ $gt: ['$tourData.discount', 0] }, 10, 0],
+              },
+            ],
+          },
+        },
       },
       {
-        $sort: { recommendationScore: -1 }
+        $sort: { recommendationScore: -1 },
       },
       {
-        $limit: limit
+        $limit: limit,
       },
       {
         $project: {
@@ -92,24 +88,22 @@ export const getSmartRecommendations = async ({ limit = 10, userId = null } = {}
           recentBookings: 1,
           totalRevenue: 1,
           avgGuests: 1,
-          recommendationScore: 1
-        }
-      }
+          recommendationScore: 1,
+        },
+      },
     ]);
 
     // If no bookings exist yet, return popular tours by price/discount
     if (bookingStats.length === 0) {
-      const fallbackTours = await Tour.find({})
-        .sort({ discount: -1, price: 1 })
-        .limit(limit);
+      const fallbackTours = await Tour.find({}).sort({ discount: -1, price: 1 }).limit(limit);
 
-      return fallbackTours.map(tour => ({
+      return fallbackTours.map((tour) => ({
         tour,
         bookingCount: 0,
         recentBookings: 0,
         totalRevenue: 0,
         avgGuests: 0,
-        recommendationScore: tour.discount || 0
+        recommendationScore: tour.discount || 0,
       }));
     }
 
@@ -122,7 +116,7 @@ export const getSmartRecommendations = async ({ limit = 10, userId = null } = {}
 
 /**
  * Get trending destinations based on recent bookings
- * 
+ *
  * @returns {Promise<Array>} - Array of trending destinations with booking counts
  */
 export const getTrendingDestinations = async () => {
@@ -131,24 +125,24 @@ export const getTrendingDestinations = async () => {
     // For now, we'll analyze title/description patterns
     const recentBookings = await Booking.find({
       createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-      status: { $in: ['confirmed', 'completed', 'paid'] }
+      status: { $in: ['confirmed', 'completed', 'paid'] },
     }).populate('tour');
 
     // Count bookings per tour
     const destinationMap = new Map();
-    
-    recentBookings.forEach(booking => {
+
+    recentBookings.forEach((booking) => {
       if (booking.tour && booking.tour.title) {
         const tourId = booking.tour._id.toString();
         const tourTitle = booking.tour.title;
-        
+
         if (!destinationMap.has(tourId)) {
           destinationMap.set(tourId, {
             tour: booking.tour,
-            count: 0
+            count: 0,
           });
         }
-        
+
         destinationMap.get(tourId).count += 1;
       }
     });
@@ -167,5 +161,5 @@ export const getTrendingDestinations = async () => {
 
 export default {
   getSmartRecommendations,
-  getTrendingDestinations
+  getTrendingDestinations,
 };

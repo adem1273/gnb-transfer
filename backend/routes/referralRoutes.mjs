@@ -1,6 +1,6 @@
 /**
  * Referral Routes
- * 
+ *
  * @module routes/referralRoutes
  * @description Referral program management endpoints
  */
@@ -50,8 +50,8 @@ router.get('/', requireAuth(['admin', 'manager']), async (req, res) => {
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),
         total,
-        pages: Math.ceil(total / parseInt(limit, 10))
-      }
+        pages: Math.ceil(total / parseInt(limit, 10)),
+      },
     });
   } catch (error) {
     console.error('Error fetching referrals:', error);
@@ -66,8 +66,10 @@ router.get('/', requireAuth(['admin', 'manager']), async (req, res) => {
  */
 router.get('/my', requireAuth(['admin', 'manager', 'user']), async (req, res) => {
   try {
-    let referral = await Referral.findOne({ referrer: req.user.id })
-      .populate('referredUsers.user', 'name email');
+    let referral = await Referral.findOne({ referrer: req.user.id }).populate(
+      'referredUsers.user',
+      'name email'
+    );
 
     if (!referral) {
       // Create referral for user if doesn't exist
@@ -84,7 +86,7 @@ router.get('/my', requireAuth(['admin', 'manager', 'user']), async (req, res) =>
       referral = await Referral.create({
         referrer: req.user.id,
         referralCode,
-        active: true
+        active: true,
       });
 
       referral = await referral.populate('referrer', 'name email');
@@ -138,7 +140,7 @@ router.post('/register', async (req, res) => {
       {
         referralCode: referral.referralCode,
         rewardType: referral.rewardType,
-        rewardValue: referral.rewardValue
+        rewardValue: referral.rewardValue,
       },
       'Referral registered successfully'
     );
@@ -186,7 +188,7 @@ router.post('/complete-booking', requireAuth(['admin', 'manager', 'user']), asyn
       {
         referred: true,
         rewardType: referral.rewardType,
-        rewardValue: referral.rewardValue
+        rewardValue: referral.rewardValue,
       },
       'Referral marked as successful'
     );
@@ -227,7 +229,7 @@ router.post('/claim-reward', requireAuth(['admin', 'manager', 'user']), async (r
       {
         rewardType: result.rewardType,
         rewardValue: result.rewardValue,
-        totalRewards: referral.totalRewards
+        totalRewards: referral.totalRewards,
       },
       'Reward claimed successfully'
     );
@@ -245,7 +247,7 @@ router.post('/claim-reward', requireAuth(['admin', 'manager', 'user']), async (r
 router.get('/stats', requireAuth(['admin', 'manager']), async (req, res) => {
   try {
     const totalReferrals = await Referral.countDocuments();
-    
+
     const stats = await Referral.aggregate([
       {
         $group: {
@@ -253,9 +255,9 @@ router.get('/stats', requireAuth(['admin', 'manager']), async (req, res) => {
           totalReferrers: { $sum: 1 },
           totalReferredUsers: { $sum: '$totalReferrals' },
           totalSuccessful: { $sum: '$successfulReferrals' },
-          totalRewardsGiven: { $sum: '$totalRewards' }
-        }
-      }
+          totalRewardsGiven: { $sum: '$totalRewards' },
+        },
+      },
     ]);
 
     const topReferrers = await Referral.find()
@@ -264,19 +266,22 @@ router.get('/stats', requireAuth(['admin', 'manager']), async (req, res) => {
       .populate('referrer', 'name email');
 
     return res.apiSuccess({
-      overview: stats.length > 0 ? stats[0] : {
-        totalReferrers: 0,
-        totalReferredUsers: 0,
-        totalSuccessful: 0,
-        totalRewardsGiven: 0
-      },
-      topReferrers: topReferrers.map(r => ({
+      overview:
+        stats.length > 0
+          ? stats[0]
+          : {
+              totalReferrers: 0,
+              totalReferredUsers: 0,
+              totalSuccessful: 0,
+              totalRewardsGiven: 0,
+            },
+      topReferrers: topReferrers.map((r) => ({
         referrer: r.referrer,
         code: r.referralCode,
         totalReferrals: r.totalReferrals,
         successfulReferrals: r.successfulReferrals,
-        totalRewards: r.totalRewards
-      }))
+        totalRewards: r.totalRewards,
+      })),
     });
   } catch (error) {
     console.error('Error fetching referral stats:', error);

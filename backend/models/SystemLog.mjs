@@ -1,6 +1,6 @@
 /**
  * System Log Model
- * 
+ *
  * @module models/SystemLog
  * @description Centralized logging to MongoDB
  */
@@ -13,34 +13,34 @@ const systemLogSchema = new mongoose.Schema(
       type: String,
       enum: ['info', 'warn', 'error', 'debug'],
       required: true,
-      index: true
+      index: true,
     },
     message: {
       type: String,
-      required: true
+      required: true,
     },
     service: {
       type: String,
       required: true,
-      index: true
+      index: true,
     },
     metadata: {
-      type: mongoose.Schema.Types.Mixed
+      type: mongoose.Schema.Types.Mixed,
     },
     error: {
       stack: String,
       message: String,
-      code: String
+      code: String,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
     },
     ipAddress: String,
-    userAgent: String
+    userAgent: String,
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 

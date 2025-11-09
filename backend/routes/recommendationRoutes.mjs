@@ -1,12 +1,15 @@
 /**
  * Recommendation Routes
- * 
+ *
  * @module routes/recommendationRoutes
  * @description Smart tour recommendation endpoints
  */
 
 import express from 'express';
-import { getSmartRecommendations, getTrendingDestinations } from '../services/recommendationService.mjs';
+import {
+  getSmartRecommendations,
+  getTrendingDestinations,
+} from '../services/recommendationService.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 
 const router = express.Router();
@@ -23,12 +26,12 @@ router.get('/', async (req, res) => {
 
     const recommendations = await getSmartRecommendations({
       limit: Math.min(parseInt(limit, 10), 50),
-      userId
+      userId,
     });
 
     return res.apiSuccess({
       recommendations,
-      personalized: !!userId
+      personalized: !!userId,
     });
   } catch (error) {
     console.error('Error fetching recommendations:', error);
@@ -63,12 +66,12 @@ router.get('/personalized', requireAuth(['admin', 'manager', 'user']), async (re
 
     const recommendations = await getSmartRecommendations({
       limit: Math.min(parseInt(limit, 10), 50),
-      userId: req.user.id
+      userId: req.user.id,
     });
 
     return res.apiSuccess({
       recommendations,
-      personalized: true
+      personalized: true,
     });
   } catch (error) {
     console.error('Error fetching personalized recommendations:', error);
