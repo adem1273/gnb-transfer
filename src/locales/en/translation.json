@@ -45,7 +45,16 @@
     "passwordPlaceholder": "Enter your password",
     "newPassword": "New Password",
     "confirmPassword": "Confirm Password",
-    "confirmPasswordPlaceholder": "Confirm your password"
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "phone": "Phone Number",
+    "phonePlaceholder": "+90 555 123 4567",
+    "guests": "Number of Guests",
+    "date": "Preferred Date",
+    "pickupLocation": "Pickup Location",
+    "pickupLocationPlaceholder": "Hotel name or address",
+    "notes": "Additional Notes",
+    "notesPlaceholder": "Special requests or questions",
+    "optional": "(Optional)"
   },
   "auth": {
     "forgotPassword": "Forgot Password?",
@@ -79,7 +88,11 @@
     "passwordsDoNotMatch": "Passwords do not match.",
     "resetPasswordFailed": "Failed to reset password. The link may be invalid or expired.",
     "passwordResetSuccess": "Password Reset Successful!",
-    "redirectingToLogin": "Redirecting to login page..."
+    "redirectingToLogin": "Redirecting to login page...",
+    "invalidEmail": "Please enter a valid email address.",
+    "invalidPhone": "Please enter a valid phone number (at least 10 digits).",
+    "nameTooShort": "Name must be at least 2 characters.",
+    "invalidGuestCount": "Number of guests must be between 1 and 50."
   },
   "footer": {
     "allRightsReserved": "All rights reserved."
