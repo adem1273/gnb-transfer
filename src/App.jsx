@@ -12,6 +12,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Sidebar from './components/Sidebar';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
@@ -75,6 +76,7 @@ const MainLayout = () => {
         </div>
       </main>
       <Footer />
+      <PWAInstallPrompt />
       <Suspense fallback={null}>
         <LiveChat />
       </Suspense>
