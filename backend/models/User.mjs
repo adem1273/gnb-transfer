@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin', 'manager', 'support', 'driver'],
+      enum: ['user', 'admin', 'superadmin', 'manager', 'support', 'driver'],
       default: 'user',
     },
     preferences: {
@@ -64,6 +64,8 @@ const userSchema = new mongoose.Schema(
         metadata: { type: mongoose.Schema.Types.Mixed },
       },
     ],
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );

@@ -1,0 +1,60 @@
+{
+  "name": "GNB Transfer",
+  "short_name": "GNB Transfer",
+  "description": "Professional airport transfers and tours across Turkey",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["travel", "business", "transportation"],
+  "screenshots": [
+    {
+      "src": "/screenshot-1.png",
+      "sizes": "540x720",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Book Transfer",
+      "short_name": "Book",
+      "description": "Book a transfer or tour",
+      "url": "/booking",
+      "icons": [
+        {
+          "src": "/booking-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "My Bookings",
+      "short_name": "Bookings",
+      "description": "View your bookings",
+      "url": "/profile",
+      "icons": [
+        {
+          "src": "/profile-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

@@ -10,7 +10,17 @@ import DelayBadge from '../components/DelayBadge';
 import { useAuth } from '../context/AuthContext';
 
 function Booking() {
-  const [form, setForm] = useState({ name: '', email: '', tourId: '', paymentMethod: 'cash' });
+  const [form, setForm] = useState({ 
+    name: '', 
+    email: '', 
+    phone: '',
+    tourId: '', 
+    paymentMethod: 'cash',
+    guests: 1,
+    date: '',
+    pickupLocation: '',
+    notes: ''
+  });
   const [tours, setTours] = useState([]);
   const [recommendedTours, setRecommendedTours] = useState([]);
   const [error, setError] = useState('');
@@ -62,9 +72,37 @@ function Booking() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    // Enhanced validation
     if (!form.name || !form.email || !form.tourId) {
       setError(t('messages.allFieldsRequired'));
-      setSuccess('');
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      setError(t('messages.invalidEmail'));
+      return;
+    }
+
+    // Phone validation (optional but recommended)
+    if (form.phone && form.phone.length < 10) {
+      setError(t('messages.invalidPhone'));
+      return;
+    }
+
+    // Name validation
+    if (form.name.length < 2) {
+      setError(t('messages.nameTooShort'));
+      return;
+    }
+
+    // Guests validation
+    if (form.guests < 1 || form.guests > 50) {
+      setError(t('messages.invalidGuestCount'));
       return;
     }
 
@@ -75,20 +113,29 @@ function Booking() {
         navigate('/payment', { state: { bookingId: res.data._id } });
       } else {
         setSuccess(t('messages.bookingCashSuccess'));
-        setError('');
         setBookingConfirmed(true);
         
         // Calculate delay metrics after successful booking
         await calculateDelayMetrics(res.data._id);
         
         // Reset form
-        setForm({ name: '', email: '', tourId: '', paymentMethod: 'cash' });
+        setForm({ 
+          name: '', 
+          email: '', 
+          phone: '',
+          tourId: '', 
+          paymentMethod: 'cash',
+          guests: 1,
+          date: '',
+          pickupLocation: '',
+          notes: ''
+        });
         setRecommendedTours([]);
       }
     } catch (err) {
       console.error(err);
-      setError(t('messages.bookingFailed'));
-      setSuccess('');
+      const errorMsg = err.response?.data?.error || t('messages.bookingFailed');
+      setError(errorMsg);
     }
   };
 
@@ -130,45 +177,145 @@ function Booking() {
         
         {!bookingConfirmed ? (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="text"
-              name="name"
-              placeholder={t('forms.fullName')}
-              value={form.name}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder={t('forms.email')}
-              value={form.email}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-            />
-            <select
-              name="tourId"
-              value={form.tourId}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">{t('forms.selectTour')}</option>
-              {tours.map((tour) => (
-                <option key={tour._id} value={tour._id}>
-                  {tour.title}
-                </option>
-              ))}
-            </select>
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('forms.fullName')} *
+              </label>
+              <input
+                id="name"
+                type="text"
+                name="name"
+                placeholder={t('forms.fullName')}
+                value={form.name}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('forms.email')} *
+              </label>
+              <input
+                id="email"
+                type="email"
+                name="email"
+                placeholder={t('forms.email')}
+                value={form.email}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('forms.phone')} {t('forms.optional')}
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                name="phone"
+                placeholder={t('forms.phonePlaceholder')}
+                value={form.phone}
+                onChange={handleChange}
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="tourId" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('forms.selectTour')} *
+              </label>
+              <select
+                id="tourId"
+                name="tourId"
+                value={form.tourId}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">{t('forms.selectTour')}</option>
+                {tours.map((tour) => (
+                  <option key={tour._id} value={tour._id}>
+                    {tour.title} - ${tour.price}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label htmlFor="guests" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('forms.guests')}
+              </label>
+              <input
+                id="guests"
+                type="number"
+                name="guests"
+                min="1"
+                max="50"
+                value={form.guests}
+                onChange={handleChange}
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('forms.date')} {t('forms.optional')}
+              </label>
+              <input
+                id="date"
+                type="date"
+                name="date"
+                value={form.date}
+                onChange={handleChange}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="pickupLocation" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('forms.pickupLocation')} {t('forms.optional')}
+              </label>
+              <input
+                id="pickupLocation"
+                type="text"
+                name="pickupLocation"
+                placeholder={t('forms.pickupLocationPlaceholder')}
+                value={form.pickupLocation}
+                onChange={handleChange}
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('forms.notes')} {t('forms.optional')}
+              </label>
+              <textarea
+                id="notes"
+                name="notes"
+                placeholder={t('forms.notesPlaceholder')}
+                value={form.notes}
+                onChange={handleChange}
+                rows="3"
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
             
             <div className="mb-2">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="paymentMethod" className="block text-gray-700 text-sm font-bold mb-2">
                 {t('forms.paymentMethod')}
               </label>
               <select 
+                id="paymentMethod"
                 name="paymentMethod" 
                 value={form.paymentMethod} 
                 onChange={handleChange} 
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="cash">{t('forms.cash')}</option>
                 <option value="credit_card">{t('forms.creditCard')}</option>

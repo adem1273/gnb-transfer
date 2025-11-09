@@ -18,6 +18,10 @@ const bookingSchema = new mongoose.Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'],
     },
+    phone: {
+      type: String,
+      trim: true,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -54,6 +58,15 @@ const bookingSchema = new mongoose.Schema(
       enum: ['pending', 'confirmed', 'cancelled', 'completed', 'paid'],
       default: 'pending',
       index: true,
+    },
+    pickupLocation: {
+      type: String,
+      trim: true,
+    },
+    notes: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Notes cannot exceed 500 characters'],
     },
     aiMetadata: {
       isAIPackage: { type: Boolean, default: false },

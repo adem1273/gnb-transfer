@@ -40,7 +40,7 @@ const router = express.Router();
  */
 router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) => {
   try {
-    const { name, email, tourId, paymentMethod, guests, date } = req.body;
+    const { name, email, phone, tourId, paymentMethod, guests, date, pickupLocation, notes } = req.body;
 
     // Validate required fields
     if (!name || !email || !tourId) {
@@ -66,6 +66,7 @@ router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) =>
     const booking = await Booking.create({
       name,
       email,
+      phone,
       tourId,
       tour: tourId,
       paymentMethod: paymentMethod || 'cash',
@@ -73,6 +74,8 @@ router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) =>
       guests: guests || 1,
       date: date || new Date(),
       amount: tour.price * (guests || 1),
+      pickupLocation,
+      notes,
     });
 
     // Clear bookings cache when new booking is created
