@@ -31,6 +31,14 @@ The test suite covers the following API endpoints, aligned with the shared Postm
 1. **MongoDB**: Ensure MongoDB is running locally or update `.env.test` with your MongoDB connection string
 2. **Node.js**: Version 18 or higher (as specified in package.json)
 
+### Prerequisites
+
+1. **MongoDB**: Ensure MongoDB is running locally or use Docker
+   - Local: `sudo systemctl start mongod` (Linux) or `brew services start mongodb-community` (macOS)
+   - Docker: `docker run -d -p 27017:27017 --name mongodb-test mongo:7`
+   - Or update `.env.test` with your MongoDB Atlas connection string
+2. **Node.js**: Version 18 or higher (as specified in package.json)
+
 ### Installation
 
 Dependencies are already installed if you ran `npm install` in the backend directory. The test dependencies include:
@@ -40,7 +48,9 @@ Dependencies are already installed if you ran `npm install` in the backend direc
 
 ### Environment Configuration
 
-Test environment variables are configured in `.env.test`. Key settings:
+Test environment variables are configured in `.env.test`. The test suite connects to a MongoDB database specified in the configuration.
+
+Key settings in `.env.test`:
 
 ```env
 NODE_ENV=test
@@ -49,7 +59,7 @@ MONGO_URI=mongodb://localhost:27017/gnb-transfer-test
 JWT_SECRET=test-jwt-secret-key-for-automated-testing
 ```
 
-⚠️ **Important**: The test suite uses a separate test database (`gnb-transfer-test`) to avoid affecting development/production data.
+⚠️ **Important**: The test suite uses a separate test database (`gnb-transfer-test`) to avoid affecting development/production data. The database is automatically cleaned after each test run.
 
 ## Running Tests
 
@@ -170,12 +180,15 @@ describe('Feature Name', () => {
 
 ### Tests Failing to Connect to Database
 
-**Issue**: `MongooseError: Operation timed out`
+**Issue**: `MongooseError: Operation timed out` or connection failures
 
 **Solution**: 
-- Ensure MongoDB is running: `sudo systemctl start mongod` (Linux) or `brew services start mongodb-community` (macOS)
+- Ensure MongoDB is running:
+  - Local: `sudo systemctl start mongod` (Linux) or `brew services start mongodb-community` (macOS)
+  - Docker: `docker run -d -p 27017:27017 mongo:7`
 - Check MongoDB connection string in `.env.test`
 - Verify network connectivity to MongoDB
+- For CI/CD: Use MongoDB service in your pipeline or MongoDB Atlas connection string
 
 ### Tests Timeout
 
@@ -225,18 +238,61 @@ When adding new API endpoints:
 
 ## CI/CD Integration
 
-The test suite is designed to run in CI/CD pipelines:
+The test suite is designed to run in CI/CD pipelines. You'll need to provide a MongoDB instance.
+
+### GitHub Actions Example
 
 ```yaml
-# Example GitHub Actions workflow
-- name: Run API Tests
-  run: |
-    cd backend
-    npm test
-  env:
-    MONGO_URI: ${{ secrets.TEST_MONGO_URI }}
-    JWT_SECRET: ${{ secrets.TEST_JWT_SECRET }}
+name: API Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install Dependencies
+        run: |
+          cd backend
+          npm ci
+          
+      - name: Run API Tests
+        run: |
+          cd backend
+          npm test
+        env:
+          MONGO_URI: mongodb://localhost:27017/gnb-transfer-test
+          JWT_SECRET: ${{ secrets.TEST_JWT_SECRET }}
 ```
+
+### Alternative: Using MongoDB Atlas for Tests
+
+Update `.env.test` with a MongoDB Atlas connection string:
+
+```env
+MONGO_URI=mongodb+srv://test-user:test-password@cluster.mongodb.net/gnb-transfer-test?retryWrites=true&w=majority
+```
+
+**Note**: For CI/CD with MongoDB Atlas, store the connection string as a secret.
 
 ## Best Practices
 

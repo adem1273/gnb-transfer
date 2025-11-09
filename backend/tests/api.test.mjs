@@ -80,13 +80,20 @@ beforeAll(async () => {
   const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/gnb-transfer-test';
   
   try {
-    await mongoose.connect(mongoUri);
+    // Set a connection timeout
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 5000,
+    });
     console.log('✓ Connected to test database');
   } catch (error) {
-    console.error('Failed to connect to test database:', error.message);
+    console.error('\n❌ Failed to connect to test database:', error.message);
+    console.error('\n📝 Make sure MongoDB is running:');
+    console.error('   - Local: Start MongoDB service (mongod)');
+    console.error('   - Docker: docker run -d -p 27017:27017 mongo:7');
+    console.error('   - Or update MONGO_URI in .env.test with your MongoDB connection string\n');
     throw error;
   }
-});
+}, 30000);
 
 // Clean up after all tests
 afterAll(async () => {
@@ -103,7 +110,7 @@ afterAll(async () => {
   } catch (error) {
     console.error('Error during cleanup:', error.message);
   }
-});
+}, 10000);
 
 // ========================================
 // Auth Endpoints Tests
