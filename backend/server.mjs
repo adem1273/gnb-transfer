@@ -22,9 +22,20 @@ import delayRoutes from './routes/delayRoutes.mjs';
 import packageRoutes from './routes/packageRoutes.mjs';
 import chatRoutes from './routes/chatRoutes.mjs';
 import adminRoutes from './routes/adminRoutes.mjs';
+import financeRoutes from './routes/financeRoutes.mjs';
+import driverRoutes from './routes/driverRoutes.mjs';
+import vehicleRoutes from './routes/vehicleRoutes.mjs';
+import couponRoutes from './routes/couponRoutes.mjs';
+import referralRoutes from './routes/referralRoutes.mjs';
+import faqRoutes from './routes/faqRoutes.mjs';
+import recommendationRoutes from './routes/recommendationRoutes.mjs';
+import supportRoutes from './routes/supportRoutes.mjs';
 
-// Initialize campaign scheduler
+// Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
+import { initDynamicPricing } from './services/dynamicPricingService.mjs';
+import { initWeeklyReportScheduler } from './services/weeklyReportService.mjs';
+import { initSitemapScheduler } from './services/sitemapService.mjs';
 
 dotenv.config();
 
@@ -78,6 +89,14 @@ app.use('/api/delay', delayRoutes);
 app.use('/api/packages', packageRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/finance', financeRoutes);
+app.use('/api/drivers', driverRoutes);
+app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/coupons', couponRoutes);
+app.use('/api/referrals', referralRoutes);
+app.use('/api/faq', faqRoutes);
+app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/support', supportRoutes);
 
 // Health check endpoint (registered before other routes)
 app.get('/api/health', async (req, res) => {
@@ -185,8 +204,13 @@ if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
 
 await connectDB();
 
-// Initialize campaign scheduler after DB connection
+// Initialize schedulers and services after DB connection
 initCampaignScheduler();
+initDynamicPricing();
+initWeeklyReportScheduler();
+initSitemapScheduler();
+
+logger.info('All schedulers initialized successfully');
 
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
