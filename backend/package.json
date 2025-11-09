@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node server.mjs",
     "dev": "nodemon server.mjs",
-    "test": "echo \"No tests specified\" && exit 0",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest --config jest.config.mjs",
+    "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --config jest.config.mjs --watch",
+    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --config jest.config.mjs --coverage",
     "lint": "eslint . --ext .js,.mjs",
     "lint:fix": "eslint . --ext .js,.mjs --fix",
     "format": "prettier --write \"**/*.{js,mjs,json}\""
@@ -41,13 +43,16 @@
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
+    "@jest/globals": "^30.2.0",
     "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",
+    "jest": "^30.2.0",
     "nodemon": "^3.1.0",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "supertest": "^7.1.4"
   },
   "engines": {
     "node": ">=18"
