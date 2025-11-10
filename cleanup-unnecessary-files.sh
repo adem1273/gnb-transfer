@@ -2,8 +2,6 @@
 # Gereksiz Dosyaları Temizleme Betiği / Cleanup Unnecessary Files Script
 # Usage: ./cleanup-unnecessary-files.sh [--dry-run]
 
-set -e
-
 # Renkli çıktı / Colored output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -52,10 +50,10 @@ safe_rm() {
             rm -rf "$file"
             echo -e "${GREEN}✓${NC} Deleted: $file"
         fi
-        ((DELETED_COUNT++))
+        DELETED_COUNT=$((DELETED_COUNT + 1))
     else
         echo -e "${BLUE}○${NC} Not found (skipping): $file"
-        ((SKIPPED_COUNT++))
+        SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
     fi
 }
 
@@ -69,10 +67,10 @@ safe_mv() {
             mv "$src" "$dest"
             echo -e "${GREEN}✓${NC} Moved: $src → $dest"
         fi
-        ((MOVED_COUNT++))
+        MOVED_COUNT=$((MOVED_COUNT + 1))
     else
         echo -e "${BLUE}○${NC} Not found (skipping): $src"
-        ((SKIPPED_COUNT++))
+        SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
     fi
 }
 
@@ -85,7 +83,7 @@ safe_mkdir() {
             mkdir -p "$dir"
             echo -e "${GREEN}✓${NC} Created: $dir"
         fi
-        ((CREATED_COUNT++))
+        CREATED_COUNT=$((CREATED_COUNT + 1))
     fi
 }
 
@@ -155,7 +153,7 @@ if [ "$DRY_RUN" = false ] && [ -f "DEPLOYMENT.md" ]; then
     if [ -f "PRODUCTION_DEPLOYMENT_GUIDE.md" ]; then
         cat PRODUCTION_DEPLOYMENT_GUIDE.md >> docs/DEPLOYMENT.md 2>/dev/null || true
     fi
-    ((CREATED_COUNT++))
+    CREATED_COUNT=$((CREATED_COUNT + 1))
 elif [ "$DRY_RUN" = true ]; then
     echo -e "${YELLOW}[DRY RUN]${NC} Would consolidate deployment docs"
 fi
@@ -180,7 +178,7 @@ if [ "$DRY_RUN" = false ] && [ -f "AI_FEATURES_GUIDE.md" ]; then
     if [ -f "AI_CHAT_ASSISTANT_GUIDE.md" ]; then
         cat AI_CHAT_ASSISTANT_GUIDE.md >> docs/AI_FEATURES.md 2>/dev/null || true
     fi
-    ((CREATED_COUNT++))
+    CREATED_COUNT=$((CREATED_COUNT + 1))
 elif [ "$DRY_RUN" = true ]; then
     echo -e "${YELLOW}[DRY RUN]${NC} Would consolidate AI docs"
 fi
