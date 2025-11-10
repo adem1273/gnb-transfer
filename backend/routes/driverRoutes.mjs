@@ -1,6 +1,6 @@
 /**
  * Driver Routes
- * 
+ *
  * @module routes/driverRoutes
  * @description Driver management endpoints
  */
@@ -46,8 +46,8 @@ router.get('/', requireAuth(['admin', 'manager']), async (req, res) => {
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),
         total,
-        pages: Math.ceil(total / parseInt(limit, 10))
-      }
+        pages: Math.ceil(total / parseInt(limit, 10)),
+      },
     });
   } catch (error) {
     console.error('Error fetching drivers:', error);
@@ -95,7 +95,7 @@ router.post('/', requireAuth(['admin']), async (req, res) => {
       vehicleAssigned,
       userId,
       availability,
-      notes
+      notes,
     } = req.body;
 
     // Validate required fields
@@ -108,7 +108,7 @@ router.post('/', requireAuth(['admin']), async (req, res) => {
     if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
       return res.apiError('Invalid user ID format', 400);
     }
-    
+
     const user = await User.findById(userId);
     if (!user) {
       return res.apiError('User not found', 404);
@@ -116,7 +116,7 @@ router.post('/', requireAuth(['admin']), async (req, res) => {
 
     // Check if driver with email or license already exists
     const existing = await Driver.findOne({
-      $or: [{ email }, { licenseNumber }]
+      $or: [{ email }, { licenseNumber }],
     });
 
     if (existing) {
@@ -134,7 +134,7 @@ router.post('/', requireAuth(['admin']), async (req, res) => {
       vehicleAssigned: vehicleAssigned || null,
       user: userId,
       availability: availability || {},
-      notes: notes || ''
+      notes: notes || '',
     });
 
     // Update user role to driver if not already
@@ -168,11 +168,11 @@ router.patch('/:id', requireAuth(['admin']), async (req, res) => {
       'vehicleAssigned',
       'availability',
       'notes',
-      'rating'
+      'rating',
     ];
 
     const updates = {};
-    allowedFields.forEach(field => {
+    allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
@@ -182,7 +182,9 @@ router.patch('/:id', requireAuth(['admin']), async (req, res) => {
       req.params.id,
       { $set: updates },
       { new: true, runValidators: true }
-    ).populate('user', 'name email').populate('vehicleAssigned');
+    )
+      .populate('user', 'name email')
+      .populate('vehicleAssigned');
 
     if (!driver) {
       return res.apiError('Driver not found', 404);
@@ -252,10 +254,7 @@ router.post('/:id/assign-vehicle', requireAuth(['admin']), async (req, res) => {
     vehicle.status = 'in-use';
     await vehicle.save();
 
-    return res.apiSuccess(
-      { driver, vehicle },
-      'Vehicle assigned to driver successfully'
-    );
+    return res.apiSuccess({ driver, vehicle }, 'Vehicle assigned to driver successfully');
   } catch (error) {
     console.error('Error assigning vehicle:', error);
     return res.apiError('Failed to assign vehicle', 500);

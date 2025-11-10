@@ -1,6 +1,6 @@
 /**
  * Dynamic Pricing Service
- * 
+ *
  * @module services/dynamicPricingService
  * @description Adjusts tour prices based on booking trends using intelligent algorithms
  */
@@ -12,7 +12,7 @@ import logger from '../config/logger.mjs';
 
 /**
  * Analyze booking trends for each tour
- * 
+ *
  * @returns {Promise<Object>} - Map of tour IDs to trend data
  */
 const analyzeBookingTrends = async () => {
@@ -26,16 +26,16 @@ const analyzeBookingTrends = async () => {
       {
         $match: {
           createdAt: { $gte: twoWeeksAgo },
-          status: { $in: ['confirmed', 'completed', 'paid'] }
-        }
+          status: { $in: ['confirmed', 'completed', 'paid'] },
+        },
       },
       {
         $group: {
           _id: '$tour',
           lastWeekBookings: {
             $sum: {
-              $cond: [{ $gte: ['$createdAt', oneWeekAgo] }, 1, 0]
-            }
+              $cond: [{ $gte: ['$createdAt', oneWeekAgo] }, 1, 0],
+            },
           },
           previousWeekBookings: {
             $sum: {
@@ -43,26 +43,26 @@ const analyzeBookingTrends = async () => {
                 {
                   $and: [
                     { $gte: ['$createdAt', twoWeeksAgo] },
-                    { $lt: ['$createdAt', oneWeekAgo] }
-                  ]
+                    { $lt: ['$createdAt', oneWeekAgo] },
+                  ],
                 },
                 1,
-                0
-              ]
-            }
-          }
-        }
-      }
+                0,
+              ],
+            },
+          },
+        },
+      },
     ]);
 
     // Calculate trend for each tour
     const trendMap = new Map();
-    
-    recentBookings.forEach(item => {
+
+    recentBookings.forEach((item) => {
       const tourId = item._id.toString();
       const lastWeek = item.lastWeekBookings || 0;
       const prevWeek = item.previousWeekBookings || 0;
-      
+
       let trend = 0;
       if (prevWeek > 0) {
         trend = ((lastWeek - prevWeek) / prevWeek) * 100;
@@ -74,7 +74,7 @@ const analyzeBookingTrends = async () => {
         lastWeekBookings: lastWeek,
         previousWeekBookings: prevWeek,
         trend, // Percentage change
-        direction: trend > 0 ? 'up' : trend < 0 ? 'down' : 'stable'
+        direction: trend > 0 ? 'up' : trend < 0 ? 'down' : 'stable',
       });
     });
 
@@ -111,7 +111,7 @@ export const adjustPrices = async () => {
           tour.price * (1 + adjustment),
           tour.price * 0.5 // Don't go below 50% of original
         );
-        
+
         await Tour.updateOne(
           { _id: tour._id },
           {
@@ -121,37 +121,37 @@ export const adjustPrices = async () => {
                 previousPrice: tour.price,
                 adjustment: adjustment * 100,
                 reason: 'Low demand',
-                appliedAt: new Date()
-              }
-            }
+                appliedAt: new Date(),
+              },
+            },
           }
         );
-        
+
         adjustments.push({
           tourId,
           title: tour.title,
           oldPrice: tour.price,
           newPrice: Math.round(newPrice * 100) / 100,
           adjustment: adjustment * 100,
-          reason: 'Low demand'
+          reason: 'Low demand',
         });
-        
+
         adjustedCount++;
         continue;
       }
 
       // Calculate price adjustment based on trend
       let adjustment = 0;
-      
+
       if (trendData.trend > 50) {
         // High growth - increase price by 10%
-        adjustment = 0.10;
+        adjustment = 0.1;
       } else if (trendData.trend > 20) {
         // Moderate growth - increase price by 5%
         adjustment = 0.05;
       } else if (trendData.trend < -50) {
         // Sharp decline - decrease price by 10%
-        adjustment = -0.10;
+        adjustment = -0.1;
       } else if (trendData.trend < -20) {
         // Moderate decline - decrease price by 5%
         adjustment = -0.05;
@@ -159,7 +159,7 @@ export const adjustPrices = async () => {
 
       if (adjustment !== 0) {
         const newPrice = tour.price * (1 + adjustment);
-        
+
         await Tour.updateOne(
           { _id: tour._id },
           {
@@ -170,9 +170,9 @@ export const adjustPrices = async () => {
                 adjustment: adjustment * 100,
                 reason: trendData.direction === 'up' ? 'High demand' : 'Low demand',
                 trendPercentage: Math.round(trendData.trend),
-                appliedAt: new Date()
-              }
-            }
+                appliedAt: new Date(),
+              },
+            },
           }
         );
 
@@ -183,7 +183,7 @@ export const adjustPrices = async () => {
           newPrice: Math.round(newPrice * 100) / 100,
           adjustment: adjustment * 100,
           trend: Math.round(trendData.trend),
-          reason: trendData.direction === 'up' ? 'High demand' : 'Low demand'
+          reason: trendData.direction === 'up' ? 'High demand' : 'Low demand',
         });
 
         adjustedCount++;
@@ -191,13 +191,13 @@ export const adjustPrices = async () => {
     }
 
     logger.info(`Dynamic pricing completed: ${adjustedCount} tours adjusted`, {
-      adjustments
+      adjustments,
     });
 
     return {
       success: true,
       adjustedCount,
-      adjustments
+      adjustments,
     };
   } catch (error) {
     logger.error('Failed to adjust prices:', { error: error.message });
@@ -213,7 +213,7 @@ export const initDynamicPricing = () => {
   // Schedule to run every Monday at 2:00 AM
   cron.schedule('0 2 * * 1', () => {
     logger.info('Running scheduled dynamic pricing adjustment');
-    adjustPrices().catch(error => {
+    adjustPrices().catch((error) => {
       logger.error('Scheduled pricing adjustment failed:', { error: error.message });
     });
   });
@@ -224,5 +224,5 @@ export const initDynamicPricing = () => {
 export default {
   initDynamicPricing,
   adjustPrices,
-  analyzeBookingTrends
+  analyzeBookingTrends,
 };

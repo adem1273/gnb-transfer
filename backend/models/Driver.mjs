@@ -1,6 +1,6 @@
 /**
  * Driver Model
- * 
+ *
  * @module models/Driver
  * @description Manages driver information for transfers and tours
  */
@@ -13,7 +13,7 @@ const driverSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Driver name is required'],
       trim: true,
-      minlength: [2, 'Name must be at least 2 characters']
+      minlength: [2, 'Name must be at least 2 characters'],
     },
     email: {
       type: String,
@@ -21,53 +21,55 @@ const driverSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address']
+      match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address'],
     },
     phone: {
       type: String,
       required: [true, 'Phone number is required'],
-      trim: true
+      trim: true,
     },
     licenseNumber: {
       type: String,
       required: [true, 'License number is required'],
       unique: true,
-      trim: true
+      trim: true,
     },
     licenseExpiry: {
       type: Date,
-      required: [true, 'License expiry date is required']
+      required: [true, 'License expiry date is required'],
     },
-    languages: [{
-      type: String,
-      enum: ['en', 'ar', 'de', 'es', 'it', 'ru', 'zh', 'hi', 'tr']
-    }],
+    languages: [
+      {
+        type: String,
+        enum: ['en', 'ar', 'de', 'es', 'it', 'ru', 'zh', 'hi', 'tr'],
+      },
+    ],
     status: {
       type: String,
       enum: ['active', 'inactive', 'on-duty', 'off-duty'],
       default: 'active',
-      index: true
+      index: true,
     },
     rating: {
       type: Number,
       default: 5.0,
       min: 0,
-      max: 5
+      max: 5,
     },
     totalTrips: {
       type: Number,
       default: 0,
-      min: 0
+      min: 0,
     },
     vehicleAssigned: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Vehicle',
-      default: null
+      default: null,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true
+      required: true,
     },
     // Work schedule
     availability: {
@@ -77,15 +79,15 @@ const driverSchema = new mongoose.Schema(
       thursday: { available: { type: Boolean, default: true }, hours: String },
       friday: { available: { type: Boolean, default: true }, hours: String },
       saturday: { available: { type: Boolean, default: true }, hours: String },
-      sunday: { available: { type: Boolean, default: true }, hours: String }
+      sunday: { available: { type: Boolean, default: true }, hours: String },
     },
     notes: {
       type: String,
-      maxlength: [500, 'Notes cannot exceed 500 characters']
-    }
+      maxlength: [500, 'Notes cannot exceed 500 characters'],
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 
@@ -96,7 +98,7 @@ driverSchema.index({ status: 1 });
 driverSchema.index({ rating: -1 });
 
 // Virtual for checking if license is expired
-driverSchema.virtual('isLicenseValid').get(function() {
+driverSchema.virtual('isLicenseValid').get(function () {
   return this.licenseExpiry > new Date();
 });
 

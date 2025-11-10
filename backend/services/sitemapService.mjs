@@ -1,6 +1,6 @@
 /**
  * Sitemap Generation Service
- * 
+ *
  * @module services/sitemapService
  * @description Auto-generates sitemap.xml for SEO
  */
@@ -18,7 +18,7 @@ const SITEMAP_PATH = path.join(process.cwd(), '../public/sitemap.xml');
 
 /**
  * Generate sitemap.xml
- * 
+ *
  * @returns {Promise<string>} - Path to generated sitemap
  */
 export const generateSitemap = async () => {
@@ -34,18 +34,18 @@ export const generateSitemap = async () => {
       { url: '/blog', changefreq: 'weekly', priority: 0.7 },
       { url: '/about', changefreq: 'monthly', priority: 0.6 },
       { url: '/login', changefreq: 'monthly', priority: 0.5 },
-      { url: '/register', changefreq: 'monthly', priority: 0.5 }
+      { url: '/register', changefreq: 'monthly', priority: 0.5 },
     ];
 
     // Get all active tours
     const tours = await Tour.find({}).select('_id title updatedAt').lean();
 
     // Create dynamic tour pages
-    const tourPages = tours.map(tour => ({
+    const tourPages = tours.map((tour) => ({
       url: `/tours/${tour._id}`,
       changefreq: 'weekly',
       priority: 0.8,
-      lastmod: tour.updatedAt ? tour.updatedAt.toISOString() : new Date().toISOString()
+      lastmod: tour.updatedAt ? tour.updatedAt.toISOString() : new Date().toISOString(),
     }));
 
     // Combine all pages
@@ -55,9 +55,9 @@ export const generateSitemap = async () => {
     const stream = new SitemapStream({ hostname: SITE_URL });
 
     // Generate sitemap XML
-    const xml = await streamToPromise(
-      Readable.from(allPages).pipe(stream)
-    ).then(data => data.toString());
+    const xml = await streamToPromise(Readable.from(allPages).pipe(stream)).then((data) =>
+      data.toString()
+    );
 
     // Ensure directory exists
     const dir = path.dirname(SITEMAP_PATH);
@@ -74,7 +74,7 @@ export const generateSitemap = async () => {
     return {
       success: true,
       path: SITEMAP_PATH,
-      urlCount: allPages.length
+      urlCount: allPages.length,
     };
   } catch (error) {
     logger.error('Failed to generate sitemap:', { error: error.message });
@@ -88,14 +88,14 @@ export const generateSitemap = async () => {
  */
 export const initSitemapScheduler = () => {
   // Generate immediately on startup
-  generateSitemap().catch(error => {
+  generateSitemap().catch((error) => {
     logger.error('Initial sitemap generation failed:', { error: error.message });
   });
 
   // Schedule weekly generation
   cron.schedule('0 3 * * 1', () => {
     logger.info('Running scheduled sitemap generation');
-    generateSitemap().catch(error => {
+    generateSitemap().catch((error) => {
       logger.error('Scheduled sitemap generation failed:', { error: error.message });
     });
   });
@@ -105,5 +105,5 @@ export const initSitemapScheduler = () => {
 
 export default {
   generateSitemap,
-  initSitemapScheduler
+  initSitemapScheduler,
 };

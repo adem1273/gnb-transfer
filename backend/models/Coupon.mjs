@@ -1,6 +1,6 @@
 /**
  * Coupon Model
- * 
+ *
  * @module models/Coupon
  * @description Manages discount coupon codes for marketing campaigns
  */
@@ -16,70 +16,72 @@ const couponSchema = new mongoose.Schema(
       uppercase: true,
       trim: true,
       minlength: [3, 'Coupon code must be at least 3 characters'],
-      maxlength: [20, 'Coupon code cannot exceed 20 characters']
+      maxlength: [20, 'Coupon code cannot exceed 20 characters'],
     },
     description: {
       type: String,
       trim: true,
-      maxlength: [200, 'Description cannot exceed 200 characters']
+      maxlength: [200, 'Description cannot exceed 200 characters'],
     },
     discountType: {
       type: String,
       enum: ['percentage', 'fixed'],
       required: true,
-      default: 'percentage'
+      default: 'percentage',
     },
     discountValue: {
       type: Number,
       required: [true, 'Discount value is required'],
-      min: [0, 'Discount value cannot be negative']
+      min: [0, 'Discount value cannot be negative'],
     },
     minPurchaseAmount: {
       type: Number,
       default: 0,
-      min: [0, 'Minimum purchase amount cannot be negative']
+      min: [0, 'Minimum purchase amount cannot be negative'],
     },
     maxDiscountAmount: {
       type: Number,
-      default: null // null means no maximum
+      default: null, // null means no maximum
     },
     usageLimit: {
       type: Number,
       default: null, // null means unlimited
-      min: [0, 'Usage limit cannot be negative']
+      min: [0, 'Usage limit cannot be negative'],
     },
     usageCount: {
       type: Number,
       default: 0,
-      min: 0
+      min: 0,
     },
     validFrom: {
       type: Date,
       required: true,
-      default: Date.now
+      default: Date.now,
     },
     validUntil: {
       type: Date,
-      required: [true, 'Expiry date is required']
+      required: [true, 'Expiry date is required'],
     },
     active: {
       type: Boolean,
       default: true,
-      index: true
+      index: true,
     },
-    applicableTours: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Tour'
-    }],
+    applicableTours: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tour',
+      },
+    ],
     // If empty, applies to all tours
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true
-    }
+      required: true,
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 
@@ -89,7 +91,7 @@ couponSchema.index({ active: 1, validFrom: 1, validUntil: 1 });
 couponSchema.index({ createdAt: -1 });
 
 // Virtual for checking if coupon is currently valid
-couponSchema.virtual('isValid').get(function() {
+couponSchema.virtual('isValid').get(function () {
   const now = new Date();
   return (
     this.active &&
@@ -100,7 +102,7 @@ couponSchema.virtual('isValid').get(function() {
 });
 
 // Method to check if coupon can be applied to a booking
-couponSchema.methods.canApply = function(bookingAmount, tourId) {
+couponSchema.methods.canApply = function (bookingAmount, tourId) {
   if (!this.isValid) {
     return { valid: false, reason: 'Coupon is not valid or has expired' };
   }
@@ -108,20 +110,18 @@ couponSchema.methods.canApply = function(bookingAmount, tourId) {
   if (this.minPurchaseAmount > 0 && bookingAmount < this.minPurchaseAmount) {
     return {
       valid: false,
-      reason: `Minimum purchase amount is $${this.minPurchaseAmount}`
+      reason: `Minimum purchase amount is $${this.minPurchaseAmount}`,
     };
   }
 
   if (this.applicableTours.length > 0) {
     const tourIdStr = tourId.toString();
-    const isApplicable = this.applicableTours.some(
-      id => id.toString() === tourIdStr
-    );
-    
+    const isApplicable = this.applicableTours.some((id) => id.toString() === tourIdStr);
+
     if (!isApplicable) {
       return {
         valid: false,
-        reason: 'Coupon is not applicable to this tour'
+        reason: 'Coupon is not applicable to this tour',
       };
     }
   }
@@ -130,7 +130,7 @@ couponSchema.methods.canApply = function(bookingAmount, tourId) {
 };
 
 // Method to calculate discount amount
-couponSchema.methods.calculateDiscount = function(bookingAmount) {
+couponSchema.methods.calculateDiscount = function (bookingAmount) {
   let discount = 0;
 
   if (this.discountType === 'percentage') {
