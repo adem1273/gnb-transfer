@@ -35,7 +35,7 @@
     "node-cache": "^5.1.2",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.10",
-    "openai": "^4.20.1",
+    "openai": "^6.8.1",
     "pdfkit": "^0.17.2",
     "regression": "^2.0.1",
     "sitemap": "^9.0.0",
