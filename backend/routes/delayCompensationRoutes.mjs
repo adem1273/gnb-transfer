@@ -5,6 +5,7 @@ import { requireFeatureEnabled } from '../middlewares/featureToggle.mjs';
 import DelayCompensation from '../models/DelayCompensation.mjs';
 import Booking from '../models/Booking.mjs';
 import Coupon from '../models/Coupon.mjs';
+import mongoSanitize from 'mongo-sanitize';
 
 const router = express.Router();
 
@@ -33,8 +34,10 @@ router.get(
       const { status = 'pending', page = 1, limit = 20 } = req.query;
 
       const filter = {};
-      if (status && ['pending', 'approved', 'rejected', 'applied'].includes(status)) {
-        filter.status = status;
+      const validStatuses = ['pending', 'approved', 'rejected', 'applied'];
+      // Sanitize and validate status parameter
+      if (status && validStatuses.includes(mongoSanitize(status))) {
+        filter.status = mongoSanitize(status);
       }
 
       const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);

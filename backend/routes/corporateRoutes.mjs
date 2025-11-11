@@ -5,6 +5,7 @@ import { requireFeatureEnabled } from '../middlewares/featureToggle.mjs';
 import User from '../models/User.mjs';
 import Booking from '../models/Booking.mjs';
 import bcrypt from 'bcrypt';
+import mongoSanitize from 'mongo-sanitize';
 
 const router = express.Router();
 
@@ -167,7 +168,10 @@ router.get(
     try {
       const { id } = req.params;
 
-      const client = await User.findOne({ _id: id, isCorporate: true })
+      // Sanitize MongoDB query inputs
+      const sanitizedId = mongoSanitize(id);
+
+      const client = await User.findOne({ _id: sanitizedId, isCorporate: true })
         .select('-password')
         .lean();
 
@@ -176,21 +180,21 @@ router.get(
       }
 
       // Get bookings for this client
-      const bookings = await Booking.find({ user: id })
+      const bookings = await Booking.find({ user: sanitizedId })
         .populate('tour', 'title')
         .sort({ createdAt: -1 })
         .limit(10)
         .lean();
 
       // Calculate stats
-      const totalBookings = await Booking.countDocuments({ user: id });
+      const totalBookings = await Booking.countDocuments({ user: sanitizedId });
       const completedBookings = await Booking.countDocuments({
-        user: id,
+        user: sanitizedId,
         status: 'completed',
       });
-      
+
       const revenueData = await Booking.aggregate([
-        { $match: { user: id, status: 'completed' } },
+        { $match: { user: sanitizedId, status: 'completed' } },
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]);
 
@@ -230,13 +234,16 @@ router.patch(
       const { id } = req.params;
       const updates = req.body;
 
+      // Sanitize ID input
+      const sanitizedId = mongoSanitize(id);
+
       // Remove sensitive fields that shouldn't be updated this way
       delete updates.password;
       delete updates.role;
       delete updates.isCorporate;
 
       const client = await User.findOneAndUpdate(
-        { _id: id, isCorporate: true },
+        { _id: sanitizedId, isCorporate: true },
         { $set: updates },
         { new: true, runValidators: true }
       ).select('-password');

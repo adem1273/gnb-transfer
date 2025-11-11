@@ -4,6 +4,7 @@ import { requirePermission } from '../config/permissions.mjs';
 import { requireFeatureEnabled } from '../middlewares/featureToggle.mjs';
 import Driver from '../models/Driver.mjs';
 import Booking from '../models/Booking.mjs';
+import mongoSanitize from 'mongo-sanitize';
 
 const router = express.Router();
 
@@ -26,14 +27,15 @@ router.get(
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - daysAgo);
 
-      // Build query filter
+      // Build query filter with sanitized inputs
       const bookingFilter = {
         createdAt: { $gte: startDate },
         status: { $in: ['completed', 'confirmed', 'in_progress'] },
       };
 
       if (driverId) {
-        bookingFilter.driver = driverId;
+        // Sanitize driver ID to prevent NoSQL injection
+        bookingFilter.driver = mongoSanitize(driverId);
       }
 
       // Get all relevant bookings

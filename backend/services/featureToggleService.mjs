@@ -86,21 +86,24 @@ class FeatureToggleService {
    */
   async toggleFeature(featureId, enabled) {
     try {
+      // Sanitize feature ID (simple validation since we control the values)
+      const sanitizedFeatureId = String(featureId).trim();
+
       const feature = await FeatureToggle.findOneAndUpdate(
-        { id: featureId },
+        { id: sanitizedFeatureId },
         { enabled },
         { new: true }
       );
 
       if (!feature) {
-        throw new Error(`Feature ${featureId} not found`);
+        throw new Error(`Feature ${sanitizedFeatureId} not found`);
       }
 
       // Invalidate cache
       this.cache.del(this.CACHE_KEY);
 
-      logger.info(`Feature ${featureId} ${enabled ? 'enabled' : 'disabled'}`);
-      
+      logger.info(`Feature ${sanitizedFeatureId} ${enabled ? 'enabled' : 'disabled'}`);
+
       return feature;
     } catch (error) {
       logger.error(`Error toggling feature ${featureId}:`, error);
