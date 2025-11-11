@@ -104,4 +104,56 @@ Admin paneline erişmek için `http://localhost:5173/admin/dashboard` adresine g
 
 ---
 
+## 🔒 Security Features
+
+### Production-Ready Security Hardening
+
+This application implements comprehensive security measures for production deployment:
+
+**Authentication & Authorization:**
+- JWT-based authentication with short-lived access tokens (15 minutes)
+- Refresh token rotation for enhanced security
+- httpOnly, secure, SameSite=strict cookies for refresh tokens
+- Role-based access control (RBAC)
+- bcrypt password hashing with configurable salt rounds
+
+**Security Headers:**
+- Strict Content Security Policy (CSP)
+- HTTP Strict Transport Security (HSTS) with preload
+- Referrer-Policy set to 'no-referrer'
+- Permissions-Policy restricting camera, microphone, and geolocation
+
+**Request Security:**
+- Rate limiting (global and strict for sensitive operations)
+- CORS whitelist configuration
+- Input validation using express-validator
+- Request ID correlation for distributed tracing
+
+**Data Protection:**
+- Automatic PII redaction in logs (passwords, tokens, cookies, emails)
+- Log rotation with compression (14-day retention)
+- Secure token storage (hashed in database)
+
+**API Endpoints:**
+- `POST /api/users/register` - User registration with validation
+- `POST /api/users/login` - Authentication with token generation
+- `POST /api/users/refresh` - Token refresh with rotation
+- `POST /api/users/logout` - Token revocation and cleanup
+
+For detailed security documentation, see `backend/SECURITY_API_DOCS.md`
+
+### Required Environment Variables
+
+```bash
+# Backend (.env in backend/)
+NODE_ENV=production
+JWT_SECRET=your-super-secret-jwt-key-change-this
+ACCESS_TOKEN_TTL=15m
+REFRESH_TOKEN_TTL=7d
+CORS_ORIGINS=https://your-frontend-domain.com
+MONGO_URI=your_mongodb_connection_string
+```
+
+---
+
 Bu adımla, projenin en temel ve kritik sorunlarını çözmüş, eksik dosyalarını tamaml
