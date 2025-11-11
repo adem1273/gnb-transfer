@@ -139,10 +139,20 @@ router.post('/login', strictRateLimiter, validateUserLogin, async (req, res) => 
     const ipAddress = getClientIP(req);
     await storeRefreshToken(user._id, refreshToken, deviceInfo, ipAddress);
 
+    // Send refresh token in httpOnly cookie if in production, otherwise in body
+    if (process.env.NODE_ENV === 'production') {
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+    }
+
     return res.apiSuccess(
       {
         accessToken,
-        refreshToken,
+        refreshToken: process.env.NODE_ENV === 'production' ? undefined : refreshToken,
         user: {
           id: user._id,
           email: user.email,
@@ -154,6 +164,96 @@ router.post('/login', strictRateLimiter, validateUserLogin, async (req, res) => 
     );
   } catch (err) {
     return res.apiError(err.message, 500);
+  }
+});
+
+/**
+ * @route   POST /api/users/refresh
+ * @desc    Refresh access token using refresh token
+ * @access  Public (requires refresh token)
+ * @body    {string} refreshToken - Refresh token (if not in cookie)
+ * @cookie  refreshToken - Refresh token (preferred method in production)
+ * @returns {object} - New access token and refresh token
+ *
+ * Security measures:
+ * - Validates refresh token by hashing and checking DB
+ * - Ensures token is not revoked and not expired
+ * - Implements token rotation: old token revoked, new token issued
+ * - Tracks IP address for suspicious activity detection
+ */
+router.post('/refresh', strictRateLimiter, async (req, res) => {
+  try {
+    // Get refresh token from cookie or body
+    const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+
+    if (!refreshToken) {
+      return res.apiError('Refresh token is required', 401);
+    }
+
+    const ipAddress = getClientIP(req);
+    const { verifyAndRotateRefreshToken } = await import('../services/authService.mjs');
+
+    // Verify and rotate token
+    const result = await verifyAndRotateRefreshToken(refreshToken, ipAddress);
+
+    // Send new refresh token in cookie if in production
+    if (process.env.NODE_ENV === 'production') {
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+    }
+
+    return res.apiSuccess(
+      {
+        accessToken: result.accessToken,
+        refreshToken: process.env.NODE_ENV === 'production' ? undefined : result.refreshToken,
+        user: result.user,
+      },
+      'Token refreshed successfully'
+    );
+  } catch (error) {
+    return res.apiError(`Failed to refresh token: ${error.message}`, 401);
+  }
+});
+
+/**
+ * @route   POST /api/users/logout
+ * @desc    Logout and revoke refresh token
+ * @access  Public (requires refresh token)
+ * @body    {string} refreshToken - Refresh token to revoke (if not in cookie)
+ * @cookie  refreshToken - Refresh token (preferred method in production)
+ * @returns {object} - Success message
+ *
+ * Security measures:
+ * - Revokes refresh token in database (blacklisting)
+ * - Clears refresh token cookie
+ * - Generic success message (doesn't reveal if token existed)
+ */
+router.post('/logout', async (req, res) => {
+  try {
+    // Get refresh token from cookie or body
+    const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+
+    if (refreshToken) {
+      const { revokeRefreshToken } = await import('../services/authService.mjs');
+      await revokeRefreshToken(refreshToken, 'logout');
+    }
+
+    // Clear refresh token cookie
+    if (process.env.NODE_ENV === 'production') {
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+      });
+    }
+
+    return res.apiSuccess(null, 'Logout successful');
+  } catch (error) {
+    return res.apiError(`Failed to logout: ${error.message}`, 500);
   }
 });
 
