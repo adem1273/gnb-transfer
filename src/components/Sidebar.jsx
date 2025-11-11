@@ -41,11 +41,43 @@ function Sidebar() {
               🎯 Campaigns
             </Link>
 
+            <div className="text-xs font-semibold text-gray-400 uppercase mt-4 mb-1">
+              Business & Ops
+            </div>
+            <Link to="/admin/fleet" className="px-2 py-1 hover:bg-gray-700 rounded">
+              🚗 Fleet Tracking
+            </Link>
+            <Link to="/admin/drivers/performance" className="px-2 py-1 hover:bg-gray-700 rounded">
+              📈 Driver Performance
+            </Link>
+            <Link to="/admin/delay-compensation" className="px-2 py-1 hover:bg-gray-700 rounded">
+              ⏰ Delay Compensation
+            </Link>
+            <Link to="/admin/analytics" className="px-2 py-1 hover:bg-gray-700 rounded">
+              💰 Revenue Analytics
+            </Link>
+            <Link to="/admin/corporate" className="px-2 py-1 hover:bg-gray-700 rounded">
+              🏢 Corporate Clients
+            </Link>
+
+            <Link to="/admin/finance" className="px-2 py-1 hover:bg-gray-700 rounded">
+              💳 Finance
+            </Link>
+            <Link to="/admin/coupons" className="px-2 py-1 hover:bg-gray-700 rounded">
+              🎟️ Coupons
+            </Link>
+            <Link to="/admin/referrals" className="px-2 py-1 hover:bg-gray-700 rounded">
+              🔗 Referral Program
+            </Link>
+
             {isAdmin && (
               <>
                 <div className="text-xs font-semibold text-gray-400 uppercase mt-4 mb-1">
                   Settings
                 </div>
+                <Link to="/admin/features" className="px-2 py-1 hover:bg-gray-700 rounded">
+                  🎛️ Feature Toggles
+                </Link>
                 <Link to="/admin/modules" className="px-2 py-1 hover:bg-gray-700 rounded">
                   ⚙️ Modules
                 </Link>

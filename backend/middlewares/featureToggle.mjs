@@ -3,14 +3,14 @@ import featureToggleService from '../services/featureToggleService.mjs';
 /**
  * Middleware to check if a feature is enabled
  * Returns 503 Service Unavailable if feature is disabled
- * 
+ *
  * @param {string} featureId - Feature identifier to check
  * @returns {Function} Express middleware
  */
 export const requireFeatureEnabled = (featureId) => async (req, res, next) => {
   try {
     const isEnabled = await featureToggleService.isEnabled(featureId);
-    
+
     if (!isEnabled) {
       return res.status(503).json({
         success: false,
@@ -18,7 +18,7 @@ export const requireFeatureEnabled = (featureId) => async (req, res, next) => {
         message: `The feature '${featureId}' is currently disabled`,
       });
     }
-    
+
     next();
   } catch (error) {
     console.error(`Error checking feature toggle ${featureId}:`, error);

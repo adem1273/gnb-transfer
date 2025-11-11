@@ -90,11 +90,11 @@ export const PERMISSIONS = {
   'logs.export': ['superadmin', 'admin'],
 
   // New Feature Toggle Permissions
-  'view_fleet': ['superadmin', 'admin', 'manager'],
-  'view_driver_stats': ['superadmin', 'admin', 'manager'],
-  'manage_compensation': ['superadmin', 'admin'],
-  'view_analytics': ['superadmin', 'admin', 'manager'],
-  'manage_corporate': ['superadmin', 'admin', 'manager'],
+  view_fleet: ['superadmin', 'admin', 'manager'],
+  view_driver_stats: ['superadmin', 'admin', 'manager'],
+  manage_compensation: ['superadmin', 'admin'],
+  view_analytics: ['superadmin', 'admin', 'manager'],
+  manage_corporate: ['superadmin', 'admin', 'manager'],
 };
 
 /**
