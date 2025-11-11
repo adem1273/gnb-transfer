@@ -114,15 +114,11 @@ if (process.env.NODE_ENV === 'production') {
 
 // Additional security headers
 app.use(helmet.referrerPolicy({ policy: 'no-referrer' }));
-app.use(
-  helmet.permissionsPolicy({
-    features: {
-      camera: [],
-      microphone: [],
-      geolocation: [],
-    },
-  })
-);
+// Note: permissionsPolicy was removed in Helmet v8
+// If needed, use a separate middleware or app.use((req, res, next) => {
+//   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+//   next();
+// });
 
 app.use(cors(getCorsOptions()));
 app.use(compression());

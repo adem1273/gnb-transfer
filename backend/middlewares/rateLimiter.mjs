@@ -8,7 +8,7 @@
  * - Prevents brute force attacks and DoS
  */
 
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
 // Read configuration from environment variables
 const RATE_LIMIT_WINDOW_MS = parseInt(
@@ -20,20 +20,17 @@ const STRICT_RATE_LIMIT_MAX = parseInt(process.env.STRICT_RATE_LIMIT_MAX || '5',
 
 /**
  * Key generator function for rate limiting
- * Uses req.ip which respects Express's "trust proxy" setting
+ * Uses ipKeyGenerator from express-rate-limit to properly handle IPv6 addresses
+ * This prevents IPv6 users from bypassing rate limits
  *
  * When "trust proxy" is enabled:
  * - req.ip will be the leftmost IP in X-Forwarded-For header
  * - Prevents proxy bypass attacks
  *
  * @param {object} req - Express request object
- * @returns {string} - Client IP address
+ * @returns {string} - Client IP address (properly formatted for IPv6)
  */
-const keyGenerator = (req) => {
-  // req.ip respects trust proxy setting
-  // Fallback to req.connection.remoteAddress for safety
-  return req.ip || req.connection?.remoteAddress || 'unknown';
-};
+const keyGenerator = ipKeyGenerator();
 
 /**
  * Skip rate limiting for certain conditions
