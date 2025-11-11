@@ -48,6 +48,31 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'admin', 'superadmin', 'manager', 'support', 'driver'],
       default: 'user',
     },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    isCorporate: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    corporateDetails: {
+      companyName: { type: String, trim: true },
+      taxNumber: { type: String, trim: true },
+      address: { type: String, trim: true },
+      contactPerson: { type: String, trim: true },
+      billingEmail: { type: String, trim: true },
+      paymentTerms: {
+        type: String,
+        enum: ['net15', 'net30', 'net60', 'prepaid'],
+        default: 'net30',
+      },
+      discount: { type: Number, default: 0, min: 0, max: 100 },
+      contractStartDate: { type: Date },
+      contractEndDate: { type: Date },
+      monthlyInvoicing: { type: Boolean, default: false },
+    },
     preferences: {
       language: { type: String, default: 'en' },
       tourCategories: [{ type: String }],
