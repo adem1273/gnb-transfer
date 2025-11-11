@@ -45,6 +45,17 @@ const sentryHandlers = initSentry(express());
 
 const app = express();
 
+// Trust proxy - IMPORTANT for production deployments
+// When behind a reverse proxy (nginx, CloudFlare, Vercel, etc.)
+// Express needs to trust the X-Forwarded-* headers to get correct client IP
+if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true') {
+  // Set to 1 if directly behind a single reverse proxy
+  // Set to the number of proxies if behind multiple
+  // Set to 'true' to trust all proxies (use with caution)
+  app.set('trust proxy', 1);
+  console.log('✓ Trust proxy enabled (production mode)');
+}
+
 // Sentry request handler must be first
 if (sentryHandlers) {
   app.use(sentryHandlers.requestHandler);
