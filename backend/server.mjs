@@ -30,6 +30,7 @@ import referralRoutes from './routes/referralRoutes.mjs';
 import faqRoutes from './routes/faqRoutes.mjs';
 import recommendationRoutes from './routes/recommendationRoutes.mjs';
 import supportRoutes from './routes/supportRoutes.mjs';
+import authRoutes from './routes/authRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -82,6 +83,7 @@ app.use(globalRateLimiter);
 app.use(responseMiddleware);
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tours', tourRoutes);
 app.use('/api/bookings', bookingRoutes);
