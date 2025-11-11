@@ -47,6 +47,14 @@ const FinancePanel = lazy(() => import('./pages/FinancePanel'));
 const CouponManagement = lazy(() => import('./pages/CouponManagement'));
 const ReferralProgram = lazy(() => import('./pages/ReferralProgram'));
 
+// Lazy load feature toggle management and new features
+const FeatureManagement = lazy(() => import('./pages/FeatureManagement'));
+const FleetTrackingDashboard = lazy(() => import('./pages/FleetTrackingDashboard'));
+const DriverPerformance = lazy(() => import('./pages/DriverPerformance'));
+const DelayCompensationPanel = lazy(() => import('./pages/DelayCompensationPanel'));
+const RevenueAnalytics = lazy(() => import('./pages/RevenueAnalytics'));
+const CorporateClients = lazy(() => import('./pages/CorporateClients'));
+
 // Lazy load optional components (only load when needed)
 const LiveChat = lazy(() => import('./components/LiveChat'));
 const Feedback = lazy(() => import('./components/Feedback'));
@@ -145,6 +153,16 @@ function App() {
                 <Route path="finance" element={<FinancePanel />} />
                 <Route path="coupons" element={<CouponManagement />} />
                 <Route path="referrals" element={<ReferralProgram />} />
+                
+                {/* Feature Toggle Management */}
+                <Route path="features" element={<FeatureManagement />} />
+                
+                {/* New Feature Toggle Routes */}
+                <Route path="fleet" element={<FleetTrackingDashboard />} />
+                <Route path="drivers/performance" element={<DriverPerformance />} />
+                <Route path="delay-compensation" element={<DelayCompensationPanel />} />
+                <Route path="analytics" element={<RevenueAnalytics />} />
+                <Route path="corporate" element={<CorporateClients />} />
               </Route>
               
               {/* Sürücü Paneli Rotası */}

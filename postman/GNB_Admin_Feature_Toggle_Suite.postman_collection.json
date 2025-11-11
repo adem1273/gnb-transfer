@@ -1,0 +1,204 @@
+{
+  "info": {
+    "name": "GNB Transfer - Admin Feature Toggle Suite",
+    "_postman_id": "gnb-admin-features-2024",
+    "description": "Comprehensive test suite for GNB Transfer admin panel feature toggles",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{adminToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "B1_AuthRoutes",
+      "item": [
+        {
+          "name": "Verify corporate user registration",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Corporate flag set', () => { pm.expect(pm.response.json().isCorporate).to.be.true; });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Corporate Test User\",\n  \"email\": \"corporate@example.com\",\n  \"password\": \"securePass123\",\n  \"companyName\": \"Test Corporation\",\n  \"taxNumber\": \"1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/corporate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "corporate"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "B2_BookingRoutes",
+      "item": [
+        {
+          "name": "Verify fleet location in booking response",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Fleet location exists', () => { pm.expect(pm.response.json().fleetLocation).to.exist; });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/fleet/live",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "fleet", "live"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "B5_DelayGuarantee",
+      "item": [
+        {
+          "name": "Verify discount code generated on delay",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Discount code exists', () => { pm.expect(pm.response.json().discountCode).to.be.a('string'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/delay/pending?status=approved",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "delay", "pending"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "approved"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "B7_AdminManagementRoutes",
+      "item": [
+        {
+          "name": "Verify driver stats in dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Driver stats returned', () => { pm.expect(pm.response.json().driverStats).to.be.an('array'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/drivers/stats?period=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "drivers", "stats"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "30"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "B8_PaymentRoutes",
+      "item": [
+        {
+          "name": "Verify revenue data in analytics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Revenue calculated', () => { pm.expect(pm.response.json().totalRevenue).to.be.a('number'); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/analytics/summary?period=weekly",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "analytics", "summary"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "weekly"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

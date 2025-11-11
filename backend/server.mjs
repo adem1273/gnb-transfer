@@ -34,6 +34,12 @@ import faqRoutes from './routes/faqRoutes.mjs';
 import recommendationRoutes from './routes/recommendationRoutes.mjs';
 import supportRoutes from './routes/supportRoutes.mjs';
 import authRoutes from './routes/authRoutes.mjs';
+import featureToggleRoutes from './routes/featureToggleRoutes.mjs';
+import fleetRoutes from './routes/fleetRoutes.mjs';
+import driverStatsRoutes from './routes/driverStatsRoutes.mjs';
+import delayCompensationRoutes from './routes/delayCompensationRoutes.mjs';
+import revenueAnalyticsRoutes from './routes/revenueAnalyticsRoutes.mjs';
+import corporateRoutes from './routes/corporateRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -152,6 +158,16 @@ app.use('/api/faq', faqRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/support', supportRoutes);
 
+// Feature toggle routes
+app.use('/api/admin/features', featureToggleRoutes);
+
+// New feature routes (protected by feature toggles)
+app.use('/api/admin/fleet', fleetRoutes);
+app.use('/api/admin/drivers', driverStatsRoutes);
+app.use('/api/admin/delay', delayCompensationRoutes);
+app.use('/api/admin/analytics', revenueAnalyticsRoutes);
+app.use('/api/admin/corporate', corporateRoutes);
+
 // Health check endpoint (registered before other routes)
 app.get('/api/health', async (req, res) => {
   const healthStatus = {
@@ -257,6 +273,69 @@ if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
 }
 
 await connectDB();
+
+// Initialize feature toggles
+import featureToggleService from './services/featureToggleService.mjs';
+
+const defaultFeatures = [
+  {
+    id: 'fleet_tracking',
+    name: 'Canlı Filo Takibi',
+    description: 'Sürücülerin canlı konumunu harita üzerinde gösterir',
+    route: '/admin/fleet',
+    component: 'FleetTrackingDashboard',
+    api: '/api/admin/fleet/live',
+    permission: 'view_fleet',
+    enabled: false,
+  },
+  {
+    id: 'driver_performance',
+    name: 'Sürücü Performans Paneli',
+    description: 'Sürücü puanları, zamanında teslim, gelir',
+    route: '/admin/drivers/performance',
+    component: 'DriverPerformance',
+    api: '/api/admin/drivers/stats',
+    permission: 'view_driver_stats',
+    enabled: false,
+  },
+  {
+    id: 'delay_compensation',
+    name: 'Otomatik Gecikme Tazminatı Onay Paneli',
+    description: 'AI tarafından önerilen indirimleri onaylar/reddeder',
+    route: '/admin/delay-compensation',
+    component: 'DelayCompensationPanel',
+    api: '/api/admin/delay/pending',
+    permission: 'manage_compensation',
+    enabled: false,
+  },
+  {
+    id: 'revenue_analytics',
+    name: 'Gelir & KPI Analiz Ekranı',
+    description: 'Günlük/haftalık gelir, AOV, tekrar rezervasyon oranı',
+    route: '/admin/analytics',
+    component: 'RevenueAnalytics',
+    api: '/api/admin/analytics/summary',
+    permission: 'view_analytics',
+    enabled: false,
+  },
+  {
+    id: 'corporate_clients',
+    name: 'Kurumsal Müşteri Yönetimi',
+    description: 'Şirket ekle, sabit fiyat, aylık fatura',
+    route: '/admin/corporate',
+    component: 'CorporateClients',
+    api: '/api/admin/corporate',
+    permission: 'manage_corporate',
+    enabled: false,
+  },
+];
+
+try {
+  await featureToggleService.initializeFeatures(defaultFeatures);
+  logger.info('Feature toggles initialized successfully');
+} catch (error) {
+  logger.error('Failed to initialize feature toggles:', error);
+}
 
 // Initialize schedulers and services after DB connection
 initCampaignScheduler();
