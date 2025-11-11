@@ -8,6 +8,7 @@ import compression from 'compression';
 
 import logger from './config/logger.mjs';
 import { initSentry } from './config/sentry.mjs';
+import { getCorsOptions, validateCorsConfig } from './config/cors.mjs';
 import { responseMiddleware } from './middlewares/response.mjs';
 import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
 import { errorHandler } from './middlewares/errorHandler.mjs';
@@ -56,32 +57,18 @@ if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true')
   console.log('✓ Trust proxy enabled (production mode)');
 }
 
+// Validate CORS configuration at startup
+validateCorsConfig();
+
 // Sentry request handler must be first
 if (sentryHandlers) {
   app.use(sentryHandlers.requestHandler);
   app.use(sentryHandlers.tracingHandler);
 }
 
-// Configure CORS with whitelist
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim())
-  : ['http://localhost:5173', 'http://localhost:3000'];
-
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, Postman)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-};
-
 // Security & parsers
 app.use(helmet());
-app.use(cors(corsOptions));
+app.use(cors(getCorsOptions()));
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
