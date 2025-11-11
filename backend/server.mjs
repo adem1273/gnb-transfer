@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 
 import logger from './config/logger.mjs';
 import { initSentry } from './config/sentry.mjs';
@@ -14,6 +15,7 @@ import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
 import { errorHandler } from './middlewares/errorHandler.mjs';
 import { getCacheStats } from './middlewares/cache.mjs';
 import { requestLogger, errorLogger } from './middlewares/logging.mjs';
+import { requestIdMiddleware } from './middlewares/requestId.mjs';
 import { getMetrics, getPrometheusMetrics, trackError } from './middlewares/metrics.mjs';
 
 import userRoutes from './routes/userRoutes.mjs';
@@ -67,11 +69,63 @@ if (sentryHandlers) {
 }
 
 // Security & parsers
-app.use(helmet());
+// Strict Content Security Policy
+const getAllowedCorsOrigins = () => {
+  const corsOrigins = process.env.CORS_ORIGINS;
+  if (!corsOrigins) return [];
+  return corsOrigins.split(',').map((o) => o.trim());
+};
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:'],
+        connectSrc: ["'self'", ...getAllowedCorsOrigins()],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+    hsts: false, // Will be added conditionally below
+  })
+);
+
+// Add HSTS with preload in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(
+    helmet.hsts({
+      maxAge: 63072000, // 2 years in seconds
+      includeSubDomains: true,
+      preload: true,
+    })
+  );
+}
+
+// Additional security headers
+app.use(helmet.referrerPolicy({ policy: 'no-referrer' }));
+app.use(
+  helmet.permissionsPolicy({
+    features: {
+      camera: [],
+      microphone: [],
+      geolocation: [],
+    },
+  })
+);
+
 app.use(cors(getCorsOptions()));
 app.use(compression());
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Request ID for correlation
+app.use(requestIdMiddleware);
 
 // Request logging
 app.use(requestLogger);

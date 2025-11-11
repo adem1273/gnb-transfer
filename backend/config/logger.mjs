@@ -19,12 +19,18 @@ const redact = fastRedact({
     'headers.authorization',
     'req.headers.authorization',
     'request.headers.authorization',
+    'headers.cookie',
+    'req.headers.cookie',
+    'request.headers.cookie',
+    'headers["set-cookie"]',
+    'req.headers["set-cookie"]',
+    'request.headers["set-cookie"]',
     'token',
     'accessToken',
     'refreshToken',
     'jwt',
     'bearer',
-    
+
     // User credentials
     'password',
     'newPassword',
@@ -36,7 +42,7 @@ const redact = fastRedact({
     'req.body.password',
     'request.body.password',
     'request.body.user.password',
-    
+
     // Personal Identifiable Information (PII)
     'email',
     'user.email',
@@ -44,7 +50,7 @@ const redact = fastRedact({
     'req.body.email',
     'request.body.email',
     'request.body.user.email',
-    
+
     // Payment information
     'creditCard',
     'cardNumber',
@@ -56,7 +62,7 @@ const redact = fastRedact({
     'payment.card',
     'payment.creditCard',
     'payment.cvv',
-    
+
     // API keys and secrets
     'apiKey',
     'api_key',
@@ -140,7 +146,8 @@ if (process.env.NODE_ENV === 'production' || process.env.ENABLE_FILE_LOGGING ===
     new DailyRotateFile({
       filename: path.join(logsDir, 'application-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
-      maxSize: '20m',
+      zippedArchive: true,
+      maxSize: '10m',
       maxFiles: '14d',
       format: logFormat,
       level: 'info',
@@ -152,8 +159,9 @@ if (process.env.NODE_ENV === 'production' || process.env.ENABLE_FILE_LOGGING ===
     new DailyRotateFile({
       filename: path.join(logsDir, 'error-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
-      maxSize: '20m',
-      maxFiles: '30d',
+      zippedArchive: true,
+      maxSize: '10m',
+      maxFiles: '14d',
       format: logFormat,
       level: 'error',
     })
@@ -164,8 +172,9 @@ if (process.env.NODE_ENV === 'production' || process.env.ENABLE_FILE_LOGGING ===
     new DailyRotateFile({
       filename: path.join(logsDir, 'access-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
-      maxSize: '20m',
-      maxFiles: '7d',
+      zippedArchive: true,
+      maxSize: '10m',
+      maxFiles: '14d',
       format: logFormat,
     })
   );
@@ -175,6 +184,10 @@ if (process.env.NODE_ENV === 'production' || process.env.ENABLE_FILE_LOGGING ===
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
+  defaultMeta: {
+    service: 'gnb-backend',
+    env: process.env.NODE_ENV || 'development',
+  },
   transports,
   exitOnError: false,
   // Handle uncaught exceptions
@@ -187,8 +200,9 @@ const logger = winston.createLogger({
           new DailyRotateFile({
             filename: path.join(logsDir, 'exceptions-%DATE%.log'),
             datePattern: 'YYYY-MM-DD',
-            maxSize: '20m',
-            maxFiles: '30d',
+            zippedArchive: true,
+            maxSize: '10m',
+            maxFiles: '14d',
             format: logFormat,
           }),
         ]
@@ -204,8 +218,9 @@ const logger = winston.createLogger({
           new DailyRotateFile({
             filename: path.join(logsDir, 'rejections-%DATE%.log'),
             datePattern: 'YYYY-MM-DD',
-            maxSize: '20m',
-            maxFiles: '30d',
+            zippedArchive: true,
+            maxSize: '10m',
+            maxFiles: '14d',
             format: logFormat,
           }),
         ]

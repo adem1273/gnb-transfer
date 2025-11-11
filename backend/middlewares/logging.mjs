@@ -6,9 +6,11 @@ import { trackRequest } from './metrics.mjs';
  */
 export function requestLogger(req, res, next) {
   const startTime = Date.now();
+  const requestId = req.id || res.locals.requestId;
 
   // Log request
   logger.info('Incoming request', {
+    requestId,
     method: req.method,
     url: req.originalUrl,
     ip: req.ip,
@@ -27,6 +29,7 @@ export function requestLogger(req, res, next) {
 
     // Log response
     logger.info('Outgoing response', {
+      requestId,
       method: req.method,
       url: req.originalUrl,
       statusCode: res.statusCode,
@@ -43,7 +46,10 @@ export function requestLogger(req, res, next) {
  * Middleware to log errors
  */
 export function errorLogger(err, req, res, next) {
+  const requestId = req.id || res.locals.requestId;
+  
   logger.error('Error occurred', {
+    requestId,
     error: err.message,
     stack: err.stack,
     method: req.method,
