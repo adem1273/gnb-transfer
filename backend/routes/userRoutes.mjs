@@ -3,12 +3,19 @@
  */
 
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import User from '../models/User.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
 import { sendEmail } from '../services/emailService.mjs';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  storeRefreshToken,
+  getDeviceInfo,
+  getClientIP,
+  revokeAllUserTokens,
+} from '../services/authService.mjs';
 import {
   validateUserRegistration,
   validateUserLogin,
@@ -16,7 +23,6 @@ import {
 } from '../validators/index.mjs';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || '';
 
 /**
  * @route   POST /api/users/register
@@ -25,13 +31,14 @@ const JWT_SECRET = process.env.JWT_SECRET || '';
  * @body    {string} name - User's full name (2-100 characters)
  * @body    {string} email - Valid email address
  * @body    {string} password - Password (min 6 chars, must contain uppercase, lowercase, and number)
- * @returns {object} - JWT token and user details (without password)
+ * @returns {object} - Access token, refresh token, and user details (without password)
  *
  * Security measures:
  * - Rate limited to 5 requests per 15 minutes
  * - Password is hashed with bcrypt before storage (see User model)
  * - Default role is 'user' to prevent privilege escalation
- * - JWT token expires in 7 days
+ * - Access token expires in 15 minutes
+ * - Refresh token expires in 30 days (stored hashed)
  * - Email uniqueness is enforced at database level
  */
 router.post('/register', strictRateLimiter, validateUserRegistration, async (req, res) => {
@@ -59,19 +66,19 @@ router.post('/register', strictRateLimiter, validateUserRegistration, async (req
     });
     await user.save();
 
-    // Generate JWT token
-    if (!JWT_SECRET) {
-      console.error('JWT_SECRET is not configured');
-      return res.apiError('Server configuration error', 500);
-    }
+    // Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken();
 
-    const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, {
-      expiresIn: '7d',
-    });
+    // Store refresh token (hashed)
+    const deviceInfo = getDeviceInfo(req);
+    const ipAddress = getClientIP(req);
+    await storeRefreshToken(user._id, refreshToken, deviceInfo, ipAddress);
 
     return res.apiSuccess(
       {
-        token,
+        accessToken,
+        refreshToken,
         user: {
           id: user._id,
           name: user.name,
@@ -89,16 +96,17 @@ router.post('/register', strictRateLimiter, validateUserRegistration, async (req
 
 /**
  * @route   POST /api/users/login
- * @desc    Authenticate user and return JWT token
+ * @desc    Authenticate user and return JWT tokens
  * @access  Public
  * @body    {string} email - User's email address
  * @body    {string} password - User's password
- * @returns {object} - JWT token and user details (without password)
+ * @returns {object} - Access token, refresh token, and user details (without password)
  *
  * Security measures:
  * - Rate limited to 5 requests per 15 minutes
  * - Password verified using bcrypt compare (see User.comparePassword method)
- * - JWT token expires in 7 days
+ * - Access token expires in 15 minutes
+ * - Refresh token expires in 30 days (stored hashed)
  * - Generic error message on invalid credentials (security best practice)
  */
 router.post('/login', strictRateLimiter, validateUserLogin, async (req, res) => {
@@ -122,19 +130,19 @@ router.post('/login', strictRateLimiter, validateUserLogin, async (req, res) => 
       return res.apiError('Invalid credentials', 401);
     }
 
-    // Generate JWT token
-    if (!JWT_SECRET) {
-      console.error('JWT_SECRET is not configured');
-      return res.apiError('Server configuration error', 500);
-    }
+    // Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken();
 
-    const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, {
-      expiresIn: '7d',
-    });
+    // Store refresh token (hashed)
+    const deviceInfo = getDeviceInfo(req);
+    const ipAddress = getClientIP(req);
+    await storeRefreshToken(user._id, refreshToken, deviceInfo, ipAddress);
 
     return res.apiSuccess(
       {
-        token,
+        accessToken,
+        refreshToken,
         user: {
           id: user._id,
           email: user.email,
@@ -350,6 +358,7 @@ router.post('/forgot-password', strictRateLimiter, async (req, res) => {
  * - Validates token hasn't expired
  * - Clears reset token after successful reset
  * - Password is hashed by User model pre-save hook
+ * - Revokes ALL refresh tokens for security (user must re-login)
  */
 router.post('/reset-password/:token', strictRateLimiter, async (req, res) => {
   try {
@@ -382,6 +391,9 @@ router.post('/reset-password/:token', strictRateLimiter, async (req, res) => {
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
+
+    // Security: Revoke all refresh tokens (force re-login on all devices)
+    await revokeAllUserTokens(user._id, 'password_change');
 
     return res.apiSuccess(
       null,

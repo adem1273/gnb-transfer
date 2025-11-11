@@ -4,6 +4,7 @@ backend/node_modules/
 
 # Environment variables
 backend/.env
+backend/.env.test
 .env
 .env.local
 .env.development.local

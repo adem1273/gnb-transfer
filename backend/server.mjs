@@ -8,6 +8,7 @@ import compression from 'compression';
 
 import logger from './config/logger.mjs';
 import { initSentry } from './config/sentry.mjs';
+import { getCorsOptions, validateCorsConfig } from './config/cors.mjs';
 import { responseMiddleware } from './middlewares/response.mjs';
 import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
 import { errorHandler } from './middlewares/errorHandler.mjs';
@@ -30,6 +31,7 @@ import referralRoutes from './routes/referralRoutes.mjs';
 import faqRoutes from './routes/faqRoutes.mjs';
 import recommendationRoutes from './routes/recommendationRoutes.mjs';
 import supportRoutes from './routes/supportRoutes.mjs';
+import authRoutes from './routes/authRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -44,32 +46,29 @@ const sentryHandlers = initSentry(express());
 
 const app = express();
 
+// Trust proxy - IMPORTANT for production deployments
+// When behind a reverse proxy (nginx, CloudFlare, Vercel, etc.)
+// Express needs to trust the X-Forwarded-* headers to get correct client IP
+if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true') {
+  // Set to 1 if directly behind a single reverse proxy
+  // Set to the number of proxies if behind multiple
+  // Set to 'true' to trust all proxies (use with caution)
+  app.set('trust proxy', 1);
+  console.log('✓ Trust proxy enabled (production mode)');
+}
+
+// Validate CORS configuration at startup
+validateCorsConfig();
+
 // Sentry request handler must be first
 if (sentryHandlers) {
   app.use(sentryHandlers.requestHandler);
   app.use(sentryHandlers.tracingHandler);
 }
 
-// Configure CORS with whitelist
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim())
-  : ['http://localhost:5173', 'http://localhost:3000'];
-
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, Postman)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-};
-
 // Security & parsers
 app.use(helmet());
-app.use(cors(corsOptions));
+app.use(cors(getCorsOptions()));
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -82,6 +81,7 @@ app.use(globalRateLimiter);
 app.use(responseMiddleware);
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tours', tourRoutes);
 app.use('/api/bookings', bookingRoutes);

@@ -3,6 +3,12 @@
  *
  * @module routes/bookingRoutes
  * @description Handles all booking-related operations including creation, retrieval, and management
+ *
+ * Security features:
+ * - NoSQL injection protection via sanitization
+ * - Zod schema validation for type safety
+ * - Rate limiting on creation endpoint
+ * - Authentication required for sensitive operations
  */
 
 import express from 'express';
@@ -12,6 +18,14 @@ import Tour from '../models/Tour.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
 import { cacheMiddleware, clearCache } from '../middlewares/cache.mjs';
+import { sanitizeRequest } from '../middlewares/sanitize.mjs';
+import {
+  createBookingSchema,
+  updateBookingSchema,
+  bookingQuerySchema,
+  validateZod,
+  validateObjectId,
+} from '../validators/bookingValidator.mjs';
 import {
   validateBookingCreation,
   validateBookingStatusUpdate,
@@ -19,6 +33,9 @@ import {
 } from '../validators/index.mjs';
 
 const router = express.Router();
+
+// Apply sanitization to all booking routes
+router.use(sanitizeRequest);
 
 /**
  * @route   POST /api/bookings
@@ -32,27 +49,18 @@ const router = express.Router();
  * @body    {string} [date] - Booking date (ISO 8601 format)
  * @returns {object} - Created booking object with calculated amount
  *
- * Business logic:
- * - Validates tour existence before creating booking
- * - Calculates total amount as: tour.price * guests
- * - Sets status to 'pending' for cash, 'confirmed' for card/stripe
+ * Security:
  * - Rate limited to 5 requests per 15 minutes to prevent spam
+ * - Input sanitized to prevent NoSQL injection
+ * - Validated with Zod schema for type safety
+ * - Tour existence verified before booking creation
  */
-router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) => {
+router.post('/', strictRateLimiter, validateZod(createBookingSchema, 'body'), async (req, res) => {
   try {
     const { name, email, phone, tourId, paymentMethod, guests, date, pickupLocation, notes } =
       req.body;
 
-    // Validate required fields
-    if (!name || !email || !tourId) {
-      return res.apiError('Name, email, and tourId are required', 400);
-    }
-
-    // Additional ObjectId validation (defense in depth)
-    // Note: validateBookingCreation middleware already validates this with isMongoId()
-    if (!mongoose.Types.ObjectId.isValid(tourId)) {
-      return res.apiError('Invalid tour ID format', 400);
-    }
+    // Note: Validation already done by Zod schema, including ObjectId validation
 
     // Verify tour exists (use lean for read-only)
     const tour = await Tour.findById(tourId).lean();
