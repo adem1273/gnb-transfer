@@ -6,8 +6,8 @@ services:
     env: node
     region: oregon # Free tier available in specific regions
     plan: free # Free tier plan
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -23,6 +23,8 @@ services:
         sync: false # Set via Render dashboard
       - key: BCRYPT_ROUNDS
         value: 10
+      - key: NPM_CONFIG_PRODUCTION
+        value: false # Install devDependencies for build step
     healthCheckPath: /api/health
     autoDeploy: true
     scaling:
