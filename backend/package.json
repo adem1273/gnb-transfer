@@ -33,6 +33,7 @@
     "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
     "mkdirp": "^3.0.1",
+    "mongo-sanitize": "^1.1.0",
     "mongoose": "^8.19.1",
     "node-cache": "^5.1.2",
     "node-cron": "^4.2.1",
@@ -43,7 +44,8 @@
     "sitemap": "^9.0.0",
     "stripe": "^15.1.0",
     "winston": "^3.18.3",
-    "winston-daily-rotate-file": "^5.0.0"
+    "winston-daily-rotate-file": "^5.0.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
