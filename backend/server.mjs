@@ -188,8 +188,19 @@ app.get('/api/health', async (req, res) => {
 });
 
 // Legacy health check (for backward compatibility)
+// Enhanced to include port and CORS info for Render deployment verification
 app.get('/health', async (req, res) => {
-  res.apiSuccess({ status: 'ok' }, 'Server is running');
+  const corsOrigins = process.env.CORS_ORIGINS?.split(',').map(o => o.trim()) || 
+    (process.env.NODE_ENV === 'production' 
+      ? ['https://gnb-transfer.onrender.com', 'http://localhost:3000']
+      : ['http://localhost:5173', 'http://localhost:3000']);
+  
+  res.apiSuccess({ 
+    status: 'ok',
+    port: PORT,
+    host: HOST,
+    corsOrigins: corsOrigins.length > 0 ? corsOrigins : ['default configuration']
+  }, 'Server is running');
 });
 
 // Readiness check endpoint
@@ -349,6 +360,11 @@ const server = app.listen(PORT, HOST, () => {
     port: PORT,
     host: HOST,
   });
+  // Console output for Render deployment logs
+  console.log(`✓ Server running on http://${HOST}:${PORT}`);
+  console.log(`✓ Health check ready at /health and /api/health`);
+  console.log(`✓ Port ${PORT} detected and bound successfully`);
+  
   if (!process.env.JWT_SECRET) {
     logger.warn('JWT_SECRET not set. Set JWT_SECRET for secure authentication.');
   }

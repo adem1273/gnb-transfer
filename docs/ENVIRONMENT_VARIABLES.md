@@ -63,7 +63,9 @@ Located in `backend/.env` file (copy from `backend/.env.example`)
 | `JWT_SECRET` | Secret key for JWT tokens | Generate with `openssl rand -base64 32` | Yes |
 | `JWT_EXPIRES_IN` | JWT token expiration | `7d`, `24h`, `30d` | Yes |
 | `BCRYPT_ROUNDS` | Password hashing rounds | `10` | Yes |
-| `CORS_ORIGINS` | Allowed CORS origins (comma-separated) | `http://localhost:5173,https://app.com` | Yes |
+| `CORS_ORIGINS` | Allowed CORS origins (comma-separated) | `http://localhost:5173,https://app.com` | Recommended* |
+
+*`CORS_ORIGINS` is highly recommended for production. If not set, the server will use safe defaults (`https://gnb-transfer.onrender.com`) and display warnings, but will not crash.
 
 ### Payment Processing
 
