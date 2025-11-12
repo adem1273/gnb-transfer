@@ -13,7 +13,8 @@
     "lint": "eslint src --ext .js,.jsx",
     "lint:fix": "eslint src --ext .js,.jsx --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,json}\"",
-    "audit-fix": "npm audit fix --force"
+    "audit-fix": "npm audit fix --force",
+    "preinstall": "echo 'Starting npm install...'"
   },
   "keywords": [
     "gnb",
@@ -27,11 +28,10 @@
   "author": "GNB Transfer",
   "license": "ISC",
   "dependencies": {
-    "@sentry/node": "^10.23.0",
+
     "@stripe/react-stripe-js": "^5.3.0",
     "@stripe/stripe-js": "^8.3.0",
     "axios": "^1.13.2",
-    "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "compression": "^1.8.1",
     "concurrently": "^8.2.2",
@@ -52,8 +52,8 @@
     "leaflet": "^1.9.4",
     "mkdirp": "^3.0.1",
     "mongo-sanitize": "^1.1.0",
-    "mongodb": "6.8.0",
-    "mongoose": "8.9.5",
+    "mongodb": "^6.8.0",
+    "mongoose": "^8.9.5",
     "node-cache": "^5.1.2",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.10",
@@ -97,5 +97,12 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "overrides": {
+    "minimatch": "^9.0.5",
+    "semver": "^7.6.3"
+  },
+  "exports": {
+    ".": "./backend/server.mjs"
   }
 }
