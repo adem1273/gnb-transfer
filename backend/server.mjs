@@ -55,6 +55,10 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Define PORT and HOST early (needed by health check endpoints)
+const PORT = process.env.PORT || 10000;
+const HOST = '0.0.0.0';
+
 // Initialize Sentry early
 const sentryHandlers = initSentry(express());
 
@@ -370,8 +374,7 @@ initSitemapScheduler();
 
 logger.info('All schedulers initialized successfully');
 
-const PORT = process.env.PORT || 10000;
-const HOST = '0.0.0.0';
+// Start server (PORT and HOST already defined at top of file)
 const server = app.listen(PORT, HOST, () => {
   logger.info(`Server running on http://${HOST}:${PORT}`, {
     environment: process.env.NODE_ENV || 'development',
