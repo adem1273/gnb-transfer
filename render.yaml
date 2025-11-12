@@ -25,6 +25,12 @@ services:
         value: 10
       - key: NPM_CONFIG_PRODUCTION
         value: false # Install devDependencies for build step
+      - key: NPM_CONFIG_BUILD_FROM_SOURCE
+        value: false # Disable native builds for bcryptjs
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=512 --experimental-specifier-resolution=node
+      - key: npm_config_cache
+        value: /tmp/npm-cache
       - key: NPM_AUDIT
         value: false
     healthCheckPath: /api/health
