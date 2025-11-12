@@ -1,5 +1,5 @@
 {
-  "name": "gnb-pro-fullstack",
+  "name": "gnb-transfer",
   "version": "1.0.0",
   "type": "module",
   "description": "GNB Transfer - Full Stack Web Application",
@@ -12,7 +12,8 @@
     "install-all": "npm install",
     "lint": "eslint src --ext .js,.jsx",
     "lint:fix": "eslint src --ext .js,.jsx --fix",
-    "format": "prettier --write \"src/**/*.{js,jsx,json}\""
+    "format": "prettier --write \"src/**/*.{js,jsx,json}\"",
+    "audit-fix": "npm audit fix --force"
   },
   "keywords": [
     "gnb",
@@ -43,7 +44,7 @@
     "express-validator": "^7.3.0",
     "fast-redact": "^3.5.0",
     "framer-motion": "^12.23.24",
-    "helmet": "^8.1.0",
+    "helmet": "^7.1.0",
     "i18next": "^23.7.6",
     "i18next-browser-languagedetector": "^7.2.0",
     "json2csv": "^6.0.0-alpha.2",
@@ -51,7 +52,8 @@
     "leaflet": "^1.9.4",
     "mkdirp": "^3.0.1",
     "mongo-sanitize": "^1.1.0",
-    "mongoose": "^8.19.1",
+    "mongodb": "6.8.0",
+    "mongoose": "8.9.5",
     "node-cache": "^5.1.2",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.10",

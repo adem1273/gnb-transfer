@@ -6,7 +6,7 @@ services:
     env: node
     region: oregon # Free tier available in specific regions
     plan: free # Free tier plan
-    buildCommand: npm install && npm run build
+    buildCommand: npm ci && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
@@ -25,6 +25,8 @@ services:
         value: 10
       - key: NPM_CONFIG_PRODUCTION
         value: false # Install devDependencies for build step
+      - key: NPM_AUDIT
+        value: false
     healthCheckPath: /api/health
     autoDeploy: true
     scaling:
