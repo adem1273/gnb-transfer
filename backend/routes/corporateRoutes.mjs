@@ -4,7 +4,7 @@ import { requirePermission } from '../config/permissions.mjs';
 import { requireFeatureEnabled } from '../middlewares/featureToggle.mjs';
 import User from '../models/User.mjs';
 import Booking from '../models/Booking.mjs';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import mongoSanitize from 'mongo-sanitize';
 
 const router = express.Router();
