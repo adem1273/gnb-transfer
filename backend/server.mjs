@@ -55,6 +55,12 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// === CRITICAL: EXACT PATH TO REACT BUILD ===
+// __dirname = /opt/render/project/src/backend
+// ../../src/build = /opt/render/project/src/build (CORRECT)
+const buildPath = path.join(__dirname, '../../src/build');
+console.log('FRONTEND PATH:', buildPath); // MUST BE /opt/render/project/src/build
+
 // Define PORT and HOST early (needed by health check endpoints)
 const PORT = process.env.PORT || 10000;
 const HOST = '0.0.0.0';
@@ -209,6 +215,7 @@ app.get('/health', async (req, res) => {
     status: 'ok',
     port: PORT,
     host: HOST,
+    path: buildPath,
     corsOrigins: corsOrigins.length > 0 ? corsOrigins : ['default configuration']
   }, 'Server is running');
 });
@@ -254,11 +261,18 @@ app.get('/metrics', (req, res) => {
 
 // Serve static files from React build
 // This must come after API routes to avoid conflicts
-app.use(express.static(path.join(__dirname, '../src/build')));
+app.use(express.static(buildPath));
 
 // Handle client-side routing - send all non-API requests to React app
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../src/build', 'index.html'));
+  const indexPath = path.join(buildPath, 'index.html');
+  console.log('SERVING INDEX:', indexPath);
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('SEND FILE ERROR:', err);
+      res.status(500).send('Frontend failed to load. Path incorrect.');
+    }
+  });
 });
 
 // Error logging middleware
