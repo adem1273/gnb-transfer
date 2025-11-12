@@ -250,11 +250,11 @@ app.get('/metrics', (req, res) => {
 
 // Serve static files from React build
 // This must come after API routes to avoid conflicts
-app.use(express.static(path.join(__dirname, '../dist')));
+app.use(express.static(path.join(__dirname, '../src/build')));
 
 // Handle client-side routing - send all non-API requests to React app
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+  res.sendFile(path.join(__dirname, '../src/build', 'index.html'));
 });
 
 // Error logging middleware
