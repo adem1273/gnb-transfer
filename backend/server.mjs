@@ -341,11 +341,13 @@ initSitemapScheduler();
 
 logger.info('All schedulers initialized successfully');
 
-const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`, {
+const PORT = process.env.PORT || 10000;
+const HOST = '0.0.0.0';
+const server = app.listen(PORT, HOST, () => {
+  logger.info(`Server running on http://${HOST}:${PORT}`, {
     environment: process.env.NODE_ENV || 'development',
     port: PORT,
+    host: HOST,
   });
   if (!process.env.JWT_SECRET) {
     logger.warn('JWT_SECRET not set. Set JWT_SECRET for secure authentication.');
