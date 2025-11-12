@@ -1,4 +1,6 @@
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import express from 'express';
 import mongoose from 'mongoose';
@@ -48,6 +50,10 @@ import { initWeeklyReportScheduler } from './services/weeklyReportService.mjs';
 import { initSitemapScheduler } from './services/sitemapService.mjs';
 
 dotenv.config();
+
+// Get __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Initialize Sentry early
 const sentryHandlers = initSentry(express());
@@ -240,6 +246,15 @@ app.get('/api/metrics', (req, res) => {
 app.get('/metrics', (req, res) => {
   res.set('Content-Type', 'text/plain');
   res.send(getPrometheusMetrics());
+});
+
+// Serve static files from React build
+// This must come after API routes to avoid conflicts
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Handle client-side routing - send all non-API requests to React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
 });
 
 // Error logging middleware
