@@ -34,7 +34,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'src/build',
+    outDir: 'dist',
     emptyOutDir: true,
     // Enable production optimizations
     minify: 'terser',

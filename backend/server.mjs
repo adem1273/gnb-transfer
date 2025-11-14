@@ -57,9 +57,9 @@ const __dirname = path.dirname(__filename);
 
 // === CRITICAL: EXACT PATH TO REACT BUILD ===
 // __dirname = /opt/render/project/src/backend
-// ../../src/build = /opt/render/project/src/build (CORRECT)
-const buildPath = path.join(__dirname, '../../src/build');
-console.log('FRONTEND PATH:', buildPath); // MUST BE /opt/render/project/src/build
+// ../dist = /opt/render/project/src/dist (CORRECT for Render deployment)
+const buildPath = path.join(__dirname, '..', 'dist');
+console.log('FRONTEND PATH:', buildPath); // MUST BE /opt/render/project/src/dist
 
 // Define PORT and HOST early (needed by health check endpoints)
 const PORT = process.env.PORT || 10000;
