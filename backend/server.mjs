@@ -56,10 +56,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // === CRITICAL: EXACT PATH TO REACT BUILD ===
-// __dirname = /opt/render/project/src/backend
-// ../dist = /opt/render/project/src/dist (CORRECT for Render deployment)
-const buildPath = path.join(__dirname, '..', 'dist');
-console.log('FRONTEND PATH:', buildPath); // MUST BE /opt/render/project/src/dist
+// Construct absolute path to dist directory using path.resolve()
+// This works in any environment (local, Render, etc.) by resolving relative to backend directory
+// __dirname = /path/to/gnb-transfer/backend
+// path.resolve(__dirname, '..', 'dist') = /path/to/gnb-transfer/dist (absolute path)
+const buildPath = path.resolve(__dirname, '..', 'dist');
+console.log('FRONTEND PATH:', buildPath); // Logs absolute path to dist directory
 
 // Define PORT and HOST early (needed by health check endpoints)
 const PORT = process.env.PORT || 10000;
