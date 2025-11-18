@@ -5,7 +5,7 @@
   "description": "GNB Transfer - Full Stack Web Application",
   "main": "backend/server.mjs",
   "scripts": {
-    "start": "npm ci && node backend/server.mjs",
+    "start": "node backend/server.mjs",
     "dev": "concurrently \"cd backend && nodemon server.mjs\" \"vite\"",
     "build": "npm ci && vite build",
     "preview": "vite preview",

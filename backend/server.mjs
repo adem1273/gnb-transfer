@@ -64,8 +64,16 @@ const buildPath = path.resolve(__dirname, '..', 'dist');
 console.log('FRONTEND PATH:', buildPath); // Logs absolute path to dist directory
 
 // Define PORT and HOST early (needed by health check endpoints)
+// Render assigns PORT dynamically - this is critical for deployment success
 const PORT = process.env.PORT || 10000;
 const HOST = '0.0.0.0';
+
+console.log('=== SERVER CONFIGURATION ===');
+console.log('PORT from environment:', process.env.PORT);
+console.log('PORT to use:', PORT);
+console.log('HOST:', HOST);
+console.log('NODE_ENV:', process.env.NODE_ENV || 'development');
+console.log('===========================');
 
 // Initialize Sentry early
 const sentryHandlers = initSentry(express());
@@ -397,10 +405,13 @@ const server = app.listen(PORT, HOST, () => {
     port: PORT,
     host: HOST,
   });
-  // Console output for Render deployment logs
-  console.log(`✓ Server running on http://${HOST}:${PORT}`);
-  console.log(`✓ Health check ready at /health and /api/health`);
-  console.log(`✓ Port ${PORT} detected and bound successfully`);
+  // Console output for Render deployment logs - critical for deployment verification
+  console.log('\n=== SERVER STARTED SUCCESSFULLY ===');
+  console.log(`✓ Server listening on http://${HOST}:${PORT}`);
+  console.log(`✓ Health check endpoints: /health and /api/health`);
+  console.log(`✓ Port ${PORT} bound successfully`);
+  console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log('===================================\n');
   
   if (!process.env.JWT_SECRET) {
     logger.warn('JWT_SECRET not set. Set JWT_SECRET for secure authentication.');
