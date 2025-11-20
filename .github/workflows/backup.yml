@@ -226,7 +226,7 @@ jobs:
           sudo apt-get install -y mongodb-database-tools
 
       - name: Download latest backup artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: mongodb-backup-*
           merge-multiple: true
