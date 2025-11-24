@@ -93,7 +93,7 @@
     "supertest": "^7.0.0",
     "tailwindcss": "^4.1.17",
     "terser": "^5.44.1",
-    "vite": "^7.2.1",
+    "vite": "^7.2.4",
     "vite-plugin-compression": "^0.5.1"
   },
   "engines": {
