@@ -147,7 +147,17 @@ jobs:
     steps:
       - name: Deploy to Render (Staging)
         run: |
-          curl -X POST ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
+          if [ -n "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}" ]; then
+            response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}")
+            if [ "$response" -ge 200 ] && [ "$response" -lt 300 ]; then
+              echo "Staging deployment triggered successfully (HTTP $response)"
+            else
+              echo "::error::Staging deployment failed with HTTP $response"
+              exit 1
+            fi
+          else
+            echo "::warning::RENDER_STAGING_DEPLOY_HOOK not configured, skipping deployment"
+          fi
 
   # Deploy to Production (on main/master branch)
   deploy-production:
@@ -161,4 +171,14 @@ jobs:
     steps:
       - name: Deploy to Render (Production)
         run: |
-          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+          if [ -n "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
+            response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}")
+            if [ "$response" -ge 200 ] && [ "$response" -lt 300 ]; then
+              echo "Production deployment triggered successfully (HTTP $response)"
+            else
+              echo "::error::Production deployment failed with HTTP $response"
+              exit 1
+            fi
+          else
+            echo "::warning::RENDER_DEPLOY_HOOK not configured, skipping deployment"
+          fi

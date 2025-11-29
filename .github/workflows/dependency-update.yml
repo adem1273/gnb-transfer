@@ -29,4 +29,8 @@ jobs:
       
       - name: Check frontend updates
         run: |
-          npm outdated || true
+          if [ -f "package.json" ]; then
+            npm outdated || true
+          else
+            echo "No package.json found in root directory"
+          fi

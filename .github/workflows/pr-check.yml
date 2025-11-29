@@ -37,7 +37,14 @@ jobs:
       - name: Check for merge conflicts
         run: |
           git fetch origin ${{ github.base_ref }}
-          git merge-base --is-ancestor origin/${{ github.base_ref }} HEAD || echo "Check for conflicts"
+          # Attempt a test merge to detect conflicts
+          if ! git merge --no-commit --no-ff origin/${{ github.base_ref }} 2>/dev/null; then
+            echo "::warning::Potential merge conflicts detected with base branch"
+            git merge --abort 2>/dev/null || true
+          else
+            echo "No merge conflicts detected"
+            git merge --abort 2>/dev/null || true
+          fi
 
   size-check:
     name: PR Size Check
