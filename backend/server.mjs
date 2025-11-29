@@ -19,6 +19,7 @@ import { getCacheStats } from './middlewares/cache.mjs';
 import { requestLogger, errorLogger } from './middlewares/logging.mjs';
 import { requestIdMiddleware } from './middlewares/requestId.mjs';
 import { getMetrics, getPrometheusMetrics, trackError } from './middlewares/metrics.mjs';
+import { DATABASE } from './constants/limits.mjs';
 
 import userRoutes from './routes/userRoutes.mjs';
 import tourRoutes from './routes/tourRoutes.mjs';
@@ -42,6 +43,7 @@ import driverStatsRoutes from './routes/driverStatsRoutes.mjs';
 import delayCompensationRoutes from './routes/delayCompensationRoutes.mjs';
 import revenueAnalyticsRoutes from './routes/revenueAnalyticsRoutes.mjs';
 import corporateRoutes from './routes/corporateRoutes.mjs';
+import docsRoutes from './routes/docsRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -146,6 +148,15 @@ app.use(helmet.referrerPolicy({ policy: 'no-referrer' }));
 //   next();
 // });
 
+// Additional security headers middleware
+app.use((req, res, next) => {
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
 app.use(cors(getCorsOptions()));
 app.use(compression());
 app.use(cookieParser());
@@ -190,27 +201,40 @@ app.use('/api/admin/delay', delayCompensationRoutes);
 app.use('/api/admin/analytics', revenueAnalyticsRoutes);
 app.use('/api/admin/corporate', corporateRoutes);
 
+// API documentation endpoint
+app.use('/api/docs', docsRoutes);
+
 // Health check endpoint (registered before other routes)
 app.get('/api/health', async (req, res) => {
-  const healthStatus = {
-    status: 'ok',
+  let dbConnected = false;
+  try {
+    await mongoose.connection.db.admin().ping();
+    dbConnected = true;
+  } catch (err) {
+    dbConnected = false;
+  }
+
+  const health = {
+    status: dbConnected ? 'healthy' : 'degraded',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
-    database: {
-      connected: mongoose.connection.readyState === 1,
-      state: ['disconnected', 'connected', 'connecting', 'disconnecting'][
-        mongoose.connection.readyState
-      ],
+    services: {
+      database: {
+        connected: dbConnected,
+        state: ['disconnected', 'connected', 'connecting', 'disconnecting'][
+          mongoose.connection.readyState
+        ],
+      },
+      cache: getCacheStats(),
     },
-    cache: getCacheStats(),
     memory: {
-      used: Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100, // MB
-      total: Math.round((process.memoryUsage().heapTotal / 1024 / 1024) * 100) / 100, // MB
+      heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+      heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB',
     },
   };
 
-  return res.apiSuccess(healthStatus, 'Server is healthy');
+  return res.status(dbConnected ? 200 : 503).json({ success: dbConnected, data: health });
 });
 
 // Legacy health check (for backward compatibility)
@@ -302,19 +326,50 @@ app.use((err, req, res, next) => {
 // Database connect
 const MONGO_URI = process.env.MONGO_URI || '';
 
-const connectDB = async () => {
+const connectDB = async (retryCount = 0) => {
   if (!MONGO_URI) {
     logger.warn('MONGO_URI is not set. Skipping database connection.');
     return;
   }
+  
   try {
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(MONGO_URI, {
+      serverSelectionTimeoutMS: DATABASE.SERVER_SELECTION_TIMEOUT_MS,
+      heartbeatFrequencyMS: DATABASE.HEARTBEAT_FREQUENCY_MS,
+    });
     logger.info('MongoDB connected successfully');
   } catch (err) {
-    logger.error('MongoDB connection failed:', { error: err.message });
-    logger.warn('Server will continue without database connection.');
+    logger.error(`MongoDB connection failed (attempt ${retryCount + 1}/${DATABASE.MAX_RETRIES}):`, {
+      error: err.message,
+    });
+    
+    if (retryCount < DATABASE.MAX_RETRIES - 1) {
+      logger.info(`Retrying in ${DATABASE.RETRY_DELAY_MS / 1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, DATABASE.RETRY_DELAY_MS));
+      return connectDB(retryCount + 1);
+    }
+    
+    logger.error('Max retry attempts reached.');
+    if (process.env.NODE_ENV === 'production') {
+      logger.error('FATAL: Cannot start production server without database');
+      process.exit(1);
+    }
+    logger.warn('Server will continue without database in development mode.');
   }
 };
+
+// Connection event handlers for reconnection
+mongoose.connection.on('disconnected', () => {
+  logger.warn('MongoDB disconnected. Attempting to reconnect...');
+});
+
+mongoose.connection.on('reconnected', () => {
+  logger.info('MongoDB reconnected successfully');
+});
+
+mongoose.connection.on('error', (err) => {
+  logger.error('MongoDB connection error:', { error: err.message });
+});
 
 // Safety: in production require JWT_SECRET
 if (!process.env.JWT_SECRET) {
