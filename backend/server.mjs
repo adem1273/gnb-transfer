@@ -50,6 +50,7 @@ import delayCompensationRoutes from './routes/delayCompensationRoutes.mjs';
 import revenueAnalyticsRoutes from './routes/revenueAnalyticsRoutes.mjs';
 import corporateRoutes from './routes/corporateRoutes.mjs';
 import docsRoutes from './routes/docsRoutes.mjs';
+import { routeRouter } from './routes/routeRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -199,6 +200,7 @@ app.use('/api/referrals', referralRoutes);
 app.use('/api/faq', faqRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/routes', routeRouter);
 
 // Feature toggle routes
 app.use('/api/admin/features', featureToggleRoutes);
