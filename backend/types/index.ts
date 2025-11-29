@@ -4,6 +4,7 @@ import { Document, Types } from 'mongoose';
 // User types
 export interface IUser extends Document {
   _id: Types.ObjectId;
+  id?: string; // Mongoose virtual, available when document is serialized
   name: string;
   email: string;
   password: string;
@@ -129,7 +130,8 @@ export interface ICoupon extends Document {
   active: boolean;
   applicableTours: Types.ObjectId[];
   createdBy: Types.ObjectId;
-  isValid: boolean;
+  /** Virtual property - computed based on active, dates, and usage limits */
+  readonly isValid: boolean;
   canApply(bookingAmount: number, tourId?: string): { valid: boolean; reason?: string };
   calculateDiscount(bookingAmount: number): number;
 }

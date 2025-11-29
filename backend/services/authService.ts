@@ -10,24 +10,28 @@ if (!JWT_SECRET) {
   process.exit(1);
 }
 
-const ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || '15m';
+// Type assertion needed as environment variable is string but jwt.sign expects StringValue
+const ACCESS_TOKEN_EXPIRY: SignOptions['expiresIn'] = (process.env.ACCESS_TOKEN_EXPIRY ||
+  '15m') as SignOptions['expiresIn'];
 
 export const generateAccessToken = (user: IUser): string => {
   if (!JWT_SECRET) {
     throw new Error('JWT_SECRET is not configured');
   }
 
+  // Use _id (Mongoose Document) or id (serialized form) - both are valid
+  const userId = user._id?.toString() || user.id;
+  if (!userId) {
+    throw new Error('User ID is required to generate access token');
+  }
+
   const payload: Omit<ITokenPayload, 'iat' | 'exp'> = {
-    id: (user._id || (user as unknown as { id: string }).id).toString(),
+    id: userId,
     email: user.email,
     role: user.role,
   };
 
-  const options: SignOptions = {
-    expiresIn: ACCESS_TOKEN_EXPIRY as SignOptions['expiresIn'],
-  };
-
-  return jwt.sign(payload, JWT_SECRET, options);
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
 };
 
 export const generateRefreshToken = (): IRefreshTokenData => {
