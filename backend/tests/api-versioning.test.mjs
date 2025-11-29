@@ -113,6 +113,26 @@ describe('API Versioning', () => {
       // URL version (v1) should take priority over header (v2)
       expect(response.headers['x-api-version']).toBe('v1');
     });
+
+    it('should reject invalid version headers and default to current version', async () => {
+      const response = await request(app)
+        .get('/api/tours')
+        .set('api-version', 'invalid-version')
+        .expect(200);
+
+      // Invalid version should be rejected, defaulting to current version
+      expect(response.headers['x-api-version']).toBe(API_VERSIONS.CURRENT);
+    });
+
+    it('should reject unknown version and default to current version', async () => {
+      const response = await request(app)
+        .get('/api/tours')
+        .set('api-version', 'v99')
+        .expect(200);
+
+      // Unknown version (v99) should be rejected, defaulting to current version
+      expect(response.headers['x-api-version']).toBe(API_VERSIONS.CURRENT);
+    });
   });
 
   describe('Version Info Endpoint', () => {
