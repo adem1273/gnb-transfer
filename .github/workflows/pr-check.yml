@@ -1,0 +1,67 @@
+name: PR Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  pr-validation:
+    name: PR Validation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check PR Title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            chore
+            ci
+      
+      - name: Check for merge conflicts
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          # Attempt a test merge to detect conflicts
+          if ! git merge --no-commit --no-ff origin/${{ github.base_ref }} 2>/dev/null; then
+            echo "::warning::Potential merge conflicts detected with base branch"
+            git merge --abort 2>/dev/null || true
+          else
+            echo "No merge conflicts detected"
+            git merge --abort 2>/dev/null || true
+          fi
+
+  size-check:
+    name: PR Size Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check PR size
+        run: |
+          ADDITIONS=$(git diff --numstat origin/${{ github.base_ref }}...HEAD | awk '{sum+=$1} END {print sum}')
+          DELETIONS=$(git diff --numstat origin/${{ github.base_ref }}...HEAD | awk '{sum+=$2} END {print sum}')
+          TOTAL=$((ADDITIONS + DELETIONS))
+          echo "Total changes: $TOTAL"
+          if [ "$TOTAL" -gt 1000 ]; then
+            echo "::warning::Large PR detected ($TOTAL lines). Consider breaking into smaller PRs."
+          fi
