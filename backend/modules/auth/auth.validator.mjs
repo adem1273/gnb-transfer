@@ -24,11 +24,11 @@ export const validateRegister = (req, res, next) => {
   }
 
   if (password.length < 8) {
-    return res.apiError('Password must be at least 8 characters', 400);
+    return res.apiError('Password must be at least 8 characters long', 400);
   }
 
   if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-    return res.apiError('Password must contain uppercase, lowercase and number', 400);
+    return res.apiError('Password must contain at least one uppercase letter, one lowercase letter, and one number', 400);
   }
 
   next();

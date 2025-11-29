@@ -45,7 +45,7 @@ export const register = async (userData, req) => {
     throw new Error('Email already registered');
   }
 
-  const user = await User.create({ name, email, password });
+  const user = await User.create({ name, email: email.toLowerCase(), password });
 
   const accessToken = generateAccessToken(user);
   const refreshTokenData = generateRefreshToken();
