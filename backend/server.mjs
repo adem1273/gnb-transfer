@@ -16,9 +16,15 @@ import { responseMiddleware } from './middlewares/response.mjs';
 import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
 import { errorHandler } from './middlewares/errorHandler.mjs';
 import { getCacheStats } from './middlewares/cache.mjs';
+import { initRedis, getRedisStats } from './services/cacheService.mjs';
 import { requestLogger, errorLogger } from './middlewares/logging.mjs';
 import { requestIdMiddleware } from './middlewares/requestId.mjs';
-import { getMetrics, getPrometheusMetrics, trackError } from './middlewares/metrics.mjs';
+import { getMetrics, trackError } from './middlewares/metrics.mjs';
+import {
+  getMetrics as getPromMetrics,
+  getContentType as getPromContentType,
+} from './services/metricsService.mjs';
+import { metricsMiddleware } from './middlewares/prometheusMiddleware.mjs';
 import { DATABASE } from './constants/limits.mjs';
 
 import userRoutes from './routes/userRoutes.mjs';
@@ -173,6 +179,9 @@ app.use(requestLogger);
 app.use(globalRateLimiter);
 app.use(responseMiddleware);
 
+// Prometheus metrics middleware
+app.use(metricsMiddleware);
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -227,6 +236,7 @@ app.get('/api/health', async (req, res) => {
         ],
       },
       cache: getCacheStats(),
+      redis: getRedisStats(),
     },
     memory: {
       heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
@@ -287,10 +297,14 @@ app.get('/api/metrics', (req, res) => {
   res.json(metrics);
 });
 
-// Metrics endpoint (Prometheus format)
-app.get('/metrics', (req, res) => {
-  res.set('Content-Type', 'text/plain');
-  res.send(getPrometheusMetrics());
+// Prometheus metrics endpoint (prom-client format)
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', getPromContentType());
+    res.end(await getPromMetrics());
+  } catch (error) {
+    res.status(500).end(error.message);
+  }
 });
 
 // Serve static files from React build
@@ -382,6 +396,9 @@ if (!process.env.JWT_SECRET) {
 }
 
 await connectDB();
+
+// Initialize Redis cache
+initRedis();
 
 // Initialize feature toggles
 import featureToggleService from './services/featureToggleService.mjs';

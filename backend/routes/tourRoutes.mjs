@@ -8,14 +8,15 @@ import Booking from '../models/Booking.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
 import { validateTourCreation, validateTourUpdate, validateMongoId } from '../validators/index.mjs';
-import { cacheMiddleware, clearCache } from '../middlewares/cache.mjs';
+import { clearCache } from '../middlewares/cache.mjs';
+import { cacheResponse, clearCacheOnMutation } from '../middlewares/cacheMiddleware.mjs';
 
 const router = express.Router();
 
 /**
  * GET /api/tours - Get all tours (cached for 10 minutes)
  */
-router.get('/', cacheMiddleware(600), async (req, res) => {
+router.get('/', cacheResponse(600), async (req, res) => {
   try {
     const tours = await Tour.find().sort({ createdAt: -1 });
     return res.apiSuccess(tours, 'Tours retrieved successfully');
@@ -27,7 +28,7 @@ router.get('/', cacheMiddleware(600), async (req, res) => {
 /**
  * GET /api/tours/campaigns - Get campaign tours (cached for 15 minutes)
  */
-router.get('/campaigns', cacheMiddleware(900), async (req, res) => {
+router.get('/campaigns', cacheResponse(900), async (req, res) => {
   try {
     const campaignTours = await Tour.find({ isCampaign: true }).sort({ discount: -1 });
     return res.apiSuccess(campaignTours, 'Campaign tours retrieved successfully');
@@ -39,7 +40,7 @@ router.get('/campaigns', cacheMiddleware(900), async (req, res) => {
 /**
  * GET /api/tours/most-popular - Get most popular tours (cached for 30 minutes)
  */
-router.get('/most-popular', cacheMiddleware(1800), async (req, res) => {
+router.get('/most-popular', cacheResponse(1800), async (req, res) => {
   try {
     const mostPopularTours = await Booking.aggregate([
       { $match: { status: { $in: ['confirmed', 'completed', 'paid'] } } },
@@ -78,7 +79,7 @@ router.get('/most-popular', cacheMiddleware(1800), async (req, res) => {
 /**
  * GET /api/tours/:id - Get tour by ID (cached for 15 minutes)
  */
-router.get('/:id', validateMongoId, cacheMiddleware(900), async (req, res) => {
+router.get('/:id', validateMongoId, cacheResponse(900), async (req, res) => {
   try {
     const tour = await Tour.findById(req.params.id);
     if (!tour) {
@@ -93,7 +94,7 @@ router.get('/:id', validateMongoId, cacheMiddleware(900), async (req, res) => {
 /**
  * GET /api/tours/:id/discounted-price - Get discounted price for a tour (cached for 15 minutes)
  */
-router.get('/:id/discounted-price', validateMongoId, cacheMiddleware(900), async (req, res) => {
+router.get('/:id/discounted-price', validateMongoId, cacheResponse(900), async (req, res) => {
   try {
     const tour = await Tour.findById(req.params.id);
     if (!tour) {
@@ -130,6 +131,7 @@ router.get('/:id/discounted-price', validateMongoId, cacheMiddleware(900), async
 router.post(
   '/',
   requireAuth(['admin']),
+  clearCacheOnMutation(['route:/api/tours*']),
   validateTourCreation,
   strictRateLimiter,
   async (req, res) => {
@@ -167,6 +169,7 @@ router.post(
 router.put(
   '/:id',
   requireAuth(['admin']),
+  clearCacheOnMutation(['route:/api/tours*']),
   validateMongoId,
   validateTourUpdate,
   strictRateLimiter,
@@ -197,6 +200,7 @@ router.put(
 router.delete(
   '/:id',
   requireAuth(['admin']),
+  clearCacheOnMutation(['route:/api/tours*']),
   validateMongoId,
   strictRateLimiter,
   async (req, res) => {
