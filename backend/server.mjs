@@ -61,7 +61,7 @@ const __dirname = path.dirname(__filename);
 // __dirname = /path/to/gnb-transfer/backend
 // path.resolve(__dirname, '..', 'dist') = /path/to/gnb-transfer/dist (absolute path)
 const buildPath = path.resolve(__dirname, '..', 'dist');
-console.log('FRONTEND PATH:', buildPath); // Logs absolute path to dist directory
+logger.debug('FRONTEND PATH:', { buildPath }); // Logs absolute path to dist directory
 
 // Define PORT and HOST early (needed by health check endpoints)
 // Render assigns PORT dynamically - this is critical for deployment success
@@ -276,10 +276,10 @@ app.use(express.static(buildPath));
 // Handle client-side routing - send all non-API requests to React app
 app.get('*', (req, res) => {
   const indexPath = path.join(buildPath, 'index.html');
-  console.log('SERVING INDEX:', indexPath);
+  logger.debug('SERVING INDEX:', { indexPath });
   res.sendFile(indexPath, (err) => {
     if (err) {
-      console.error('SEND FILE ERROR:', err);
+      logger.error('SEND FILE ERROR:', { error: err.message });
       res.status(500).send('Frontend failed to load. Path incorrect.');
     }
   });
