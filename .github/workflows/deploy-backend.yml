@@ -2,6 +2,10 @@ name: Deploy Backend to Cloud Run
 on:
   push:
     branches: [ main ]
+
+permissions:
+  contents: read
+
 jobs:
   build-deploy:
     runs-on: ubuntu-latest

@@ -5,4 +5,4 @@ RUN npm ci --only=production
 COPY . .
 ENV PORT=8080
 EXPOSE 8080
-CMD ["node","server.mjs"]
+CMD ["node", "server.mjs"]
