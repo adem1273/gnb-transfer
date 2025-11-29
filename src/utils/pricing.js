@@ -12,11 +12,19 @@
  * @param {string} vehicleType - Vehicle type (standard, van, premium)
  * @param {Date|string} date - Pickup date/time
  * @returns {Promise<Object>} Price result with breakdown from the API
+ * @throws {Error} If the API request fails
  */
-export function calculateFrontendPrice(distanceMeters, vehicleType, date) {
-  return fetch((import.meta.env.VITE_API_URL || '/api') + '/pricing/calc', {
+export async function calculateFrontendPrice(distanceMeters, vehicleType, date) {
+  const response = await fetch((import.meta.env.VITE_API_URL || '/api') + '/pricing/calc', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ distanceMeters, vehicleType, date }),
-  }).then((r) => r.json());
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(error.error || 'Failed to calculate price');
+  }
+
+  return response.json();
 }
