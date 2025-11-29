@@ -15,6 +15,7 @@ import {
 } from '../services/authService.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
+import logger from '../config/logger.mjs';
 
 const router = express.Router();
 
@@ -65,7 +66,7 @@ router.post('/refresh', strictRateLimiter, async (req, res) => {
     );
   } catch (err) {
     // Don't expose detailed error messages for security
-    console.error('Refresh token error:', err.message);
+    logger.error('Refresh token error:', { error: err.message, stack: err.stack });
     return res.apiError('Invalid or expired refresh token', 401);
   }
 });
@@ -99,7 +100,7 @@ router.post('/logout', requireAuth(), async (req, res) => {
 
     return res.apiSuccess(null, 'Logout successful');
   } catch (err) {
-    console.error('Logout error:', err.message);
+    logger.error('Logout error:', { error: err.message, stack: err.stack });
     // Still return success even if revocation fails
     // Client should clear tokens regardless
     return res.apiSuccess(null, 'Logout successful');
@@ -136,7 +137,7 @@ router.post('/logout-all', requireAuth(), async (req, res) => {
       'Logged out from all devices successfully'
     );
   } catch (err) {
-    console.error('Logout all error:', err.message);
+    logger.error('Logout all error:', { error: err.message, stack: err.stack });
     return res.apiError('Failed to logout from all devices', 500);
   }
 });
@@ -181,7 +182,7 @@ router.get('/sessions', requireAuth(), async (req, res) => {
       'Sessions retrieved successfully'
     );
   } catch (err) {
-    console.error('Get sessions error:', err.message);
+    logger.error('Get sessions error:', { error: err.message, stack: err.stack });
     return res.apiError('Failed to retrieve sessions', 500);
   }
 });
@@ -220,7 +221,7 @@ router.delete('/sessions/:sessionId', requireAuth(), async (req, res) => {
 
     return res.apiSuccess(null, 'Session revoked successfully');
   } catch (err) {
-    console.error('Revoke session error:', err.message);
+    logger.error('Revoke session error:', { error: err.message, stack: err.stack });
     return res.apiError('Failed to revoke session', 500);
   }
 });

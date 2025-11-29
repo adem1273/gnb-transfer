@@ -25,12 +25,34 @@ import {
 const router = express.Router();
 
 /**
+ * Validate password strength
+ * @param {string} password - Password to validate
+ * @returns {object} - Validation result with valid flag and errors array
+ */
+const validatePassword = (password) => {
+  const errors = [];
+  if (!password || password.length < 8) {
+    errors.push('Password must be at least 8 characters');
+  }
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter');
+  }
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter');
+  }
+  if (!/\d/.test(password)) {
+    errors.push('Password must contain at least one number');
+  }
+  return { valid: errors.length === 0, errors };
+};
+
+/**
  * @route   POST /api/users/register
  * @desc    Register a new user account
  * @access  Public
  * @body    {string} name - User's full name (2-100 characters)
  * @body    {string} email - Valid email address
- * @body    {string} password - Password (min 6 chars, must contain uppercase, lowercase, and number)
+ * @body    {string} password - Password (min 8 chars, must contain uppercase, lowercase, and number)
  * @returns {object} - Access token, refresh token, and user details (without password)
  *
  * Security measures:
@@ -48,6 +70,12 @@ router.post('/register', strictRateLimiter, validateUserRegistration, async (req
     // Validate required fields
     if (!name || !email || !password) {
       return res.apiError('Name, email, and password are required', 400);
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.apiError(passwordValidation.errors.join('. '), 400);
     }
 
     // Check if user already exists
@@ -450,7 +478,7 @@ router.post('/forgot-password', strictRateLimiter, async (req, res) => {
  * @desc    Reset password using token
  * @access  Public
  * @param   {string} token - Reset token from email
- * @body    {string} password - New password (min 6 characters)
+ * @body    {string} password - New password (min 8 characters with uppercase, lowercase, and number)
  * @returns {object} - Success message
  *
  * Security measures:
@@ -469,8 +497,10 @@ router.post('/reset-password/:token', strictRateLimiter, async (req, res) => {
       return res.apiError('Password is required', 400);
     }
 
-    if (password.length < 6) {
-      return res.apiError('Password must be at least 6 characters', 400);
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.apiError(passwordValidation.errors.join('. '), 400);
     }
 
     // Hash the token from URL to compare with stored hash

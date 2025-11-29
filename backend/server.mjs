@@ -301,20 +301,53 @@ app.use((err, req, res, next) => {
 
 // Database connect
 const MONGO_URI = process.env.MONGO_URI || '';
+const MAX_RETRIES = 5;
+const RETRY_DELAY = 5000; // 5 seconds
 
-const connectDB = async () => {
+const connectDB = async (retryCount = 0) => {
   if (!MONGO_URI) {
     logger.warn('MONGO_URI is not set. Skipping database connection.');
     return;
   }
+  
   try {
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(MONGO_URI, {
+      serverSelectionTimeoutMS: 5000,
+      heartbeatFrequencyMS: 10000,
+    });
     logger.info('MongoDB connected successfully');
   } catch (err) {
-    logger.error('MongoDB connection failed:', { error: err.message });
-    logger.warn('Server will continue without database connection.');
+    logger.error(`MongoDB connection failed (attempt ${retryCount + 1}/${MAX_RETRIES}):`, {
+      error: err.message,
+    });
+    
+    if (retryCount < MAX_RETRIES - 1) {
+      logger.info(`Retrying in ${RETRY_DELAY / 1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      return connectDB(retryCount + 1);
+    }
+    
+    logger.error('Max retry attempts reached.');
+    if (process.env.NODE_ENV === 'production') {
+      logger.error('FATAL: Cannot start production server without database');
+      process.exit(1);
+    }
+    logger.warn('Server will continue without database in development mode.');
   }
 };
+
+// Connection event handlers for reconnection
+mongoose.connection.on('disconnected', () => {
+  logger.warn('MongoDB disconnected. Attempting to reconnect...');
+});
+
+mongoose.connection.on('reconnected', () => {
+  logger.info('MongoDB reconnected successfully');
+});
+
+mongoose.connection.on('error', (err) => {
+  logger.error('MongoDB connection error:', { error: err.message });
+});
 
 // Safety: in production require JWT_SECRET
 if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
