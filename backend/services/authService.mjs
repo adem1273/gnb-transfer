@@ -43,6 +43,31 @@ const getExpiryMs = (expiry) => {
 };
 
 /**
+ * Parse a refresh token into its parts
+ * Token format: tokenId.randomPart (new format) or just randomPart (legacy)
+ * 
+ * @param {string} token - The refresh token to parse
+ * @returns {object} - Object with tokenId and randomPart (or null for legacy tokens)
+ */
+const parseRefreshToken = (token) => {
+  if (!token || typeof token !== 'string') {
+    return { tokenId: null, randomPart: null, isNewFormat: false };
+  }
+  
+  const dotIndex = token.indexOf('.');
+  if (dotIndex === -1) {
+    // Legacy token format
+    return { tokenId: null, randomPart: token, isNewFormat: false };
+  }
+  
+  // New format: tokenId.randomPart (limit to first dot only)
+  const tokenId = token.substring(0, dotIndex);
+  const randomPart = token.substring(dotIndex + 1);
+  
+  return { tokenId, randomPart, isNewFormat: true };
+};
+
+/**
  * Generate access token (short-lived JWT)
  *
  * @param {object} user - User object with id, email, role
@@ -102,11 +127,18 @@ export const generateRefreshToken = () => {
  * - Stores device info for auditing
  */
 export const storeRefreshToken = async (userId, refreshTokenData, deviceInfo = {}, ipAddress = null) => {
-  const { token, tokenId } = typeof refreshTokenData === 'string' 
-    ? { token: refreshTokenData, tokenId: null } 
-    : refreshTokenData;
+  let token, tokenId;
+  
+  if (typeof refreshTokenData === 'string') {
+    token = refreshTokenData;
+    tokenId = null;
+  } else {
+    token = refreshTokenData.token;
+    tokenId = refreshTokenData.tokenId;
+  }
     
   const expiresAt = new Date(Date.now() + getExpiryMs(REFRESH_TOKEN_EXPIRY));
+  const parsed = parseRefreshToken(token);
 
   const tokenDoc = new RefreshToken({
     userId,
@@ -116,8 +148,7 @@ export const storeRefreshToken = async (userId, refreshTokenData, deviceInfo = {
     ipAddress,
   });
 
-  const randomPart = token.includes('.') ? token.split('.')[1] : token;
-  await tokenDoc.hashToken(randomPart);
+  await tokenDoc.hashToken(parsed.randomPart || token);
   await tokenDoc.save();
 
   return tokenDoc;
@@ -146,11 +177,9 @@ export const verifyAndRotateRefreshToken = async (refreshToken, ipAddress = null
     throw new Error('Refresh token is required');
   }
 
-  let tokenId, randomPart;
+  const parsed = parseRefreshToken(refreshToken);
   
-  if (refreshToken.includes('.')) {
-    [tokenId, randomPart] = refreshToken.split('.');
-  } else {
+  if (!parsed.isNewFormat) {
     // Legacy token support - fall back to old method
     const tokens = await RefreshToken.find({
       revoked: false,
@@ -186,7 +215,7 @@ export const verifyAndRotateRefreshToken = async (refreshToken, ipAddress = null
 
   // New token format - direct lookup O(1)
   const tokenDoc = await RefreshToken.findOne({
-    tokenId,
+    tokenId: parsed.tokenId,
     revoked: false,
     expiresAt: { $gt: new Date() },
   }).populate('userId', 'id email role name');
@@ -195,7 +224,7 @@ export const verifyAndRotateRefreshToken = async (refreshToken, ipAddress = null
     throw new Error('Invalid or expired refresh token');
   }
 
-  const isValid = await tokenDoc.verifyToken(randomPart);
+  const isValid = await tokenDoc.verifyToken(parsed.randomPart);
   if (!isValid) {
     throw new Error('Invalid refresh token');
   }
@@ -232,9 +261,10 @@ export const revokeRefreshToken = async (refreshToken, reason = 'logout') => {
     return false;
   }
 
-  if (refreshToken.includes('.')) {
-    const [tokenId] = refreshToken.split('.');
-    const tokenDoc = await RefreshToken.findOne({ tokenId, revoked: false });
+  const parsed = parseRefreshToken(refreshToken);
+  
+  if (parsed.isNewFormat) {
+    const tokenDoc = await RefreshToken.findOne({ tokenId: parsed.tokenId, revoked: false });
     if (tokenDoc) {
       await tokenDoc.revoke(reason);
       return true;
