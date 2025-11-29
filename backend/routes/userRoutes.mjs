@@ -97,12 +97,13 @@ router.post('/register', strictRateLimiter, validateUserRegistration, async (req
 
     // Generate tokens
     const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken();
+    const refreshTokenData = generateRefreshToken();
 
     // Store refresh token (hashed)
     const deviceInfo = getDeviceInfo(req);
     const ipAddress = getClientIP(req);
-    await storeRefreshToken(user._id, refreshToken, deviceInfo, ipAddress);
+    await storeRefreshToken(user._id, refreshTokenData, deviceInfo, ipAddress);
+    const refreshToken = refreshTokenData.token;
 
     return res.apiSuccess(
       {
@@ -161,12 +162,13 @@ router.post('/login', strictRateLimiter, validateUserLogin, async (req, res) => 
 
     // Generate tokens
     const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken();
+    const refreshTokenData = generateRefreshToken();
 
     // Store refresh token (hashed)
     const deviceInfo = getDeviceInfo(req);
     const ipAddress = getClientIP(req);
-    await storeRefreshToken(user._id, refreshToken, deviceInfo, ipAddress);
+    await storeRefreshToken(user._id, refreshTokenData, deviceInfo, ipAddress);
+    const refreshToken = refreshTokenData.token;
 
     // Send refresh token in httpOnly cookie if in production, otherwise in body
     if (process.env.NODE_ENV === 'production') {

@@ -372,12 +372,13 @@ mongoose.connection.on('error', (err) => {
 });
 
 // Safety: in production require JWT_SECRET
-if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-  logger.warn('JWT_SECRET is not set in production - authentication will not work securely!');
-  logger.warn('Please set JWT_SECRET environment variable as soon as possible.');
-  console.warn('⚠️  WARNING: JWT_SECRET not set in production mode');
-  console.warn('   Authentication features will be disabled or insecure');
-  console.warn('   Set JWT_SECRET in Render dashboard immediately');
+if (!process.env.JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('FATAL: JWT_SECRET is required in production!');
+    process.exit(1);
+  } else {
+    logger.warn('WARNING: JWT_SECRET not set. Authentication will not work!');
+  }
 }
 
 await connectDB();

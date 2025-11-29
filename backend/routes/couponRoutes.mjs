@@ -208,7 +208,7 @@ router.delete('/:id', requireAuth(['admin']), async (req, res) => {
  * @desc    Validate coupon code for a booking
  * @access  Public (but should be called during checkout)
  */
-router.post('/validate', async (req, res) => {
+router.post('/validate', strictRateLimiter, async (req, res) => {
   try {
     const { code, bookingAmount, tourId } = req.body;
 
