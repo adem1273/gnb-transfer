@@ -19,6 +19,7 @@ import { getCacheStats } from './middlewares/cache.mjs';
 import { requestLogger, errorLogger } from './middlewares/logging.mjs';
 import { requestIdMiddleware } from './middlewares/requestId.mjs';
 import { getMetrics, getPrometheusMetrics, trackError } from './middlewares/metrics.mjs';
+import { DATABASE } from './constants/limits.mjs';
 
 import userRoutes from './routes/userRoutes.mjs';
 import tourRoutes from './routes/tourRoutes.mjs';
@@ -301,8 +302,6 @@ app.use((err, req, res, next) => {
 
 // Database connect
 const MONGO_URI = process.env.MONGO_URI || '';
-const MAX_RETRIES = 5;
-const RETRY_DELAY = 5000; // 5 seconds
 
 const connectDB = async (retryCount = 0) => {
   if (!MONGO_URI) {
@@ -312,18 +311,18 @@ const connectDB = async (retryCount = 0) => {
   
   try {
     await mongoose.connect(MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-      heartbeatFrequencyMS: 10000,
+      serverSelectionTimeoutMS: DATABASE.SERVER_SELECTION_TIMEOUT_MS,
+      heartbeatFrequencyMS: DATABASE.HEARTBEAT_FREQUENCY_MS,
     });
     logger.info('MongoDB connected successfully');
   } catch (err) {
-    logger.error(`MongoDB connection failed (attempt ${retryCount + 1}/${MAX_RETRIES}):`, {
+    logger.error(`MongoDB connection failed (attempt ${retryCount + 1}/${DATABASE.MAX_RETRIES}):`, {
       error: err.message,
     });
     
-    if (retryCount < MAX_RETRIES - 1) {
-      logger.info(`Retrying in ${RETRY_DELAY / 1000} seconds...`);
-      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+    if (retryCount < DATABASE.MAX_RETRIES - 1) {
+      logger.info(`Retrying in ${DATABASE.RETRY_DELAY_MS / 1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, DATABASE.RETRY_DELAY_MS));
       return connectDB(retryCount + 1);
     }
     

@@ -21,26 +21,27 @@ import {
   validateUserLogin,
   validateMongoId,
 } from '../validators/index.mjs';
+import { PASSWORD } from '../constants/limits.mjs';
 
 const router = express.Router();
 
 /**
- * Validate password strength
+ * Validate password strength using centralized PASSWORD constants
  * @param {string} password - Password to validate
  * @returns {object} - Validation result with valid flag and errors array
  */
 const validatePassword = (password) => {
   const errors = [];
-  if (!password || password.length < 8) {
-    errors.push('Password must be at least 8 characters');
+  if (!password || password.length < PASSWORD.MIN_LENGTH) {
+    errors.push(`Password must be at least ${PASSWORD.MIN_LENGTH} characters`);
   }
-  if (!/[A-Z]/.test(password)) {
+  if (PASSWORD.REQUIRE_UPPERCASE && !/[A-Z]/.test(password)) {
     errors.push('Password must contain at least one uppercase letter');
   }
-  if (!/[a-z]/.test(password)) {
+  if (PASSWORD.REQUIRE_LOWERCASE && !/[a-z]/.test(password)) {
     errors.push('Password must contain at least one lowercase letter');
   }
-  if (!/\d/.test(password)) {
+  if (PASSWORD.REQUIRE_NUMBER && !/\d/.test(password)) {
     errors.push('Password must contain at least one number');
   }
   return { valid: errors.length === 0, errors };
