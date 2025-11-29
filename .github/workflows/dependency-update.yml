@@ -1,0 +1,32 @@
+name: Dependency Update Check
+
+on:
+  schedule:
+    - cron: '0 9 * * 1' # Every Monday at 9 AM
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-updates:
+    name: Check for Updates
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Check backend updates
+        run: |
+          cd backend
+          npm outdated || true
+      
+      - name: Check frontend updates
+        run: |
+          npm outdated || true

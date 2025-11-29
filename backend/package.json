@@ -11,7 +11,9 @@
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "lint": "eslint . --ext .mjs,.js",
-    "lint:fix": "eslint . --ext .mjs,.js --fix"
+    "lint:fix": "eslint . --ext .mjs,.js --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [
     "gnb",
