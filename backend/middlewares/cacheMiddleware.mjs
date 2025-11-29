@@ -1,4 +1,4 @@
-import { cacheGet, cacheSet } from '../services/cacheService.mjs';
+import { cacheGet, cacheSet, cacheDelPattern } from '../services/cacheService.mjs';
 
 export const cacheResponse = (ttlSeconds = 300, keyGenerator = null) => {
   return async (req, res, next) => {
@@ -40,7 +40,6 @@ export const clearCacheOnMutation = (patterns) => {
     res.json = async (data) => {
       // Clear cache patterns on successful mutations
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        const { cacheDelPattern } = await import('../services/cacheService.mjs');
         for (const pattern of patterns) {
           await cacheDelPattern(pattern);
         }
