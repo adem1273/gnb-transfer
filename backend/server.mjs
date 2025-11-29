@@ -51,6 +51,7 @@ import revenueAnalyticsRoutes from './routes/revenueAnalyticsRoutes.mjs';
 import corporateRoutes from './routes/corporateRoutes.mjs';
 import docsRoutes from './routes/docsRoutes.mjs';
 import { routeRouter } from './routes/routeRoutes.mjs';
+import { pricingRouter } from './routes/pricingRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -201,6 +202,7 @@ app.use('/api/faq', faqRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/routes', routeRouter);
+app.use('/api/pricing', pricingRouter);
 
 // Feature toggle routes
 app.use('/api/admin/features', featureToggleRoutes);
