@@ -36,6 +36,18 @@ const refreshTokenSchema = new mongoose.Schema(
     },
 
     /**
+     * Token ID for O(1) lookup
+     * Token format: tokenId.randomPart
+     * tokenId is used for direct DB lookup, randomPart is verified with bcrypt
+     */
+    tokenId: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
+
+    /**
      * Hashed refresh token value
      * We store hash, not plaintext, so even if DB is compromised, tokens are protected
      */
