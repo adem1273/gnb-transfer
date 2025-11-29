@@ -1,20 +1,24 @@
-/* eslint-disable no-underscore-dangle */
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import mongoose from 'mongoose';
 
-/**
- * Jest test setup file
- *
- * This file runs before all tests and sets up the test environment
- */
+let mongoServer;
 
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+beforeAll(async () => {
+  mongoServer = await MongoMemoryServer.create();
+  await mongoose.connect(mongoServer.getUri());
+});
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+afterEach(async () => {
+  const collections = mongoose.connection.collections;
+  for (const key in collections) {
+    await collections[key].deleteMany({});
+  }
+});
 
-// Load test environment variables
-dotenv.config({ path: join(__dirname, '..', '.env.test') });
+afterAll(async () => {
+  await mongoose.disconnect();
+  await mongoServer.stop();
+});
 
-// Set test environment
+process.env.JWT_SECRET = 'test-jwt-secret';
 process.env.NODE_ENV = 'test';
