@@ -35,7 +35,7 @@ API.interceptors.response.use(
     if (status === 401) {
       message = 'Oturum süresi doldu';
       if (!window.location.pathname.includes('/login')) {
-        localStorage.removeItem('accessToken');
+        localStorage.removeItem('token');
         window.location.href = '/login';
       }
     } else if (status === 403) {
