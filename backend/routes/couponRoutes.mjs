@@ -8,6 +8,7 @@
 import express from 'express';
 import Coupon from '../models/Coupon.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
+import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
 import logger from '../config/logger.mjs';
 
 const router = express.Router();
