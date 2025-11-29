@@ -19,6 +19,7 @@ import { getCacheStats } from './middlewares/cache.mjs';
 import { requestLogger, errorLogger } from './middlewares/logging.mjs';
 import { requestIdMiddleware } from './middlewares/requestId.mjs';
 import { getMetrics, getPrometheusMetrics, trackError } from './middlewares/metrics.mjs';
+import { DATABASE } from './constants/limits.mjs';
 
 import userRoutes from './routes/userRoutes.mjs';
 import tourRoutes from './routes/tourRoutes.mjs';
@@ -325,19 +326,50 @@ app.use((err, req, res, next) => {
 // Database connect
 const MONGO_URI = process.env.MONGO_URI || '';
 
-const connectDB = async () => {
+const connectDB = async (retryCount = 0) => {
   if (!MONGO_URI) {
     logger.warn('MONGO_URI is not set. Skipping database connection.');
     return;
   }
+  
   try {
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(MONGO_URI, {
+      serverSelectionTimeoutMS: DATABASE.SERVER_SELECTION_TIMEOUT_MS,
+      heartbeatFrequencyMS: DATABASE.HEARTBEAT_FREQUENCY_MS,
+    });
     logger.info('MongoDB connected successfully');
   } catch (err) {
-    logger.error('MongoDB connection failed:', { error: err.message });
-    logger.warn('Server will continue without database connection.');
+    logger.error(`MongoDB connection failed (attempt ${retryCount + 1}/${DATABASE.MAX_RETRIES}):`, {
+      error: err.message,
+    });
+    
+    if (retryCount < DATABASE.MAX_RETRIES - 1) {
+      logger.info(`Retrying in ${DATABASE.RETRY_DELAY_MS / 1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, DATABASE.RETRY_DELAY_MS));
+      return connectDB(retryCount + 1);
+    }
+    
+    logger.error('Max retry attempts reached.');
+    if (process.env.NODE_ENV === 'production') {
+      logger.error('FATAL: Cannot start production server without database');
+      process.exit(1);
+    }
+    logger.warn('Server will continue without database in development mode.');
   }
 };
+
+// Connection event handlers for reconnection
+mongoose.connection.on('disconnected', () => {
+  logger.warn('MongoDB disconnected. Attempting to reconnect...');
+});
+
+mongoose.connection.on('reconnected', () => {
+  logger.info('MongoDB reconnected successfully');
+});
+
+mongoose.connection.on('error', (err) => {
+  logger.error('MongoDB connection error:', { error: err.message });
+});
 
 // Safety: in production require JWT_SECRET
 if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {

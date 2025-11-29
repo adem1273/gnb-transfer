@@ -8,6 +8,7 @@
 import express from 'express';
 import Coupon from '../models/Coupon.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
+import logger from '../config/logger.mjs';
 
 const router = express.Router();
 
@@ -44,7 +45,7 @@ router.get('/', requireAuth(['admin', 'manager']), async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching coupons:', error);
+    logger.error('Error fetching coupons:', { error: error.message, stack: error.stack });
     return res.apiError('Failed to fetch coupons', 500);
   }
 });
@@ -66,7 +67,7 @@ router.get('/:id', requireAuth(['admin', 'manager']), async (req, res) => {
 
     return res.apiSuccess(coupon);
   } catch (error) {
-    console.error('Error fetching coupon:', error);
+    logger.error('Error fetching coupon:', { error: error.message, stack: error.stack });
     return res.apiError('Failed to fetch coupon', 500);
   }
 });
@@ -125,7 +126,7 @@ router.post('/', requireAuth(['admin']), async (req, res) => {
 
     return res.apiSuccess(coupon, 'Coupon created successfully');
   } catch (error) {
-    console.error('Error creating coupon:', error);
+    logger.error('Error creating coupon:', { error: error.message, stack: error.stack });
     return res.apiError(error.message || 'Failed to create coupon', 500);
   }
 });
@@ -177,7 +178,7 @@ router.patch('/:id', requireAuth(['admin']), async (req, res) => {
 
     return res.apiSuccess(coupon, 'Coupon updated successfully');
   } catch (error) {
-    console.error('Error updating coupon:', error);
+    logger.error('Error updating coupon:', { error: error.message, stack: error.stack });
     return res.apiError(error.message || 'Failed to update coupon', 500);
   }
 });
@@ -197,7 +198,7 @@ router.delete('/:id', requireAuth(['admin']), async (req, res) => {
 
     return res.apiSuccess(null, 'Coupon deleted successfully');
   } catch (error) {
-    console.error('Error deleting coupon:', error);
+    logger.error('Error deleting coupon:', { error: error.message, stack: error.stack });
     return res.apiError('Failed to delete coupon', 500);
   }
 });
@@ -244,7 +245,7 @@ router.post('/validate', async (req, res) => {
       finalAmount: Math.round(finalAmount * 100) / 100,
     });
   } catch (error) {
-    console.error('Error validating coupon:', error);
+    logger.error('Error validating coupon:', { error: error.message, stack: error.stack });
     return res.apiError('Failed to validate coupon', 500);
   }
 });
@@ -272,7 +273,7 @@ router.post('/:id/apply', requireAuth(['admin', 'manager', 'user']), async (req,
 
     return res.apiSuccess({ usageCount: coupon.usageCount }, 'Coupon applied successfully');
   } catch (error) {
-    console.error('Error applying coupon:', error);
+    logger.error('Error applying coupon:', { error: error.message, stack: error.stack });
     return res.apiError('Failed to apply coupon', 500);
   }
 });
