@@ -21,6 +21,10 @@ import { requestIdMiddleware } from './middlewares/requestId.mjs';
 import { getMetrics, getPrometheusMetrics, trackError } from './middlewares/metrics.mjs';
 import { DATABASE } from './constants/limits.mjs';
 
+// API versioning
+import v1Routes from './routes/v1/index.mjs';
+import { apiVersionMiddleware } from './middlewares/apiVersion.mjs';
+
 import userRoutes from './routes/userRoutes.mjs';
 import tourRoutes from './routes/tourRoutes.mjs';
 import bookingRoutes from './routes/bookingRoutes.mjs';
@@ -173,7 +177,13 @@ app.use(requestLogger);
 app.use(globalRateLimiter);
 app.use(responseMiddleware);
 
-// Routes
+// API versioning middleware
+app.use(apiVersionMiddleware);
+
+// Versioned API routes
+app.use('/api/v1', v1Routes);
+
+// Default to v1 for backward compatibility
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tours', tourRoutes);
