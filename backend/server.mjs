@@ -16,6 +16,7 @@ import { responseMiddleware } from './middlewares/response.mjs';
 import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
 import { errorHandler } from './middlewares/errorHandler.mjs';
 import { getCacheStats } from './middlewares/cache.mjs';
+import { initRedis, getRedisStats } from './services/cacheService.mjs';
 import { requestLogger, errorLogger } from './middlewares/logging.mjs';
 import { requestIdMiddleware } from './middlewares/requestId.mjs';
 import { getMetrics, trackError } from './middlewares/metrics.mjs';
@@ -235,6 +236,7 @@ app.get('/api/health', async (req, res) => {
         ],
       },
       cache: getCacheStats(),
+      redis: getRedisStats(),
     },
     memory: {
       heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
@@ -394,6 +396,9 @@ if (!process.env.JWT_SECRET) {
 }
 
 await connectDB();
+
+// Initialize Redis cache
+initRedis();
 
 // Initialize feature toggles
 import featureToggleService from './services/featureToggleService.mjs';
