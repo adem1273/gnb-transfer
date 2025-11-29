@@ -10,11 +10,16 @@ export const metricsMiddleware = (req, res, next) => {
 
   // Start timer
   const startTime = Date.now();
+  let finished = false;
 
-  // On response finish
-  res.on('finish', () => {
+  const recordMetrics = () => {
+    if (finished) return;
+    finished = true;
+
     const duration = (Date.now() - startTime) / 1000;
-    const route = req.route?.path || req.path || 'unknown';
+    // Normalize route to avoid high cardinality (replace IDs with :id)
+    let route = req.route?.path || req.path || 'unknown';
+    route = route.split('?')[0].replace(/\/[0-9a-f]{24}/gi, '/:id');
     const labels = {
       method: req.method,
       route,
@@ -24,7 +29,12 @@ export const metricsMiddleware = (req, res, next) => {
     httpRequestDuration.observe(labels, duration);
     httpRequestsTotal.inc(labels);
     activeConnections.dec();
-  });
+  };
+
+  // On response finish
+  res.on('finish', recordMetrics);
+  // Handle abrupt connection close
+  res.on('close', recordMetrics);
 
   next();
 };

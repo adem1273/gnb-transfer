@@ -18,7 +18,7 @@ import { errorHandler } from './middlewares/errorHandler.mjs';
 import { getCacheStats } from './middlewares/cache.mjs';
 import { requestLogger, errorLogger } from './middlewares/logging.mjs';
 import { requestIdMiddleware } from './middlewares/requestId.mjs';
-import { getMetrics, getPrometheusMetrics, trackError } from './middlewares/metrics.mjs';
+import { getMetrics, trackError } from './middlewares/metrics.mjs';
 import {
   getMetrics as getPromMetrics,
   getContentType as getPromContentType,
