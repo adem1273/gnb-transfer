@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error) {
@@ -17,16 +17,27 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    this.setState({ errorInfo });
   }
+
+  handleReload = () => {
+    window.location.reload();
+  };
+
+  handleGoHome = () => {
+    window.location.href = '/';
+  };
 
   render() {
     if (this.state.hasError) {
+      const isDevelopment = process.env.NODE_ENV === 'development';
+
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+          <div className="max-w-lg w-full bg-white shadow-lg rounded-lg p-8">
+            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 rounded-full">
               <svg
-                className="w-6 h-6 text-red-600"
+                className="w-8 h-8 text-red-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -39,18 +50,41 @@ class ErrorBoundary extends React.Component {
                 />
               </svg>
             </div>
-            <h2 className="mt-4 text-xl font-bold text-center text-gray-900">
-              Something went wrong
+            <h2 className="mt-6 text-2xl font-bold text-center text-gray-900">
+              Bir Hata Oluştu
             </h2>
-            <p className="mt-2 text-sm text-center text-gray-600">
-              {this.props.fallbackMessage || 'An error occurred while loading this component.'}
+            <p className="mt-3 text-center text-gray-600">
+              {this.props.fallbackMessage || 'Sayfa yüklenirken bir sorun oluştu. Lütfen tekrar deneyin.'}
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
-            >
-              Reload Page
-            </button>
+            
+            {/* Development mode error details */}
+            {isDevelopment && this.state.error && (
+              <div className="mt-4 p-4 bg-gray-100 rounded-lg overflow-auto max-h-40">
+                <p className="text-sm font-mono text-red-600">
+                  {this.state.error.toString()}
+                </p>
+                {this.state.errorInfo && (
+                  <pre className="mt-2 text-xs text-gray-600 whitespace-pre-wrap">
+                    {this.state.errorInfo.componentStack}
+                  </pre>
+                )}
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={this.handleReload}
+                className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Sayfayı Yenile
+              </button>
+              <button
+                onClick={this.handleGoHome}
+                className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+              >
+                Anasayfaya Dön
+              </button>
+            </div>
           </div>
         </div>
       );

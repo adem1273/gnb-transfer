@@ -31,6 +31,7 @@ import {
   validateBookingStatusUpdate,
   validateMongoId,
 } from '../validators/index.mjs';
+import { VALID_STATUSES } from '../constants/bookingStatus.mjs';
 
 const router = express.Router();
 
@@ -71,13 +72,13 @@ router.post('/', strictRateLimiter, validateZod(createBookingSchema, 'body'), as
     // Determine status based on payment method
     const status = paymentMethod === 'cash' ? 'pending' : 'confirmed';
 
-    // Create booking
+    // Create booking - use 'tour' field (required by model), tourId is optional
     const booking = await Booking.create({
       name,
       email,
       phone,
-      tourId,
       tour: tourId,
+      tourId,
       paymentMethod: paymentMethod || 'cash',
       status,
       guests: guests || 1,
@@ -121,6 +122,70 @@ router.get('/', requireAuth(['admin']), cacheMiddleware(300), async (req, res) =
     return res.apiSuccess(bookings, 'Bookings retrieved successfully');
   } catch (error) {
     return res.apiError(`Failed to retrieve bookings: ${error.message}`, 500);
+  }
+});
+
+/**
+ * @route   GET /api/bookings/calendar
+ * @desc    Get bookings formatted for calendar view
+ * @access  Private (admin, manager)
+ * @query   {string} [startDate] - Start date filter (ISO 8601)
+ * @query   {string} [endDate] - End date filter (ISO 8601)
+ * @returns {array} - Array of bookings with calendar-friendly format
+ *
+ * Response format:
+ * - Each booking includes: id, title, start, end, status, color
+ * - Color-coded by status: confirmed (green), pending (yellow), cancelled (red)
+ *
+ * Note: This route must be defined before /:id to avoid wildcard matching
+ */
+router.get('/calendar', requireAuth(['admin', 'manager']), async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    // Build date filter - use 'date' field as defined in Booking model
+    const filter = {};
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate);
+      if (endDate) filter.date.$lte = new Date(endDate);
+    }
+
+    const bookings = await Booking.find(filter).populate('tour', 'title name').sort({ date: 1 });
+
+    // Format for calendar
+    const calendarEvents = bookings.map((booking) => {
+      let color = '#gray';
+      switch (booking.status) {
+        case 'confirmed':
+          color = '#10b981'; // green
+          break;
+        case 'pending':
+          color = '#f59e0b'; // yellow
+          break;
+        case 'cancelled':
+          color = '#ef4444'; // red
+          break;
+        default:
+          color = '#6b7280'; // gray
+      }
+
+      return {
+        id: booking._id,
+        title: `${booking.name} - ${booking.tour?.title || booking.tour?.name || 'Tour'}`,
+        start: booking.date || booking.createdAt,
+        end: booking.date || booking.createdAt,
+        status: booking.status,
+        color,
+        email: booking.email,
+        guests: booking.guests,
+        totalPrice: booking.amount,
+      };
+    });
+
+    return res.apiSuccess(calendarEvents, 'Calendar events retrieved successfully');
+  } catch (error) {
+    return res.apiError(`Failed to fetch calendar events: ${error.message}`, 500);
   }
 });
 
@@ -221,9 +286,8 @@ router.put(
         return res.apiError('Status is required', 400);
       }
 
-      const validStatuses = ['pending', 'confirmed', 'cancelled', 'completed', 'paid'];
-      if (!validStatuses.includes(status)) {
-        return res.apiError(`Status must be one of: ${validStatuses.join(', ')}`, 400);
+      if (!VALID_STATUSES.includes(status)) {
+        return res.apiError(`Status must be one of: ${VALID_STATUSES.join(', ')}`, 400);
       }
 
       const booking = await Booking.findByIdAndUpdate(
@@ -245,67 +309,5 @@ router.put(
     }
   }
 );
-
-/**
- * @route   GET /api/bookings/calendar
- * @desc    Get bookings formatted for calendar view
- * @access  Private (admin, manager)
- * @query   {string} [startDate] - Start date filter (ISO 8601)
- * @query   {string} [endDate] - End date filter (ISO 8601)
- * @returns {array} - Array of bookings with calendar-friendly format
- *
- * Response format:
- * - Each booking includes: id, title, start, end, status, color
- * - Color-coded by status: confirmed (green), pending (yellow), cancelled (red)
- */
-router.get('/calendar', requireAuth(['admin', 'manager']), async (req, res) => {
-  try {
-    const { startDate, endDate } = req.query;
-
-    // Build date filter
-    const filter = {};
-    if (startDate || endDate) {
-      filter.bookingDate = {};
-      if (startDate) filter.bookingDate.$gte = new Date(startDate);
-      if (endDate) filter.bookingDate.$lte = new Date(endDate);
-    }
-
-    const bookings = await Booking.find(filter).populate('tour', 'name').sort({ bookingDate: 1 });
-
-    // Format for calendar
-    const calendarEvents = bookings.map((booking) => {
-      let color = '#gray';
-      switch (booking.status) {
-        case 'confirmed':
-          color = '#10b981'; // green
-          break;
-        case 'pending':
-          color = '#f59e0b'; // yellow
-          break;
-        case 'cancelled':
-          color = '#ef4444'; // red
-          break;
-        default:
-          color = '#6b7280'; // gray
-      }
-
-      return {
-        id: booking._id,
-        title: `${booking.name} - ${booking.tour?.name || 'Tour'}`,
-        start: booking.bookingDate || booking.createdAt,
-        end: booking.bookingDate || booking.createdAt,
-        status: booking.status,
-        color,
-        email: booking.email,
-        guests: booking.guests,
-        totalPrice: booking.totalPrice,
-      };
-    });
-
-    return res.apiSuccess(calendarEvents, 'Calendar events retrieved successfully');
-  } catch (error) {
-    return res.apiError(`Failed to fetch calendar events: ${error.message}`, 500);
-  }
-});
 
 export default router;

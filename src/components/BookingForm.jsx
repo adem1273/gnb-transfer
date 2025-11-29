@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import API from '../utils/api';
 
 function BookingForm({ onSubmit, tours = [], initialTourId = '' }) {
     const { t } = useTranslation();
@@ -20,25 +21,60 @@ function BookingForm({ onSubmit, tours = [], initialTourId = '' }) {
     });
     const [calculatedPrice, setCalculatedPrice] = useState(0);
     const [discount, setDiscount] = useState(0);
+    const [discountLoading, setDiscountLoading] = useState(false);
+    const [discountError, setDiscountError] = useState('');
     const [errors, setErrors] = useState({});
 
     const totalSteps = 3;
 
-    useEffect(() => {
-        calculatePrice();
-    }, [formData.tourId, formData.guests, formData.discountCode]);
+    // Validate discount code via backend API
+    const validateDiscountCode = useCallback(async (code, bookingAmount, tourId) => {
+        if (!code || !bookingAmount) {
+            return { valid: false, discountAmount: 0 };
+        }
 
-    const calculatePrice = () => {
+        setDiscountLoading(true);
+        setDiscountError('');
+
+        try {
+            const response = await API.post('/coupons/validate', {
+                code,
+                bookingAmount,
+                tourId
+            });
+            
+            if (response.data?.success && response.data?.data?.valid) {
+                return {
+                    valid: true,
+                    discountAmount: response.data.data.discountAmount || 0
+                };
+            }
+            return { valid: false, discountAmount: 0 };
+        } catch (error) {
+            const errorMessage = error.response?.data?.error || t('booking.errors.invalidDiscountCode') || 'Invalid discount code';
+            setDiscountError(errorMessage);
+            return { valid: false, discountAmount: 0 };
+        } finally {
+            setDiscountLoading(false);
+        }
+    }, [t]);
+
+    const calculatePrice = useCallback(async () => {
         const selectedTour = tours.find(tour => tour._id === formData.tourId);
         if (selectedTour) {
-            let basePrice = selectedTour.price * formData.guests;
+            const basePrice = selectedTour.price * formData.guests;
             let discountAmount = 0;
 
-            // Simple discount code validation (can be enhanced with backend call)
-            if (formData.discountCode === 'WELCOME10') {
-                discountAmount = basePrice * 0.1;
-            } else if (formData.discountCode === 'SUMMER20') {
-                discountAmount = basePrice * 0.2;
+            // Validate discount code via backend API
+            if (formData.discountCode) {
+                const result = await validateDiscountCode(
+                    formData.discountCode,
+                    basePrice,
+                    formData.tourId
+                );
+                if (result.valid) {
+                    discountAmount = result.discountAmount;
+                }
             }
 
             setDiscount(discountAmount);
@@ -47,7 +83,11 @@ function BookingForm({ onSubmit, tours = [], initialTourId = '' }) {
             setCalculatedPrice(0);
             setDiscount(0);
         }
-    };
+    }, [formData.tourId, formData.guests, formData.discountCode, tours, validateDiscountCode]);
+
+    useEffect(() => {
+        calculatePrice();
+    }, [calculatePrice]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -60,12 +100,18 @@ function BookingForm({ onSubmit, tours = [], initialTourId = '' }) {
 
     const validateStep = (step) => {
         const newErrors = {};
+        // Phone validation regex: supports international format (+XX) followed by 10-15 digits
+        const phoneRegex = /^\+?[0-9]{10,15}$/;
 
         if (step === 1) {
             if (!formData.name.trim()) newErrors.name = t('booking.errors.nameRequired') || 'Name is required';
             if (!formData.email.trim()) newErrors.email = t('booking.errors.emailRequired') || 'Email is required';
             if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = t('booking.errors.emailInvalid') || 'Email is invalid';
-            if (!formData.phone.trim()) newErrors.phone = t('booking.errors.phoneRequired') || 'Phone is required';
+            if (!formData.phone.trim()) {
+                newErrors.phone = t('booking.errors.phoneRequired') || 'Phone is required';
+            } else if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
+                newErrors.phone = t('booking.errors.phoneInvalid') || 'Please enter a valid phone number';
+            }
         } else if (step === 2) {
             if (!formData.tourId) newErrors.tourId = t('booking.errors.tourRequired') || 'Please select a tour';
             if (!formData.date) newErrors.date = t('booking.errors.dateRequired') || 'Date is required';
@@ -279,7 +325,7 @@ function BookingForm({ onSubmit, tours = [], initialTourId = '' }) {
                                         value={formData.guests}
                                         onChange={handleChange}
                                         min="1"
-                                        max="20"
+                                        max="50"
                                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                 </div>
@@ -382,14 +428,27 @@ function BookingForm({ onSubmit, tours = [], initialTourId = '' }) {
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         {t('booking.discountCode') || 'Discount Code'}
                                     </label>
-                                    <input
-                                        type="text"
-                                        name="discountCode"
-                                        value={formData.discountCode}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder={t('booking.enterCode') || 'Enter code (e.g., WELCOME10)'}
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            name="discountCode"
+                                            value={formData.discountCode}
+                                            onChange={handleChange}
+                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                                discountError ? 'border-red-500' : 'border-gray-300'
+                                            }`}
+                                            placeholder={t('booking.enterCode') || 'Enter discount code'}
+                                        />
+                                        {discountLoading && (
+                                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                                <svg className="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {discountError && <p className="text-red-500 text-sm mt-1">{discountError}</p>}
                                 </div>
 
                                 {/* Payment Method */}
