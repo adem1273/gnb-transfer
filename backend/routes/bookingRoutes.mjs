@@ -72,7 +72,10 @@ router.post('/', strictRateLimiter, validateZod(createBookingSchema, 'body'), as
     // Determine status based on payment method
     const status = paymentMethod === 'cash' ? 'pending' : 'confirmed';
 
-    // Create booking - use 'tour' field (required by model), tourId is optional
+    // Create booking
+    // Note: Both 'tour' (required by model) and 'tourId' (used for backward compatibility)
+    // reference the same tour. This dual-field approach allows gradual migration while
+    // maintaining compatibility with existing code that may use either field.
     const booking = await Booking.create({
       name,
       email,

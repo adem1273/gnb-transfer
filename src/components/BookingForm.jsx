@@ -51,7 +51,22 @@ function BookingForm({ onSubmit, tours = [], initialTourId = '' }) {
             }
             return { valid: false, discountAmount: 0 };
         } catch (error) {
-            const errorMessage = error.response?.data?.error || t('booking.errors.invalidDiscountCode') || 'Invalid discount code';
+            // Provide specific error messages based on error response
+            let errorMessage;
+            const errorCode = error.response?.data?.error;
+            
+            if (error.response?.status === 404) {
+                errorMessage = t('booking.errors.codeNotFound') || 'Discount code not found';
+            } else if (errorCode?.includes('expired')) {
+                errorMessage = t('booking.errors.codeExpired') || 'This discount code has expired';
+            } else if (errorCode?.includes('limit')) {
+                errorMessage = t('booking.errors.codeLimitReached') || 'This discount code has reached its usage limit';
+            } else if (errorCode?.includes('minimum')) {
+                errorMessage = t('booking.errors.minimumNotMet') || 'Minimum purchase amount not met for this code';
+            } else {
+                errorMessage = errorCode || t('booking.errors.invalidDiscountCode') || 'Invalid discount code';
+            }
+            
             setDiscountError(errorMessage);
             return { valid: false, discountAmount: 0 };
         } finally {
@@ -100,8 +115,9 @@ function BookingForm({ onSubmit, tours = [], initialTourId = '' }) {
 
     const validateStep = (step) => {
         const newErrors = {};
-        // Phone validation regex: supports international format (+XX) followed by 10-15 digits
-        const phoneRegex = /^\+?[0-9]{10,15}$/;
+        // Phone validation regex: supports international format with optional +, spaces, dashes, and parentheses
+        // Matches formats like: +90 555 123 4567, (555) 123-4567, +1-555-123-4567, 05551234567
+        const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{1,9}$/;
 
         if (step === 1) {
             if (!formData.name.trim()) newErrors.name = t('booking.errors.nameRequired') || 'Name is required';
@@ -109,8 +125,14 @@ function BookingForm({ onSubmit, tours = [], initialTourId = '' }) {
             if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = t('booking.errors.emailInvalid') || 'Email is invalid';
             if (!formData.phone.trim()) {
                 newErrors.phone = t('booking.errors.phoneRequired') || 'Phone is required';
-            } else if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
-                newErrors.phone = t('booking.errors.phoneInvalid') || 'Please enter a valid phone number';
+            } else {
+                // Remove all non-digit characters except + for validation of digit count
+                const digitsOnly = formData.phone.replace(/[^\d+]/g, '');
+                const digitCount = digitsOnly.replace(/\+/g, '').length;
+                
+                if (!phoneRegex.test(formData.phone) || digitCount < 10 || digitCount > 15) {
+                    newErrors.phone = t('booking.errors.phoneInvalid') || 'Please enter a valid phone number';
+                }
             }
         } else if (step === 2) {
             if (!formData.tourId) newErrors.tourId = t('booking.errors.tourRequired') || 'Please select a tour';

@@ -30,7 +30,9 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      const isDevelopment = process.env.NODE_ENV === 'development';
+      // In Vite builds, import.meta.env.DEV is the proper way to check development mode
+      // This is only evaluated at build time and cannot be bypassed at runtime
+      const isDevelopment = import.meta.env?.DEV === true;
 
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
