@@ -42,6 +42,7 @@ import driverStatsRoutes from './routes/driverStatsRoutes.mjs';
 import delayCompensationRoutes from './routes/delayCompensationRoutes.mjs';
 import revenueAnalyticsRoutes from './routes/revenueAnalyticsRoutes.mjs';
 import corporateRoutes from './routes/corporateRoutes.mjs';
+import docsRoutes from './routes/docsRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -146,6 +147,15 @@ app.use(helmet.referrerPolicy({ policy: 'no-referrer' }));
 //   next();
 // });
 
+// Additional security headers middleware
+app.use((req, res, next) => {
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
 app.use(cors(getCorsOptions()));
 app.use(compression());
 app.use(cookieParser());
@@ -190,27 +200,40 @@ app.use('/api/admin/delay', delayCompensationRoutes);
 app.use('/api/admin/analytics', revenueAnalyticsRoutes);
 app.use('/api/admin/corporate', corporateRoutes);
 
+// API documentation endpoint
+app.use('/api/docs', docsRoutes);
+
 // Health check endpoint (registered before other routes)
 app.get('/api/health', async (req, res) => {
-  const healthStatus = {
-    status: 'ok',
+  let dbConnected = false;
+  try {
+    await mongoose.connection.db.admin().ping();
+    dbConnected = true;
+  } catch (err) {
+    dbConnected = false;
+  }
+
+  const health = {
+    status: dbConnected ? 'healthy' : 'degraded',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
-    database: {
-      connected: mongoose.connection.readyState === 1,
-      state: ['disconnected', 'connected', 'connecting', 'disconnecting'][
-        mongoose.connection.readyState
-      ],
+    services: {
+      database: {
+        connected: dbConnected,
+        state: ['disconnected', 'connected', 'connecting', 'disconnecting'][
+          mongoose.connection.readyState
+        ],
+      },
+      cache: getCacheStats(),
     },
-    cache: getCacheStats(),
     memory: {
-      used: Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100, // MB
-      total: Math.round((process.memoryUsage().heapTotal / 1024 / 1024) * 100) / 100, // MB
+      heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+      heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB',
     },
   };
 
-  return res.apiSuccess(healthStatus, 'Server is healthy');
+  return res.status(dbConnected ? 200 : 503).json({ success: dbConnected, data: health });
 });
 
 // Legacy health check (for backward compatibility)
