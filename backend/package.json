@@ -47,6 +47,7 @@
     "nodemailer": "^7.0.10",
     "openai": "^4.20.1",
     "pdfkit": "^0.17.2",
+    "prom-client": "^15.1.0",
     "redis": "^4.7.0",
     "regression": "^2.0.1",
     "sitemap": "^9.0.0",
