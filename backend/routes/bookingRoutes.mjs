@@ -3,6 +3,12 @@
  *
  * @module routes/bookingRoutes
  * @description Handles all booking-related operations including creation, retrieval, and management
+ *
+ * Security features:
+ * - NoSQL injection protection via sanitization
+ * - Zod schema validation for type safety
+ * - Rate limiting on creation endpoint
+ * - Authentication required for sensitive operations
  */
 
 import express from 'express';
@@ -12,13 +18,25 @@ import Tour from '../models/Tour.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
 import { cacheMiddleware, clearCache } from '../middlewares/cache.mjs';
+import { sanitizeRequest } from '../middlewares/sanitize.mjs';
+import {
+  createBookingSchema,
+  updateBookingSchema,
+  bookingQuerySchema,
+  validateZod,
+  validateObjectId,
+} from '../validators/bookingValidator.mjs';
 import {
   validateBookingCreation,
   validateBookingStatusUpdate,
   validateMongoId,
 } from '../validators/index.mjs';
+import { VALID_STATUSES } from '../constants/bookingStatus.mjs';
 
 const router = express.Router();
+
+// Apply sanitization to all booking routes
+router.use(sanitizeRequest);
 
 /**
  * @route   POST /api/bookings
@@ -32,26 +50,18 @@ const router = express.Router();
  * @body    {string} [date] - Booking date (ISO 8601 format)
  * @returns {object} - Created booking object with calculated amount
  *
- * Business logic:
- * - Validates tour existence before creating booking
- * - Calculates total amount as: tour.price * guests
- * - Sets status to 'pending' for cash, 'confirmed' for card/stripe
+ * Security:
  * - Rate limited to 5 requests per 15 minutes to prevent spam
+ * - Input sanitized to prevent NoSQL injection
+ * - Validated with Zod schema for type safety
+ * - Tour existence verified before booking creation
  */
-router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) => {
+router.post('/', strictRateLimiter, validateZod(createBookingSchema, 'body'), async (req, res) => {
   try {
-    const { name, email, tourId, paymentMethod, guests, date } = req.body;
+    const { name, email, phone, tourId, paymentMethod, guests, date, pickupLocation, notes } =
+      req.body;
 
-    // Validate required fields
-    if (!name || !email || !tourId) {
-      return res.apiError('Name, email, and tourId are required', 400);
-    }
-
-    // Additional ObjectId validation (defense in depth)
-    // Note: validateBookingCreation middleware already validates this with isMongoId()
-    if (!mongoose.Types.ObjectId.isValid(tourId)) {
-      return res.apiError('Invalid tour ID format', 400);
-    }
+    // Note: Validation already done by Zod schema, including ObjectId validation
 
     // Verify tour exists (use lean for read-only)
     const tour = await Tour.findById(tourId).lean();
@@ -63,16 +73,22 @@ router.post('/', strictRateLimiter, validateBookingCreation, async (req, res) =>
     const status = paymentMethod === 'cash' ? 'pending' : 'confirmed';
 
     // Create booking
+    // Note: Both 'tour' (required by model) and 'tourId' (used for backward compatibility)
+    // reference the same tour. This dual-field approach allows gradual migration while
+    // maintaining compatibility with existing code that may use either field.
     const booking = await Booking.create({
       name,
       email,
-      tourId,
+      phone,
       tour: tourId,
+      tourId,
       paymentMethod: paymentMethod || 'cash',
       status,
       guests: guests || 1,
       date: date || new Date(),
       amount: tour.price * (guests || 1),
+      pickupLocation,
+      notes,
     });
 
     // Clear bookings cache when new booking is created
@@ -113,6 +129,70 @@ router.get('/', requireAuth(['admin']), cacheMiddleware(300), async (req, res) =
 });
 
 /**
+ * @route   GET /api/bookings/calendar
+ * @desc    Get bookings formatted for calendar view
+ * @access  Private (admin, manager)
+ * @query   {string} [startDate] - Start date filter (ISO 8601)
+ * @query   {string} [endDate] - End date filter (ISO 8601)
+ * @returns {array} - Array of bookings with calendar-friendly format
+ *
+ * Response format:
+ * - Each booking includes: id, title, start, end, status, color
+ * - Color-coded by status: confirmed (green), pending (yellow), cancelled (red)
+ *
+ * Note: This route must be defined before /:id to avoid wildcard matching
+ */
+router.get('/calendar', requireAuth(['admin', 'manager']), async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    // Build date filter - use 'date' field as defined in Booking model
+    const filter = {};
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate);
+      if (endDate) filter.date.$lte = new Date(endDate);
+    }
+
+    const bookings = await Booking.find(filter).populate('tour', 'title name').sort({ date: 1 });
+
+    // Format for calendar
+    const calendarEvents = bookings.map((booking) => {
+      let color = '#gray';
+      switch (booking.status) {
+        case 'confirmed':
+          color = '#10b981'; // green
+          break;
+        case 'pending':
+          color = '#f59e0b'; // yellow
+          break;
+        case 'cancelled':
+          color = '#ef4444'; // red
+          break;
+        default:
+          color = '#6b7280'; // gray
+      }
+
+      return {
+        id: booking._id,
+        title: `${booking.name} - ${booking.tour?.title || booking.tour?.name || 'Tour'}`,
+        start: booking.date || booking.createdAt,
+        end: booking.date || booking.createdAt,
+        status: booking.status,
+        color,
+        email: booking.email,
+        guests: booking.guests,
+        totalPrice: booking.amount,
+      };
+    });
+
+    return res.apiSuccess(calendarEvents, 'Calendar events retrieved successfully');
+  } catch (error) {
+    return res.apiError(`Failed to fetch calendar events: ${error.message}`, 500);
+  }
+});
+
+/**
  * @route   GET /api/bookings/:id
  * @desc    Get a specific booking by ID
  * @access  Private (admin only)
@@ -121,22 +201,28 @@ router.get('/', requireAuth(['admin']), cacheMiddleware(300), async (req, res) =
  * @returns {object} - Booking object with populated tour details
  * - Cached for 5 minutes
  */
-router.get('/:id', requireAuth(['admin']), validateMongoId, cacheMiddleware(300), async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id)
-      .populate('tour', 'title price duration')
-      .populate('tourId', 'title price duration')
-      .lean();
+router.get(
+  '/:id',
+  requireAuth(['admin']),
+  validateMongoId,
+  cacheMiddleware(300),
+  async (req, res) => {
+    try {
+      const booking = await Booking.findById(req.params.id)
+        .populate('tour', 'title price duration')
+        .populate('tourId', 'title price duration')
+        .lean();
 
-    if (!booking) {
-      return res.apiError('Booking not found', 404);
+      if (!booking) {
+        return res.apiError('Booking not found', 404);
+      }
+
+      return res.apiSuccess(booking, 'Booking retrieved successfully');
+    } catch (error) {
+      return res.apiError(`Failed to fetch booking: ${error.message}`, 500);
     }
-
-    return res.apiSuccess(booking, 'Booking retrieved successfully');
-  } catch (error) {
-    return res.apiError(`Failed to fetch booking: ${error.message}`, 500);
   }
-});
+);
 
 /**
  * @route   DELETE /api/bookings/:id
@@ -203,9 +289,8 @@ router.put(
         return res.apiError('Status is required', 400);
       }
 
-      const validStatuses = ['pending', 'confirmed', 'cancelled', 'completed', 'paid'];
-      if (!validStatuses.includes(status)) {
-        return res.apiError(`Status must be one of: ${validStatuses.join(', ')}`, 400);
+      if (!VALID_STATUSES.includes(status)) {
+        return res.apiError(`Status must be one of: ${VALID_STATUSES.join(', ')}`, 400);
       }
 
       const booking = await Booking.findByIdAndUpdate(

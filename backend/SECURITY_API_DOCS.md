@@ -12,9 +12,12 @@ All sensitive configuration is stored in environment variables. See `.env.exampl
 
 **Critical variables:**
 - `JWT_SECRET` - Secret key for JWT token signing (required in production)
+- `ACCESS_TOKEN_TTL` - Access token time-to-live (default: 15m)
+- `REFRESH_TOKEN_TTL` - Refresh token time-to-live (default: 7d)
 - `MONGO_URI` - MongoDB connection string
 - `BCRYPT_ROUNDS` - Salt rounds for password hashing (default: 10)
 - `CORS_ORIGINS` - Comma-separated list of allowed origins
+- `NODE_ENV` - Environment mode (development/production)
 
 ### 2. Password Security
 
@@ -26,12 +29,24 @@ All sensitive configuration is stored in environment variables. See `.env.exampl
 ### 3. JWT Authentication
 
 - **Algorithm:** HS256 (HMAC with SHA-256)
-- **Token Expiry:** 7 days
+- **Access Token Expiry:** 15 minutes (configurable via ACCESS_TOKEN_TTL)
+- **Refresh Token Expiry:** 7 days (configurable via REFRESH_TOKEN_TTL)
 - **Payload:** User ID, email, and role
-- **Storage:** Client must store token securely and send in Authorization header
-- **Format:** `Authorization: Bearer <token>`
+- **Storage:** 
+  - Access tokens: Client-side (memory, sessionStorage recommended)
+  - Refresh tokens: httpOnly cookies (production) or client-side (development)
+- **Format:** `Authorization: Bearer <access_token>`
+- **Rotation:** Refresh tokens are rotated on each use for enhanced security
 
-### 4. Rate Limiting
+### 4. Security Headers
+
+**Helmet Configuration:**
+- **Content Security Policy (CSP):** Restricts resource loading to same origin, except stylesheets allow unsafe-inline for React
+- **HSTS (Production):** Enforces HTTPS with 2-year max-age and preload flag
+- **Referrer Policy:** Set to 'no-referrer' to prevent information leakage
+- **Permissions Policy:** Restricts camera, microphone, and geolocation access
+
+### 5. Rate Limiting
 
 Two rate limiters are implemented:
 
@@ -45,7 +60,7 @@ Two rate limiters are implemented:
 - Limit: 5 requests per 15 minutes per IP
 - Purpose: Prevent brute-force attacks
 
-### 5. Input Validation
+### 6. Input Validation
 
 All POST and PUT endpoints use express-validator middleware:
 - **User registration:** Name length, email format, password strength
@@ -54,21 +69,30 @@ All POST and PUT endpoints use express-validator middleware:
 - **Tours:** Price validation, discount range (0-100%), field length limits
 - **MongoDB ObjectIds:** Format validation on URL parameters
 
-### 6. CORS Configuration
+### 7. CORS Configuration
 
 - **Whitelist-based:** Only specified origins can access the API
 - **Default allowed origins:** localhost:5173, localhost:3000
 - **Configurable:** Set via `CORS_ORIGINS` environment variable
 - **Credentials:** Enabled for cookie-based authentication (if needed)
 
-### 7. Security Middleware
+### 8. Security Middleware
 
-- **Helmet:** Sets security-related HTTP headers
+- **Helmet:** Sets security-related HTTP headers (CSP, HSTS, Referrer-Policy, Permissions-Policy)
 - **Compression:** Compresses response bodies
 - **Express JSON:** Body size limits prevent payload attacks
 - **Centralized Error Handler:** Prevents error stack leakage in production
+- **Request ID:** Adds x-request-id header for request correlation and tracing
+- **Cookie Parser:** Parses httpOnly cookies for refresh token handling
 
-### 8. Role-Based Access Control (RBAC)
+### 9. Logging & Monitoring
+
+- **Winston Logger:** Structured logging with PII redaction
+- **Log Rotation:** Daily rotation with compression, 14-day retention
+- **PII Redaction:** Automatically redacts passwords, tokens, cookies, emails, API keys
+- **Request Correlation:** Each request gets a unique ID for distributed tracing
+
+### 10. Role-Based Access Control (RBAC)
 
 Three roles are supported:
 - **user:** Default role for new registrations
@@ -103,14 +127,52 @@ Protected routes check user roles before allowing access.
 2. Server validates input format
 3. Server finds user by email (case-insensitive)
 4. Server compares password using bcrypt.compare()
-5. If valid, server generates JWT token
-6. Server returns { token, user: { id, name, email, role } }
+5. If valid, server generates JWT access token (15min TTL) and refresh token (7d TTL)
+6. Server stores refresh token hash in database with device info and IP
+7. In production: Server sets httpOnly, secure, SameSite=strict cookie with refresh token
+8. Server returns { accessToken, refreshToken (dev only), user: { id, name, email, role } }
 ```
 
 **Security notes:**
 - Generic error message on invalid credentials (prevents user enumeration)
 - Rate limited to 5 requests per 15 minutes
 - Timing-attack safe password comparison
+- Access tokens short-lived (15 minutes) for security
+- Refresh tokens stored hashed in database (bcrypt)
+- Refresh tokens in httpOnly cookies prevent XSS attacks
+
+### Refresh Token Flow
+
+```
+1. Client sends POST /api/users/refresh with refresh token (in cookie or body)
+2. Server hashes provided token and looks up in database
+3. Server validates token is not revoked and not expired
+4. Server revokes old refresh token (rotation)
+5. Server generates new access token and new refresh token
+6. Server stores new refresh token hash in database
+7. In production: Server sets new httpOnly cookie
+8. Server returns { accessToken, refreshToken (dev only), user }
+```
+
+**Security notes:**
+- Refresh token rotation prevents token reuse attacks
+- Old tokens immediately revoked after rotation
+- IP address tracking for suspicious activity detection
+- Rate limited to 5 requests per 15 minutes
+
+### Logout Flow
+
+```
+1. Client sends POST /api/users/logout with refresh token (in cookie or body)
+2. Server looks up and revokes refresh token in database
+3. Server clears refresh token cookie
+4. Server returns success message
+```
+
+**Security notes:**
+- Generic success message (doesn't reveal if token existed)
+- Revoked tokens cannot be used for refresh
+- Client should also delete access token
 
 ### Protected Route Access
 
@@ -215,6 +277,85 @@ Protected routes check user roles before allowing access.
 **Delete Tour:** DELETE /api/tours/:id
 - Permanently deletes tour
 - Rate limited
+
+## New Authentication Endpoints (v2)
+
+### POST /api/users/refresh
+
+**Purpose:** Obtain a new access token using a refresh token
+
+**Request:**
+```json
+// Cookie (preferred in production)
+Cookie: refreshToken=<token>
+
+// OR Body (development only)
+{
+  "refreshToken": "string"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGc...",
+    "refreshToken": "abcd1234..." // Only in development
+    "user": {
+      "id": "507f1f77bcf86cd799439011",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "role": "user"
+    }
+  },
+  "message": "Token refreshed successfully"
+}
+```
+
+**Security Features:**
+- Token rotation: Old refresh token is revoked, new one issued
+- Rate limited to 5 requests per 15 minutes
+- Validates token is not revoked and not expired
+- Tracks IP address for suspicious activity detection
+- Returns new refresh token in httpOnly cookie (production)
+
+**Error Responses:**
+- 401 Unauthorized: Invalid, expired, or revoked refresh token
+- 500 Internal Server Error: Server error during token rotation
+
+### POST /api/users/logout
+
+**Purpose:** Revoke refresh token and logout
+
+**Request:**
+```json
+// Cookie (preferred in production)
+Cookie: refreshToken=<token>
+
+// OR Body (development only)
+{
+  "refreshToken": "string"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Logout successful"
+}
+```
+
+**Security Features:**
+- Revokes refresh token in database (blacklisting)
+- Clears refresh token cookie
+- Generic success message (doesn't reveal if token existed)
+- Client should also delete access token from memory/storage
+
+**Error Responses:**
+- 500 Internal Server Error: Server error during logout
 
 ## Centralized Error Handling
 

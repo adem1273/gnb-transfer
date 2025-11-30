@@ -12,6 +12,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Sidebar from './components/Sidebar';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
@@ -19,6 +20,8 @@ const Tours = lazy(() => import('./pages/Tours'));
 const Booking = lazy(() => import('./pages/Booking'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./components/BlogPost'));
 const Contact = lazy(() => import('./pages/Contact'));
@@ -33,9 +36,29 @@ const AIMarketingPanel = lazy(() => import('./components/AIMarketingPanel'));
 const VehicleManagement = lazy(() => import('./pages/VehicleManagement'));
 const DriverPanel = lazy(() => import('./pages/DriverPanel'));
 
+// Lazy load new admin panel features
+const ModuleManagement = lazy(() => import('./pages/ModuleManagement'));
+const CampaignRules = lazy(() => import('./pages/CampaignRules'));
+const AIInsights = lazy(() => import('./pages/AIInsights'));
+const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
+const CalendarView = lazy(() => import('./pages/CalendarView'));
+const ActivityLogs = lazy(() => import('./pages/ActivityLogs'));
+const FinancePanel = lazy(() => import('./pages/FinancePanel'));
+const CouponManagement = lazy(() => import('./pages/CouponManagement'));
+const ReferralProgram = lazy(() => import('./pages/ReferralProgram'));
+
+// Lazy load feature toggle management and new features
+const FeatureManagement = lazy(() => import('./pages/FeatureManagement'));
+const FleetTrackingDashboard = lazy(() => import('./pages/FleetTrackingDashboard'));
+const DriverPerformance = lazy(() => import('./pages/DriverPerformance'));
+const DelayCompensationPanel = lazy(() => import('./pages/DelayCompensationPanel'));
+const RevenueAnalytics = lazy(() => import('./pages/RevenueAnalytics'));
+const CorporateClients = lazy(() => import('./pages/CorporateClients'));
+
 // Lazy load optional components (only load when needed)
 const LiveChat = lazy(() => import('./components/LiveChat'));
 const Feedback = lazy(() => import('./components/Feedback'));
+const FAQBot = lazy(() => import('./components/FAQBot'));
  
 // Genel Kullanıcı Düzeni
 const MainLayout = () => {
@@ -61,6 +84,7 @@ const MainLayout = () => {
         </div>
       </main>
       <Footer />
+      <PWAInstallPrompt />
       <Suspense fallback={null}>
         <LiveChat />
       </Suspense>
@@ -101,15 +125,18 @@ function App() {
                 <Route path="booking" element={<Booking />} />
                 <Route path="login" element={<Login />} />
                 <Route path="register" element={<Register />} />
+                <Route path="forgot-password" element={<ForgotPassword />} />
+                <Route path="reset-password/:token" element={<ResetPassword />} />
                 <Route path="blog" element={<Blog />} />
                 <Route path="blog/:id" element={<BlogPost />} />
                 <Route path="payment" element={<StripePayment />} />
                 <Route path="reviews" element={<Suspense fallback={<Loading />}><Feedback /></Suspense>} />
                 <Route path="contact" element={<Contact />} />
+                <Route path="faq" element={<Suspense fallback={<Loading />}><FAQBot /></Suspense>} />
               </Route>
  
               {/* Admin Paneli Rotaları (Korunmuş) */}
-              <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']}><AdminLayout /></PrivateRoute>}> 
+              <Route path="/admin" element={<PrivateRoute allowedRoles={['admin', 'manager']}><AdminLayout /></PrivateRoute>}> 
                 <Route index element={<AdminDashboard />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="users" element={<AdminUsers />} />
@@ -117,6 +144,25 @@ function App() {
                 <Route path="ai" element={<AIAdminPanel />} />
                 <Route path="marketing" element={<AIMarketingPanel />} />
                 <Route path="vehicles" element={<VehicleManagement />} />
+                <Route path="modules" element={<ModuleManagement />} />
+                <Route path="campaigns" element={<CampaignRules />} />
+                <Route path="insights" element={<AIInsights />} />
+                <Route path="notifications" element={<NotificationSettings />} />
+                <Route path="calendar" element={<CalendarView />} />
+                <Route path="logs" element={<ActivityLogs />} />
+                <Route path="finance" element={<FinancePanel />} />
+                <Route path="coupons" element={<CouponManagement />} />
+                <Route path="referrals" element={<ReferralProgram />} />
+                
+                {/* Feature Toggle Management */}
+                <Route path="features" element={<FeatureManagement />} />
+                
+                {/* New Feature Toggle Routes */}
+                <Route path="fleet" element={<FleetTrackingDashboard />} />
+                <Route path="drivers/performance" element={<DriverPerformance />} />
+                <Route path="delay-compensation" element={<DelayCompensationPanel />} />
+                <Route path="analytics" element={<RevenueAnalytics />} />
+                <Route path="corporate" element={<CorporateClients />} />
               </Route>
               
               {/* Sürücü Paneli Rotası */}

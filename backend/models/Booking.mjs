@@ -18,6 +18,10 @@ const bookingSchema = new mongoose.Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'],
     },
+    phone: {
+      type: String,
+      trim: true,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -54,6 +58,15 @@ const bookingSchema = new mongoose.Schema(
       enum: ['pending', 'confirmed', 'cancelled', 'completed', 'paid'],
       default: 'pending',
       index: true,
+    },
+    pickupLocation: {
+      type: String,
+      trim: true,
+    },
+    notes: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Notes cannot exceed 500 characters'],
     },
     aiMetadata: {
       isAIPackage: { type: Boolean, default: false },
@@ -102,6 +115,20 @@ bookingSchema.index({ date: 1 }); // Date-based queries
 bookingSchema.index({ createdAt: -1 }); // Recent bookings
 bookingSchema.index({ tour: 1, date: 1 }); // Tour availability queries
 bookingSchema.index({ user: 1, createdAt: -1 }); // User booking history
+
+// Virtual for backward compatibility with tourId
+// This allows accessing tour via tourId property
+bookingSchema.virtual('tourIdVirtual').get(function() {
+  return this.tour;
+});
+
+bookingSchema.virtual('tourIdVirtual').set(function(value) {
+  this.tour = value;
+});
+
+// Include virtuals in JSON/Object output
+bookingSchema.set('toJSON', { virtuals: true });
+bookingSchema.set('toObject', { virtuals: true });
 
 const Booking = mongoose.models.Booking || mongoose.model('Booking', bookingSchema);
 

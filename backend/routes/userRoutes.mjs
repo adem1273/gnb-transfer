@@ -3,18 +3,49 @@
  */
 
 import express from 'express';
-import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import User from '../models/User.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
+import { sendEmail } from '../services/emailService.mjs';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  storeRefreshToken,
+  getDeviceInfo,
+  getClientIP,
+  revokeAllUserTokens,
+} from '../services/authService.mjs';
 import {
   validateUserRegistration,
   validateUserLogin,
   validateMongoId,
 } from '../validators/index.mjs';
+import { PASSWORD } from '../constants/limits.mjs';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || '';
+
+/**
+ * Validate password strength using centralized PASSWORD constants
+ * @param {string} password - Password to validate
+ * @returns {object} - Validation result with valid flag and errors array
+ */
+const validatePassword = (password) => {
+  const errors = [];
+  if (!password || password.length < PASSWORD.MIN_LENGTH) {
+    errors.push(`Password must be at least ${PASSWORD.MIN_LENGTH} characters`);
+  }
+  if (PASSWORD.REQUIRE_UPPERCASE && !/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter');
+  }
+  if (PASSWORD.REQUIRE_LOWERCASE && !/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter');
+  }
+  if (PASSWORD.REQUIRE_NUMBER && !/\d/.test(password)) {
+    errors.push('Password must contain at least one number');
+  }
+  return { valid: errors.length === 0, errors };
+};
 
 /**
  * @route   POST /api/users/register
@@ -22,14 +53,15 @@ const JWT_SECRET = process.env.JWT_SECRET || '';
  * @access  Public
  * @body    {string} name - User's full name (2-100 characters)
  * @body    {string} email - Valid email address
- * @body    {string} password - Password (min 6 chars, must contain uppercase, lowercase, and number)
- * @returns {object} - JWT token and user details (without password)
+ * @body    {string} password - Password (min 8 chars, must contain uppercase, lowercase, and number)
+ * @returns {object} - Access token, refresh token, and user details (without password)
  *
  * Security measures:
  * - Rate limited to 5 requests per 15 minutes
  * - Password is hashed with bcrypt before storage (see User model)
  * - Default role is 'user' to prevent privilege escalation
- * - JWT token expires in 7 days
+ * - Access token expires in 15 minutes
+ * - Refresh token expires in 30 days (stored hashed)
  * - Email uniqueness is enforced at database level
  */
 router.post('/register', strictRateLimiter, validateUserRegistration, async (req, res) => {
@@ -39,6 +71,12 @@ router.post('/register', strictRateLimiter, validateUserRegistration, async (req
     // Validate required fields
     if (!name || !email || !password) {
       return res.apiError('Name, email, and password are required', 400);
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.apiError(passwordValidation.errors.join('. '), 400);
     }
 
     // Check if user already exists
@@ -57,19 +95,20 @@ router.post('/register', strictRateLimiter, validateUserRegistration, async (req
     });
     await user.save();
 
-    // Generate JWT token
-    if (!JWT_SECRET) {
-      console.error('JWT_SECRET is not configured');
-      return res.apiError('Server configuration error', 500);
-    }
+    // Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshTokenData = generateRefreshToken();
 
-    const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, {
-      expiresIn: '7d',
-    });
+    // Store refresh token (hashed)
+    const deviceInfo = getDeviceInfo(req);
+    const ipAddress = getClientIP(req);
+    await storeRefreshToken(user._id, refreshTokenData, deviceInfo, ipAddress);
+    const refreshToken = refreshTokenData.token;
 
     return res.apiSuccess(
       {
-        token,
+        accessToken,
+        refreshToken,
         user: {
           id: user._id,
           name: user.name,
@@ -87,16 +126,17 @@ router.post('/register', strictRateLimiter, validateUserRegistration, async (req
 
 /**
  * @route   POST /api/users/login
- * @desc    Authenticate user and return JWT token
+ * @desc    Authenticate user and return JWT tokens
  * @access  Public
  * @body    {string} email - User's email address
  * @body    {string} password - User's password
- * @returns {object} - JWT token and user details (without password)
+ * @returns {object} - Access token, refresh token, and user details (without password)
  *
  * Security measures:
  * - Rate limited to 5 requests per 15 minutes
  * - Password verified using bcrypt compare (see User.comparePassword method)
- * - JWT token expires in 7 days
+ * - Access token expires in 15 minutes
+ * - Refresh token expires in 30 days (stored hashed)
  * - Generic error message on invalid credentials (security best practice)
  */
 router.post('/login', strictRateLimiter, validateUserLogin, async (req, res) => {
@@ -120,19 +160,30 @@ router.post('/login', strictRateLimiter, validateUserLogin, async (req, res) => 
       return res.apiError('Invalid credentials', 401);
     }
 
-    // Generate JWT token
-    if (!JWT_SECRET) {
-      console.error('JWT_SECRET is not configured');
-      return res.apiError('Server configuration error', 500);
-    }
+    // Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshTokenData = generateRefreshToken();
 
-    const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, {
-      expiresIn: '7d',
-    });
+    // Store refresh token (hashed)
+    const deviceInfo = getDeviceInfo(req);
+    const ipAddress = getClientIP(req);
+    await storeRefreshToken(user._id, refreshTokenData, deviceInfo, ipAddress);
+    const refreshToken = refreshTokenData.token;
+
+    // Send refresh token in httpOnly cookie if in production, otherwise in body
+    if (process.env.NODE_ENV === 'production') {
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+    }
 
     return res.apiSuccess(
       {
-        token,
+        accessToken,
+        refreshToken: process.env.NODE_ENV === 'production' ? undefined : refreshToken,
         user: {
           id: user._id,
           email: user.email,
@@ -144,6 +195,96 @@ router.post('/login', strictRateLimiter, validateUserLogin, async (req, res) => 
     );
   } catch (err) {
     return res.apiError(err.message, 500);
+  }
+});
+
+/**
+ * @route   POST /api/users/refresh
+ * @desc    Refresh access token using refresh token
+ * @access  Public (requires refresh token)
+ * @body    {string} refreshToken - Refresh token (if not in cookie)
+ * @cookie  refreshToken - Refresh token (preferred method in production)
+ * @returns {object} - New access token and refresh token
+ *
+ * Security measures:
+ * - Validates refresh token by hashing and checking DB
+ * - Ensures token is not revoked and not expired
+ * - Implements token rotation: old token revoked, new token issued
+ * - Tracks IP address for suspicious activity detection
+ */
+router.post('/refresh', strictRateLimiter, async (req, res) => {
+  try {
+    // Get refresh token from cookie or body
+    const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+
+    if (!refreshToken) {
+      return res.apiError('Refresh token is required', 401);
+    }
+
+    const ipAddress = getClientIP(req);
+    const { verifyAndRotateRefreshToken } = await import('../services/authService.mjs');
+
+    // Verify and rotate token
+    const result = await verifyAndRotateRefreshToken(refreshToken, ipAddress);
+
+    // Send new refresh token in cookie if in production
+    if (process.env.NODE_ENV === 'production') {
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+    }
+
+    return res.apiSuccess(
+      {
+        accessToken: result.accessToken,
+        refreshToken: process.env.NODE_ENV === 'production' ? undefined : result.refreshToken,
+        user: result.user,
+      },
+      'Token refreshed successfully'
+    );
+  } catch (error) {
+    return res.apiError(`Failed to refresh token: ${error.message}`, 401);
+  }
+});
+
+/**
+ * @route   POST /api/users/logout
+ * @desc    Logout and revoke refresh token
+ * @access  Public (requires refresh token)
+ * @body    {string} refreshToken - Refresh token to revoke (if not in cookie)
+ * @cookie  refreshToken - Refresh token (preferred method in production)
+ * @returns {object} - Success message
+ *
+ * Security measures:
+ * - Revokes refresh token in database (blacklisting)
+ * - Clears refresh token cookie
+ * - Generic success message (doesn't reveal if token existed)
+ */
+router.post('/logout', async (req, res) => {
+  try {
+    // Get refresh token from cookie or body
+    const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+
+    if (refreshToken) {
+      const { revokeRefreshToken } = await import('../services/authService.mjs');
+      await revokeRefreshToken(refreshToken, 'logout');
+    }
+
+    // Clear refresh token cookie
+    if (process.env.NODE_ENV === 'production') {
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+      });
+    }
+
+    return res.apiSuccess(null, 'Logout successful');
+  } catch (error) {
+    return res.apiError(`Failed to logout: ${error.message}`, 500);
   }
 });
 
@@ -180,6 +321,34 @@ router.get('/profile', requireAuth(), async (req, res) => {
     );
   } catch (error) {
     return res.apiError(`Failed to retrieve profile: ${error.message}`, 500);
+  }
+});
+
+/**
+ * @route   GET /api/users/permissions
+ * @desc    Get current user's permissions based on role
+ * @access  Private (requires valid JWT token)
+ * @headers Authorization: Bearer <token>
+ * @returns {object} - User permissions
+ */
+router.get('/permissions', requireAuth(), async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.apiError('Not authenticated', 401);
+    }
+
+    const { getRolePermissions } = await import('../config/permissions.mjs');
+    const permissions = getRolePermissions(req.user.role);
+
+    return res.apiSuccess(
+      {
+        role: req.user.role,
+        permissions,
+      },
+      'Permissions retrieved successfully'
+    );
+  } catch (error) {
+    return res.apiError(`Failed to retrieve permissions: ${error.message}`, 500);
   }
 });
 
@@ -235,5 +404,137 @@ router.delete(
     }
   }
 );
+
+/**
+ * @route   POST /api/users/forgot-password
+ * @desc    Request password reset email
+ * @access  Public
+ * @body    {string} email - User's email address
+ * @returns {object} - Success message
+ *
+ * Security measures:
+ * - Rate limited to 3 requests per 15 minutes
+ * - Generates cryptographically secure random token
+ * - Token expires after 1 hour
+ * - Generic success message (doesn't reveal if email exists)
+ */
+router.post('/forgot-password', strictRateLimiter, async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.apiError('Email is required', 400);
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    // Always return success to prevent email enumeration
+    if (!user) {
+      return res.apiSuccess(null, 'If that email exists, a password reset link has been sent');
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Save hashed token and expiry to user
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    // Send email with reset link
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Password Reset Request - GNB Transfer',
+        html: `
+          <h1>Password Reset Request</h1>
+          <p>Hello ${user.name},</p>
+          <p>You requested a password reset for your GNB Transfer account.</p>
+          <p>Click the link below to reset your password (valid for 1 hour):</p>
+          <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a>
+          <p>Or copy and paste this URL into your browser:</p>
+          <p>${resetUrl}</p>
+          <p>If you didn't request this, please ignore this email.</p>
+          <p>Best regards,<br>GNB Transfer Team</p>
+        `,
+      });
+    } catch (emailError) {
+      console.error('Failed to send reset email:', emailError);
+      // Clear the reset token if email fails
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save();
+      return res.apiError('Failed to send reset email. Please try again later.', 500);
+    }
+
+    return res.apiSuccess(null, 'If that email exists, a password reset link has been sent');
+  } catch (error) {
+    return res.apiError(`Failed to process request: ${error.message}`, 500);
+  }
+});
+
+/**
+ * @route   POST /api/users/reset-password/:token
+ * @desc    Reset password using token
+ * @access  Public
+ * @param   {string} token - Reset token from email
+ * @body    {string} password - New password (min 8 characters with uppercase, lowercase, and number)
+ * @returns {object} - Success message
+ *
+ * Security measures:
+ * - Rate limited to 5 requests per 15 minutes
+ * - Validates token hasn't expired
+ * - Clears reset token after successful reset
+ * - Password is hashed by User model pre-save hook
+ * - Revokes ALL refresh tokens for security (user must re-login)
+ */
+router.post('/reset-password/:token', strictRateLimiter, async (req, res) => {
+  try {
+    const { password } = req.body;
+    const { token } = req.params;
+
+    if (!password) {
+      return res.apiError('Password is required', 400);
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.apiError(passwordValidation.errors.join('. '), 400);
+    }
+
+    // Hash the token from URL to compare with stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find user with valid token that hasn't expired
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.apiError('Invalid or expired reset token', 400);
+    }
+
+    // Update password and clear reset fields
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    // Security: Revoke all refresh tokens (force re-login on all devices)
+    await revokeAllUserTokens(user._id, 'password_change');
+
+    return res.apiSuccess(
+      null,
+      'Password reset successful. You can now login with your new password.'
+    );
+  } catch (error) {
+    return res.apiError(`Failed to reset password: ${error.message}`, 500);
+  }
+});
 
 export default router;

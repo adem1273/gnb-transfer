@@ -50,9 +50,13 @@ export function trackRequest(method, path, statusCode, responseTime) {
 
   // Track by endpoint (simplified path)
   const simplifiedPath = path.split('?')[0].replace(/\/[0-9a-f]{24}/gi, '/:id');
-  
+
   // Prevent prototype pollution by checking for dangerous keys
-  if (simplifiedPath !== '__proto__' && simplifiedPath !== 'constructor' && simplifiedPath !== 'prototype') {
+  if (
+    simplifiedPath !== '__proto__' &&
+    simplifiedPath !== 'constructor' &&
+    simplifiedPath !== 'prototype'
+  ) {
     if (!metrics.requests.byEndpoint[simplifiedPath]) {
       metrics.requests.byEndpoint[simplifiedPath] = {
         count: 0,
@@ -71,14 +75,8 @@ export function trackRequest(method, path, statusCode, responseTime) {
   metrics.performance.totalResponseTime += responseTime;
   metrics.performance.avgResponseTime =
     metrics.performance.totalResponseTime / metrics.requests.total;
-  metrics.performance.maxResponseTime = Math.max(
-    metrics.performance.maxResponseTime,
-    responseTime
-  );
-  metrics.performance.minResponseTime = Math.min(
-    metrics.performance.minResponseTime,
-    responseTime
-  );
+  metrics.performance.maxResponseTime = Math.max(metrics.performance.maxResponseTime, responseTime);
+  metrics.performance.minResponseTime = Math.min(metrics.performance.minResponseTime, responseTime);
 }
 
 /**
@@ -125,24 +123,24 @@ export function getMetrics() {
       errors: metrics.requests.errors,
       successRate:
         metrics.requests.total > 0
-          ? ((metrics.requests.success / metrics.requests.total) * 100).toFixed(2) + '%'
+          ? `${((metrics.requests.success / metrics.requests.total) * 100).toFixed(2)}%`
           : '0%',
       byMethod: metrics.requests.byMethod,
       topEndpoints: getTopEndpoints(5),
     },
     performance: {
-      avgResponseTime: Math.round(metrics.performance.avgResponseTime) + 'ms',
-      maxResponseTime: Math.round(metrics.performance.maxResponseTime) + 'ms',
+      avgResponseTime: `${Math.round(metrics.performance.avgResponseTime)}ms`,
+      maxResponseTime: `${Math.round(metrics.performance.maxResponseTime)}ms`,
       minResponseTime:
         metrics.performance.minResponseTime === Infinity
           ? '0ms'
-          : Math.round(metrics.performance.minResponseTime) + 'ms',
+          : `${Math.round(metrics.performance.minResponseTime)}ms`,
     },
     errors: {
       total: metrics.errors.total,
       rate:
         metrics.requests.total > 0
-          ? ((metrics.errors.total / metrics.requests.total) * 100).toFixed(2) + '%'
+          ? `${((metrics.errors.total / metrics.requests.total) * 100).toFixed(2)}%`
           : '0%',
       byType: metrics.errors.byType,
       recent: metrics.errors.recent.slice(0, 5),
@@ -210,7 +208,7 @@ export function getPrometheusMetrics() {
   lines.push('# TYPE process_uptime_seconds counter');
   lines.push(`process_uptime_seconds ${Math.floor((Date.now() - metrics.startTime) / 1000)}`);
 
-  return lines.join('\n') + '\n';
+  return `${lines.join('\n')}\n`;
 }
 
 /**
@@ -237,7 +235,7 @@ function getTopEndpoints(limit = 5) {
     .map(([path, data]) => ({
       path,
       count: data.count,
-      avgResponseTime: Math.round(data.avgResponseTime) + 'ms',
+      avgResponseTime: `${Math.round(data.avgResponseTime)}ms`,
     }))
     .sort((a, b) => b.count - a.count)
     .slice(0, limit);

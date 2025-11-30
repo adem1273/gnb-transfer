@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 /**
  * User Model
@@ -11,7 +11,7 @@ import bcrypt from 'bcrypt';
  * - Passwords are automatically hashed before saving using bcrypt
  * - Email uniqueness is enforced at database level
  * - Email is stored in lowercase for case-insensitive matching
- * - Password validation requires minimum 6 characters
+ * - Password validation requires minimum 8 characters with uppercase, lowercase, and number
  * - Supports role-based access control (user, admin, driver)
  *
  * Pre-save hook:
@@ -41,9 +41,47 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, 'Password is required'],
-      minlength: [6, 'Password must be at least 6 characters'],
+      minlength: [8, 'Password must be at least 8 characters'],
+      validate: {
+        validator: function(v) {
+          // Skip validation if password is already hashed (starts with $2)
+          if (v.startsWith('$2')) return true;
+          // At least one uppercase, one lowercase, one number
+          return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(v);
+        },
+        message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+      }
     },
-    role: { type: String, enum: ['user', 'admin', 'driver'], default: 'user' },
+    role: {
+      type: String,
+      enum: ['user', 'admin', 'superadmin', 'manager', 'support', 'driver'],
+      default: 'user',
+    },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    isCorporate: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    corporateDetails: {
+      companyName: { type: String, trim: true },
+      taxNumber: { type: String, trim: true },
+      address: { type: String, trim: true },
+      contactPerson: { type: String, trim: true },
+      billingEmail: { type: String, trim: true },
+      paymentTerms: {
+        type: String,
+        enum: ['net15', 'net30', 'net60', 'prepaid'],
+        default: 'net30',
+      },
+      discount: { type: Number, default: 0, min: 0, max: 100 },
+      contractStartDate: { type: Date },
+      contractEndDate: { type: Date },
+      monthlyInvoicing: { type: Boolean, default: false },
+    },
     preferences: {
       language: { type: String, default: 'en' },
       tourCategories: [{ type: String }],
@@ -60,6 +98,8 @@ const userSchema = new mongoose.Schema(
         metadata: { type: mongoose.Schema.Types.Mixed },
       },
     ],
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );

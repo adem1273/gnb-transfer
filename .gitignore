@@ -1,9 +1,13 @@
 # Dependencies
 node_modules/
 backend/node_modules/
+frontend/node_modules/
 
 # Environment variables
 backend/.env
+backend/.env.test
+frontend/.env
+frontend/.env.local
 .env
 .env.local
 .env.development.local
@@ -13,6 +17,7 @@ backend/.env
 # Build output
 build/
 dist/
+frontend/dist/
 .vite/
 
 # Logs
@@ -43,3 +48,4 @@ Thumbs.db
 # Testing
 coverage/
 .nyc_output/
+dist/

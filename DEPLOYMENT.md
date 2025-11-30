@@ -1,411 +1,277 @@
-# Deployment Guide - Free Tier Infrastructure
-
-This guide provides step-by-step instructions for deploying the GNB Transfer application using entirely free-tier hosting services.
-
-## Table of Contents
-- [Overview](#overview)
-- [Prerequisites](#prerequisites)
-- [Database Setup (MongoDB Atlas)](#database-setup-mongodb-atlas)
-- [Backend Deployment (Render/Railway)](#backend-deployment-renderrailway)
-- [Frontend Deployment (Vercel)](#frontend-deployment-vercel)
-- [CI/CD Setup (GitHub Actions)](#cicd-setup-github-actions)
-- [Performance Optimizations](#performance-optimizations)
-- [Cost Breakdown](#cost-breakdown)
-
----
+# Production Deployment Guide for Render.com
 
 ## Overview
-
-The application uses the following free-tier services:
-
-| Service | Purpose | Free Tier Limits |
-|---------|---------|------------------|
-| **MongoDB Atlas** | Database | 512MB storage, shared cluster |
-| **Render** or **Railway** | Backend API | 750 hours/month (Render), 500 hours/month (Railway) |
-| **Vercel** | Frontend hosting | 100GB bandwidth, unlimited sites |
-| **GitHub Actions** | CI/CD | 2,000 minutes/month for public repos |
-| **Cloudinary** (optional) | Image hosting | 25GB storage, 25GB bandwidth |
-
-**Total Monthly Cost:** $0
-
----
+This guide provides step-by-step instructions for deploying the GNB Transfer application to Render.com in production mode.
 
 ## Prerequisites
+- Active Render.com account
+- MongoDB Atlas database (or other MongoDB instance)
+- Stripe account with API keys
+- GitHub repository connected to Render
 
-1. **GitHub Account** - For repository hosting and CI/CD
-2. **MongoDB Atlas Account** - [Sign up here](https://www.mongodb.com/cloud/atlas/register)
-3. **Vercel Account** - [Sign up here](https://vercel.com/signup)
-4. **Render Account** - [Sign up here](https://render.com/register) OR
-5. **Railway Account** - [Sign up here](https://railway.app/)
-6. **Stripe Account** - [Sign up here](https://stripe.com) (for payment processing)
+## Required Environment Variables
 
----
+Configure the following environment variables in your Render dashboard:
 
-## Database Setup (MongoDB Atlas)
+### Critical Variables (MUST be set)
 
-### Step 1: Create a Free Cluster
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `NODE_ENV` | `production` | Enables production mode and security features |
+| `PORT` | `10000` | Port for the application (Render default) |
+| `CORS_ORIGINS` | `https://gnb-transfer.onrender.com` | Comma-separated list of allowed origins |
+| `MONGO_URI` | `mongodb+srv://user:pass@cluster.mongodb.net/dbname` | MongoDB connection string |
+| `JWT_SECRET` | `[auto-generated or custom]` | Secret for JWT token signing (min 32 chars) |
 
-1. Log in to [MongoDB Atlas](https://cloud.mongodb.com)
-2. Click **"Build a Database"**
-3. Select **"Shared"** (Free tier)
-4. Choose your cloud provider and region (select closest to your backend hosting)
-5. Keep cluster name as default or customize
-6. Click **"Create Cluster"**
+### Payment Integration
 
-### Step 2: Create Database User
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `STRIPE_SECRET_KEY` | `sk_live_...` | Stripe secret key (use live key for production) |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Stripe webhook secret for payment verification |
 
-1. Navigate to **Database Access** in the left sidebar
-2. Click **"Add New Database User"**
-3. Choose **"Password"** authentication
-4. Set username and generate a secure password
-5. Set user privileges to **"Read and write to any database"**
-6. Click **"Add User"**
+### Optional but Recommended
 
-### Step 3: Configure Network Access
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `OPENAI_API_KEY` | `sk-...` | OpenAI API key for AI features (optional) |
+| `SENTRY_DSN` | `https://...@sentry.io/...` | Sentry error tracking DSN (optional) |
+| `LOG_LEVEL` | `info` | Logging level (debug, info, warn, error) |
+| `TRUST_PROXY` | `true` | Trust proxy headers (automatically enabled in production) |
 
-1. Navigate to **Network Access** in the left sidebar
-2. Click **"Add IP Address"**
-3. Click **"Allow Access from Anywhere"** (0.0.0.0/0) - Required for serverless backends
-4. Click **"Confirm"**
+### Email Configuration (Optional)
 
-### Step 4: Get Connection String
+Choose one of the following:
 
-1. Go back to **Database** and click **"Connect"** on your cluster
-2. Select **"Connect your application"**
-3. Copy the connection string (looks like: `mongodb+srv://...`)
-4. Replace `<password>` with your database user password
-5. Replace `<dbname>` with your database name (e.g., `gnb-transfer`)
-
-**Save this connection string** - you'll need it for backend deployment.
-
-### Step 5: Create Indexes (Optional but Recommended)
-
-Connect to your database using MongoDB Compass or the Atlas UI and create indexes:
-
-```javascript
-// On 'bookings' collection
-db.bookings.createIndex({ "user": 1, "status": 1 });
-db.bookings.createIndex({ "email": 1 });
-db.bookings.createIndex({ "tourId": 1, "status": 1 });
-
-// On 'tours' collection
-db.tours.createIndex({ "title": "text", "description": "text" });
-db.tours.createIndex({ "isCampaign": 1, "price": -1 });
-
-// On 'users' collection (automatically created by Mongoose)
-db.users.createIndex({ "email": 1 }, { unique: true });
+**Gmail:**
+```
+EMAIL_PROVIDER=gmail
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-16-digit-app-password
 ```
 
----
+**Generic SMTP:**
+```
+EMAIL_PROVIDER=smtp
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-smtp-username
+SMTP_PASSWORD=your-smtp-password
+```
 
-## Backend Deployment (Render/Railway)
+### Rate Limiting
 
-### Option A: Render (Recommended)
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `RATE_LIMIT_WINDOW_MS` | `900000` | Time window in ms (15 minutes) |
+| `RATE_LIMIT_MAX` | `100` | Max requests per window (global) |
+| `STRICT_RATE_LIMIT_MAX` | `5` | Max requests for auth endpoints |
 
-#### Step 1: Connect Repository
+### Build Configuration
 
-1. Log in to [Render Dashboard](https://dashboard.render.com)
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `NPM_CONFIG_PRODUCTION` | `false` | Install devDependencies for build |
+| `NODE_OPTIONS` | `--max-old-space-size=512` | Node.js memory and module options |
+
+## Deployment Steps
+
+### 1. Render Dashboard Setup
+
+1. Log in to [Render.com](https://render.com)
 2. Click **"New +"** → **"Web Service"**
-3. Connect your GitHub account if not already connected
-4. Select your `gnb-transfer` repository
+3. Connect your GitHub repository (`adem1273/gnb-transfer`)
+4. Configure the service:
+   - **Name**: `gnb-transfer` (or your preferred name)
+   - **Region**: Oregon (or closest to your users)
+   - **Branch**: `main` (or your deployment branch)
+   - **Runtime**: Node
+   - **Build Command**: `npm ci && npm run build`
+   - **Start Command**: `npm start`
 
-#### Step 2: Configure Service
+### 2. Environment Variables
 
-Use these settings:
+1. In the Render dashboard, go to **Environment** tab
+2. Add all required environment variables listed above
+3. For `JWT_SECRET`, click **"Generate"** to auto-create a secure secret
+4. Click **"Save Changes"**
 
-- **Name:** `gnb-transfer-backend` (or your preferred name)
-- **Region:** Choose closest to your users
-- **Branch:** `main`
-- **Root Directory:** Leave empty
-- **Runtime:** `Node`
-- **Build Command:** `cd backend && npm install`
-- **Start Command:** `cd backend && npm start`
-- **Plan:** `Free`
+### 3. Health Check Configuration
 
-#### Step 3: Environment Variables
+Render uses the `/api/health` endpoint to check if your service is running:
+- **Health Check Path**: `/api/health`
+- **Expected Status**: `200 OK`
 
-Click **"Advanced"** and add these environment variables:
-
-| Key | Value |
-|-----|-------|
-| `NODE_ENV` | `production` |
-| `PORT` | `5000` |
-| `MONGO_URI` | Your MongoDB Atlas connection string |
-| `JWT_SECRET` | Generate with: `openssl rand -base64 32` |
-| `STRIPE_SECRET_KEY` | Your Stripe secret key (sk_live_...) |
-| `CORS_ORIGINS` | Your Vercel frontend URL (add after frontend deployment) |
-| `BCRYPT_ROUNDS` | `10` |
-
-#### Step 4: Deploy
-
-1. Click **"Create Web Service"**
-2. Wait for deployment to complete (~5 minutes)
-3. Your backend will be available at: `https://your-service-name.onrender.com`
-
-#### Step 5: Verify Health
-
-Visit `https://your-service-name.onrender.com/api/health` to verify deployment.
-
----
-
-### Option B: Railway
-
-#### Step 1: Connect Repository
-
-1. Log in to [Railway](https://railway.app)
-2. Click **"New Project"** → **"Deploy from GitHub repo"**
-3. Select your `gnb-transfer` repository
-
-#### Step 2: Configure Service
-
-1. Railway will auto-detect Node.js
-2. Add environment variables (same as Render above)
-3. Railway uses the `railway.json` configuration automatically
-
-#### Step 3: Deploy
-
-1. Railway will automatically deploy
-2. Click on your service to get the deployment URL
-3. Your backend will be available at: `https://your-service-name.railway.app`
-
----
-
-## Frontend Deployment (Vercel)
-
-### Step 1: Connect Repository
-
-1. Log in to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Click **"Add New Project"**
-3. Import your `gnb-transfer` repository
-4. Vercel will auto-detect it as a Vite project
-
-### Step 2: Configure Build Settings
-
-Vercel should auto-configure these, but verify:
-
-- **Framework Preset:** `Vite`
-- **Build Command:** `npm run build`
-- **Output Directory:** `dist`
-- **Install Command:** `npm install`
-
-### Step 3: Environment Variables
-
-Add these environment variables:
-
-| Key | Value |
-|-----|-------|
-| `VITE_API_URL` | Your backend URL (e.g., `https://gnb-transfer-backend.onrender.com/api`) |
-| `VITE_STRIPE_PUBLIC_KEY` | Your Stripe public key (pk_live_...) |
-
-### Step 4: Deploy
-
-1. Click **"Deploy"**
-2. Wait for build to complete (~3-5 minutes)
-3. Your frontend will be available at: `https://your-project-name.vercel.app`
-
-### Step 5: Update Backend CORS
-
-Go back to your backend service (Render/Railway) and update the `CORS_ORIGINS` environment variable to include your Vercel URL:
-
-```
-CORS_ORIGINS=https://your-project-name.vercel.app
+The endpoint returns:
+```json
+{
+  "success": true,
+  "data": {
+    "status": "ok",
+    "timestamp": "2025-11-12T19:46:09.550Z",
+    "uptime": 123.45,
+    "environment": "production",
+    "database": {
+      "connected": true,
+      "state": "connected"
+    },
+    "cache": { ... },
+    "memory": { ... }
+  },
+  "message": "Server is healthy"
+}
 ```
 
-Restart the backend service for changes to take effect.
+### 4. Deploy
 
----
+1. Click **"Create Web Service"** or **"Manual Deploy"** → **"Deploy latest commit"**
+2. Monitor the deployment logs in real-time
+3. Wait for the build and deployment to complete (usually 3-5 minutes)
 
-## CI/CD Setup (GitHub Actions)
+### 5. Verify Deployment
 
-The repository includes a GitHub Actions workflow (`.github/workflows/ci-cd.yml`) for automated deployments.
+Once deployed, verify the following endpoints:
 
-### Step 1: Add GitHub Secrets
+1. **Health Check**: `https://gnb-transfer.onrender.com/api/health`
+   - Should return `{"success": true, "data": {...}}`
 
-Go to your repository **Settings** → **Secrets and variables** → **Actions** and add:
+2. **Legacy Health**: `https://gnb-transfer.onrender.com/health`
+   - Should return server status with port and CORS info
 
-#### For Vercel Deployment:
+3. **API Test**: `https://gnb-transfer.onrender.com/api/tours`
+   - Should return tour data or authentication error
 
-1. Install Vercel CLI: `npm i -g vercel`
-2. Run `vercel` in your project directory and follow prompts
-3. Get these values from `.vercel/project.json`:
-   - `VERCEL_ORG_ID`
-   - `VERCEL_PROJECT_ID`
-4. Get `VERCEL_TOKEN` from [Vercel account settings](https://vercel.com/account/tokens)
+4. **Frontend**: `https://gnb-transfer.onrender.com/`
+   - Should load the React application
 
-Add these as GitHub secrets:
-- `VERCEL_TOKEN`
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
-- `VITE_API_URL` (your backend URL)
+## Post-Deployment Checklist
 
-#### For Render Deployment:
+- [ ] Health check endpoint returns 200 OK
+- [ ] Database connection is successful (check logs)
+- [ ] CORS is properly configured (test from frontend)
+- [ ] JWT authentication works (login/register)
+- [ ] Stripe payments are functional (if enabled)
+- [ ] Admin panel is accessible
+- [ ] API rate limiting is active
+- [ ] SSL/HTTPS is enabled (automatic on Render)
+- [ ] Error tracking is configured (Sentry, if enabled)
 
-1. Go to Render dashboard → Your service → Settings
-2. Scroll to **Deploy Hook**
-3. Copy the deploy hook URL
-4. Add as GitHub secret: `RENDER_DEPLOY_HOOK_URL`
+## Monitoring
 
-### Step 2: Enable Actions
+### View Logs
+1. Go to Render dashboard → Your service → **Logs** tab
+2. Look for startup messages:
+   ```
+   ✓ Server running on http://0.0.0.0:10000
+   ✓ Health check ready at /health and /api/health
+   ✓ Port 10000 detected and bound successfully
+   MongoDB connected successfully
+   ```
 
-GitHub Actions is enabled by default. The workflow will:
-- Run on every push to `main` or `develop` branches
-- Run on pull requests
-- Automatically deploy to production on `main` branch pushes
+### Metrics Endpoints
 
----
-
-## Performance Optimizations
-
-### Caching Strategy
-
-The backend implements in-memory caching with `node-cache`:
-
-- **Tours list**: Cached for 10 minutes
-- **Campaign tours**: Cached for 15 minutes
-- **Most popular tours**: Cached for 30 minutes
-- **Individual tours**: Cached for 15 minutes
-
-Cache is automatically invalidated when tours are created/updated/deleted.
-
-### Frontend Optimizations
-
-- **Code splitting**: React components are lazy-loaded
-- **Asset compression**: Gzip and Brotli compression enabled
-- **Tree shaking**: Unused code removed during build
-- **Minification**: Console logs removed in production
-- **Vendor chunking**: React libraries separated for better caching
-
-### Database Optimizations
-
-- Indexes on frequently queried fields (see MongoDB setup)
-- Compound indexes for common query patterns
-- Connection pooling handled by Mongoose
-
----
-
-## Cost Breakdown
-
-### Monthly Costs (All Free Tier)
-
-| Service | Free Tier | Usage | Cost |
-|---------|-----------|-------|------|
-| MongoDB Atlas | 512MB, shared cluster | Database storage | $0 |
-| Render/Railway | 750/500 hours | Backend hosting | $0 |
-| Vercel | 100GB bandwidth | Frontend hosting | $0 |
-| GitHub Actions | 2,000 minutes | CI/CD | $0 |
-| Cloudinary (optional) | 25GB storage, 25GB bandwidth | Image hosting | $0 |
-
-**Total:** $0/month
-
-### Free Tier Limitations
-
-1. **Render Free Tier:**
-   - Spins down after 15 minutes of inactivity
-   - Cold start ~30 seconds on first request
-   - 750 hours/month (sufficient for 1 service running 24/7)
-
-2. **Railway Free Tier:**
-   - $5 credit each month
-   - Spins down after inactivity
-   - 500 hours/month execution time
-
-3. **MongoDB Atlas:**
-   - 512MB storage limit
-   - Shared cluster (slower performance)
-   - Suitable for ~1000-5000 documents
-
-4. **Vercel:**
-   - 100GB bandwidth/month
-   - Serverless function timeout: 10 seconds (Hobby plan)
-
-### Scaling Beyond Free Tier
-
-When you outgrow free tier:
-
-1. **MongoDB Atlas:** Upgrade to M2 cluster (~$9/month)
-2. **Render:** Starter plan at $7/month (no spin down)
-3. **Vercel:** Pro plan at $20/month (100GB → unlimited bandwidth)
-
----
-
-## Monitoring and Health Checks
-
-### Health Endpoint
-
-The backend provides a comprehensive health check endpoint:
-
-```
-GET /api/health
-```
-
-Response includes:
-- Server status
-- Database connection status
-- Cache statistics
-- Memory usage
-- Uptime
-
-### Monitoring Tools (Free)
-
-- **UptimeRobot**: Monitor backend uptime (free plan: 50 monitors)
-- **Vercel Analytics**: Built-in analytics for frontend
-- **MongoDB Atlas Monitoring**: Database performance metrics
-
----
+- **JSON Metrics**: `https://gnb-transfer.onrender.com/api/metrics`
+- **Prometheus Format**: `https://gnb-transfer.onrender.com/metrics`
 
 ## Troubleshooting
 
-### Backend Won't Start
-
-1. Check environment variables are set correctly
-2. Verify MongoDB connection string is valid
-3. Check Render/Railway logs for errors
-
-### Frontend Can't Connect to Backend
-
-1. Verify `VITE_API_URL` is set correctly
-2. Check backend CORS settings include frontend URL
-3. Ensure backend is running (check health endpoint)
-
-### Database Connection Errors
-
-1. Verify IP whitelist includes 0.0.0.0/0
-2. Check database user credentials
-3. Ensure connection string password is URL-encoded
-
 ### Build Failures
 
-1. Check Node.js version (requires 18+)
-2. Verify all dependencies are installed
-3. Check GitHub Actions logs for specific errors
+**Error: "Cannot find module"**
+- Ensure `NPM_CONFIG_PRODUCTION=false` is set
+- Check that all dependencies are in `package.json`
+- Clear Render build cache and redeploy
 
----
+**Error: "Out of memory"**
+- Increase `NODE_OPTIONS` memory limit
+- Consider upgrading to a paid Render plan
 
-## Security Checklist
+### Runtime Errors
 
-- [ ] All environment variables are set (not hardcoded)
-- [ ] JWT_SECRET is a strong random string
-- [ ] MongoDB uses strong password
-- [ ] CORS is configured with specific origins (not *)
-- [ ] Rate limiting is enabled
-- [ ] Helmet middleware is active
-- [ ] HTTPS is enforced (automatic on Vercel/Render)
+**Error: "CORS policy blocked"**
+- Verify `CORS_ORIGINS` includes your frontend URL
+- Check that the URL matches exactly (no trailing slash)
 
----
+**Error: "MongoDB connection failed"**
+- Verify `MONGO_URI` is correct
+- Check MongoDB Atlas IP whitelist (add `0.0.0.0/0` for Render)
+- Ensure database user has correct permissions
 
-## Additional Resources
+**Error: "JWT_SECRET not set"**
+- Add `JWT_SECRET` in Render environment variables
+- Use "Generate" button for a secure random secret
 
-- [MongoDB Atlas Documentation](https://docs.atlas.mongodb.com/)
-- [Render Documentation](https://render.com/docs)
-- [Railway Documentation](https://docs.railway.app/)
-- [Vercel Documentation](https://vercel.com/docs)
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+### Performance Issues
 
----
+**Slow initial load (cold start)**
+- Free tier services sleep after inactivity
+- Consider upgrading to paid tier for always-on service
+- Implement a keep-alive ping service
+
+## Scaling
+
+### Free Tier Limitations
+- Single instance (no horizontal scaling)
+- 750 hours/month of runtime
+- Service sleeps after 15 minutes of inactivity
+- 512 MB RAM
+- Shared CPU
+
+### Upgrading
+To handle more traffic, upgrade to:
+- **Starter Plan**: $7/month, always-on, 512 MB RAM
+- **Standard Plan**: $25/month, always-on, 2 GB RAM, horizontal scaling
+
+## Security Best Practices
+
+1. **Never commit secrets** to version control
+2. **Use environment variables** for all sensitive data
+3. **Enable HSTS** (automatically enabled in production)
+4. **Keep dependencies updated** (`npm audit fix`)
+5. **Monitor error logs** regularly
+6. **Set up alerts** for downtime (Sentry, UptimeRobot, etc.)
+7. **Use strong JWT secrets** (min 32 characters, auto-generated recommended)
+8. **Whitelist CORS origins** (never use '*' in production)
+
+## Maintenance
+
+### Regular Updates
+```bash
+# Update dependencies
+npm update
+npm audit fix
+
+# Test locally
+npm run build
+npm start
+
+# Commit and push to trigger Render deployment
+git add .
+git commit -m "Update dependencies"
+git push origin main
+```
+
+### Rollback
+If a deployment fails:
+1. Go to Render dashboard → Your service → **Deploys** tab
+2. Find the last successful deploy
+3. Click **"Rollback to this deploy"**
 
 ## Support
 
-For issues or questions:
-1. Check the troubleshooting section above
-2. Review service-specific documentation
-3. Check repository issues on GitHub
+- **Render Documentation**: https://render.com/docs
+- **Render Community**: https://community.render.com
+- **GNB Transfer Issues**: https://github.com/adem1273/gnb-transfer/issues
+
+## Additional Resources
+
+- [MongoDB Atlas Setup](https://www.mongodb.com/cloud/atlas)
+- [Stripe API Keys](https://dashboard.stripe.com/apikeys)
+- [Render Environment Variables](https://render.com/docs/configure-environment-variables)
+- [Node.js Production Best Practices](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/)
+
+---
+
+Last Updated: 2025-11-12
+Version: 1.0.0
