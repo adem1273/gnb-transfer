@@ -1,0 +1,23 @@
+name: Deploy Backend to Cloud Run
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+      - name: Build & push
+        run: |
+          gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/gnb-backend:latest backend/
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy gnb-backend --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/gnb-backend:latest --region europe-west1 --platform managed --allow-unauthenticated --set-secrets JWT_SECRET=JWT_SECRET:latest,MONGO_URI=MONGO_URI:latest
