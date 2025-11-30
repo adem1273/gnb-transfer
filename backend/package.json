@@ -44,7 +44,7 @@
     "mkdirp": "^3.0.1",
     "mongo-sanitize": "^1.1.0",
     "mongodb": "^6.8.0",
-    "mongoose": "^8.6.0",
+    "mongoose": "^8.20.1",
     "node-cache": "^5.1.2",
     "node-cron": "^3.0.3",
     "nodemailer": "^7.0.10",
