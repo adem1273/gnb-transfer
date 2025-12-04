@@ -9,6 +9,7 @@ import express from 'express';
 import Driver from '../models/Driver.mjs';
 import Vehicle from '../models/Vehicle.mjs';
 import User from '../models/User.mjs';
+import { DriverLocation } from '../models/DriverLocation.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 
 const router = express.Router();
@@ -258,6 +259,47 @@ router.post('/:id/assign-vehicle', requireAuth(['admin']), async (req, res) => {
   } catch (error) {
     console.error('Error assigning vehicle:', error);
     return res.apiError('Failed to assign vehicle', 500);
+  }
+});
+
+/**
+ * @route   POST /api/drivers/location
+ * @desc    Update driver GPS location (HTTP fallback for Socket.IO)
+ * @access  Public (drivers send their own location)
+ */
+router.post('/location', async (req, res) => {
+  try {
+    const { driverId, lat, lng } = req.body;
+
+    if (!driverId || typeof lat !== 'number' || typeof lng !== 'number') {
+      return res.apiError('driverId, lat, and lng are required', 400);
+    }
+
+    await DriverLocation.findOneAndUpdate(
+      { driverId },
+      { lat, lng, updatedAt: new Date() },
+      { upsert: true }
+    );
+
+    return res.json({ success: true, ok: true });
+  } catch (error) {
+    console.error('Error updating driver location:', error);
+    return res.apiError('Failed to update location', 500);
+  }
+});
+
+/**
+ * @route   GET /api/drivers/:driverId/location
+ * @desc    Get driver's current GPS location
+ * @access  Private (admin, manager)
+ */
+router.get('/:driverId/location', requireAuth(['admin', 'manager']), async (req, res) => {
+  try {
+    const location = await DriverLocation.findOne({ driverId: req.params.driverId });
+    return res.apiSuccess({ location });
+  } catch (error) {
+    console.error('Error fetching driver location:', error);
+    return res.apiError('Failed to fetch location', 500);
   }
 });
 

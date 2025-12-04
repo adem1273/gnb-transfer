@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 /**
  * RefreshToken Model
@@ -32,6 +32,18 @@ const refreshTokenSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+      index: true,
+    },
+
+    /**
+     * Token ID for O(1) lookup
+     * Token format: tokenId.randomPart
+     * tokenId is used for direct DB lookup, randomPart is verified with bcrypt
+     */
+    tokenId: {
+      type: String,
+      required: true,
+      unique: true,
       index: true,
     },
 

@@ -16,7 +16,14 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import RefreshToken from '../models/RefreshToken.mjs';
 
-const JWT_SECRET = process.env.JWT_SECRET || '';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET environment variable is not set!');
+  console.error('Server cannot start without JWT_SECRET for security reasons.');
+  process.exit(1);
+}
+
 const ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || '15m'; // 15 minutes
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || '30d'; // 30 days
 
@@ -33,6 +40,31 @@ const getExpiryMs = (expiry) => {
   };
   
   return value * (units[unit] || units.m);
+};
+
+/**
+ * Parse a refresh token into its parts
+ * Token format: tokenId.randomPart (new format) or just randomPart (legacy)
+ * 
+ * @param {string} token - The refresh token to parse
+ * @returns {object} - Object with tokenId and randomPart (or null for legacy tokens)
+ */
+const parseRefreshToken = (token) => {
+  if (!token || typeof token !== 'string') {
+    return { tokenId: null, randomPart: null, isNewFormat: false };
+  }
+  
+  const dotIndex = token.indexOf('.');
+  if (dotIndex === -1) {
+    // Legacy token format
+    return { tokenId: null, randomPart: token, isNewFormat: false };
+  }
+  
+  // New format: tokenId.randomPart (limit to first dot only)
+  const tokenId = token.substring(0, dotIndex);
+  const randomPart = token.substring(dotIndex + 1);
+  
+  return { tokenId, randomPart, isNewFormat: true };
 };
 
 /**
@@ -63,20 +95,28 @@ export const generateAccessToken = (user) => {
 /**
  * Generate refresh token (long-lived, hashed in DB)
  *
- * @returns {string} - Random refresh token (not a JWT)
+ * @returns {object} - Object with token string and tokenId
  *
+ * Token format: tokenId.randomPart
+ * - tokenId is used for O(1) DB lookup
+ * - randomPart is hashed and verified with bcrypt
  * Refresh tokens are stored hashed in database
  * They're used to obtain new access tokens without re-authentication
  */
 export const generateRefreshToken = () => {
-  return crypto.randomBytes(64).toString('hex');
+  const tokenId = crypto.randomBytes(16).toString('hex');
+  const randomPart = crypto.randomBytes(48).toString('hex');
+  return {
+    token: `${tokenId}.${randomPart}`,
+    tokenId,
+  };
 };
 
 /**
  * Store refresh token in database (hashed)
  *
  * @param {ObjectId} userId - User ID
- * @param {string} refreshToken - Plain text refresh token
+ * @param {object|string} refreshTokenData - Token data object or plain text refresh token (legacy)
  * @param {object} deviceInfo - Browser/device information
  * @param {string} ipAddress - Client IP address
  * @returns {Promise<object>} - Created RefreshToken document
@@ -86,17 +126,29 @@ export const generateRefreshToken = () => {
  * - Expires after REFRESH_TOKEN_EXPIRY duration
  * - Stores device info for auditing
  */
-export const storeRefreshToken = async (userId, refreshToken, deviceInfo = {}, ipAddress = null) => {
+export const storeRefreshToken = async (userId, refreshTokenData, deviceInfo = {}, ipAddress = null) => {
+  let token, tokenId;
+  
+  if (typeof refreshTokenData === 'string') {
+    token = refreshTokenData;
+    tokenId = null;
+  } else {
+    token = refreshTokenData.token;
+    tokenId = refreshTokenData.tokenId;
+  }
+    
   const expiresAt = new Date(Date.now() + getExpiryMs(REFRESH_TOKEN_EXPIRY));
+  const parsed = parseRefreshToken(token);
 
   const tokenDoc = new RefreshToken({
     userId,
+    tokenId: tokenId || crypto.randomBytes(16).toString('hex'),
     expiresAt,
     deviceInfo,
     ipAddress,
   });
 
-  await tokenDoc.hashToken(refreshToken);
+  await tokenDoc.hashToken(parsed.randomPart || token);
   await tokenDoc.save();
 
   return tokenDoc;
@@ -125,56 +177,73 @@ export const verifyAndRotateRefreshToken = async (refreshToken, ipAddress = null
     throw new Error('Refresh token is required');
   }
 
-  // Find all non-revoked tokens and check each one
-  // We can't query by hash, so we fetch all and verify in memory
-  // For better performance, consider using Redis or token ID approach
-  const tokens = await RefreshToken.find({
+  const parsed = parseRefreshToken(refreshToken);
+  
+  if (!parsed.isNewFormat) {
+    // Legacy token support - fall back to old method
+    const tokens = await RefreshToken.find({
+      revoked: false,
+      expiresAt: { $gt: new Date() },
+    }).populate('userId', 'id email role name');
+
+    let matchedToken = null;
+    for (const tokenDoc of tokens) {
+      const isValid = await tokenDoc.verifyToken(refreshToken);
+      if (isValid) {
+        matchedToken = tokenDoc;
+        break;
+      }
+    }
+
+    if (!matchedToken) {
+      throw new Error('Invalid or expired refresh token');
+    }
+
+    const user = matchedToken.userId;
+    await matchedToken.revoke('refresh');
+
+    const newAccessToken = generateAccessToken(user);
+    const newRefreshTokenData = generateRefreshToken();
+    await storeRefreshToken(user._id, newRefreshTokenData, matchedToken.deviceInfo || {}, ipAddress);
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshTokenData.token,
+      user: { id: user._id, email: user.email, role: user.role, name: user.name },
+    };
+  }
+
+  // New token format - direct lookup O(1)
+  const tokenDoc = await RefreshToken.findOne({
+    tokenId: parsed.tokenId,
     revoked: false,
     expiresAt: { $gt: new Date() },
   }).populate('userId', 'id email role name');
 
-  let matchedToken = null;
-  for (const tokenDoc of tokens) {
-    const isValid = await tokenDoc.verifyToken(refreshToken);
-    if (isValid) {
-      matchedToken = tokenDoc;
-      break;
-    }
-  }
-
-  if (!matchedToken) {
+  if (!tokenDoc) {
     throw new Error('Invalid or expired refresh token');
   }
 
-  // Additional security: Check if IP changed dramatically (optional)
-  // This is a basic check - in production, use more sophisticated geolocation
-  if (ipAddress && matchedToken.ipAddress && ipAddress !== matchedToken.ipAddress) {
-    // Log suspicious activity but don't block (IP can change legitimately)
-    console.warn(`Refresh token used from different IP: ${matchedToken.ipAddress} -> ${ipAddress}`);
+  const isValid = await tokenDoc.verifyToken(parsed.randomPart);
+  if (!isValid) {
+    throw new Error('Invalid refresh token');
   }
 
-  const user = matchedToken.userId;
+  if (ipAddress && tokenDoc.ipAddress && ipAddress !== tokenDoc.ipAddress) {
+    console.warn(`Refresh token used from different IP: ${tokenDoc.ipAddress} -> ${ipAddress}`);
+  }
 
-  // Revoke the old refresh token (rotation)
-  await matchedToken.revoke('refresh');
+  const user = tokenDoc.userId;
+  await tokenDoc.revoke('refresh');
 
-  // Generate new tokens
   const newAccessToken = generateAccessToken(user);
-  const newRefreshToken = generateRefreshToken();
-
-  // Store new refresh token
-  const deviceInfo = matchedToken.deviceInfo || {};
-  await storeRefreshToken(user._id, newRefreshToken, deviceInfo, ipAddress);
+  const newRefreshTokenData = generateRefreshToken();
+  await storeRefreshToken(user._id, newRefreshTokenData, tokenDoc.deviceInfo || {}, ipAddress);
 
   return {
     accessToken: newAccessToken,
-    refreshToken: newRefreshToken,
-    user: {
-      id: user._id,
-      email: user.email,
-      role: user.role,
-      name: user.name,
-    },
+    refreshToken: newRefreshTokenData.token,
+    user: { id: user._id, email: user.email, role: user.role, name: user.name },
   };
 };
 
@@ -192,11 +261,19 @@ export const revokeRefreshToken = async (refreshToken, reason = 'logout') => {
     return false;
   }
 
-  // Find and revoke the token
-  const tokens = await RefreshToken.find({
-    revoked: false,
-  });
+  const parsed = parseRefreshToken(refreshToken);
+  
+  if (parsed.isNewFormat) {
+    const tokenDoc = await RefreshToken.findOne({ tokenId: parsed.tokenId, revoked: false });
+    if (tokenDoc) {
+      await tokenDoc.revoke(reason);
+      return true;
+    }
+    return false;
+  }
 
+  // Legacy support
+  const tokens = await RefreshToken.find({ revoked: false });
   for (const tokenDoc of tokens) {
     const isValid = await tokenDoc.verifyToken(refreshToken);
     if (isValid) {
@@ -204,7 +281,6 @@ export const revokeRefreshToken = async (refreshToken, reason = 'logout') => {
       return true;
     }
   }
-
   return false;
 };
 

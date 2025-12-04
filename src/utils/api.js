@@ -21,4 +21,33 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor for enhanced error handling
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (!error.response) {
+      return Promise.reject({ message: 'Bağlantı hatası', code: 'NETWORK_ERROR' });
+    }
+
+    const { status, data } = error.response;
+    let message = data?.error || 'Bir hata oluştu';
+
+    if (status === 401) {
+      message = 'Oturum süresi doldu';
+      if (!window.location.pathname.includes('/login')) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+    } else if (status === 403) {
+      message = 'Bu işleme yetkiniz yok';
+    } else if (status === 429) {
+      message = 'Çok fazla istek. Bekleyin.';
+    } else if (status >= 500) {
+      message = 'Sunucu hatası';
+    }
+
+    return Promise.reject({ status, message, code: `HTTP_${status}` });
+  }
+);
+
 export default API;

@@ -20,13 +20,21 @@
 const getAllowedOrigins = () => {
   const corsOrigins = process.env.CORS_ORIGINS;
 
-  // In production, CORS_ORIGINS must be explicitly set
+  // In production, CORS_ORIGINS should be explicitly set, but we'll use safe defaults if missing
   if (process.env.NODE_ENV === 'production') {
     if (!corsOrigins || corsOrigins.trim() === '') {
-      console.error('❌ FATAL: CORS_ORIGINS environment variable is not set in production!');
-      console.error('   Set CORS_ORIGINS to a comma-separated list of allowed origins.');
-      console.error('   Example: CORS_ORIGINS=https://example.com,https://www.example.com');
-      process.exit(1); // Fail fast in production
+      console.warn('⚠️  WARNING: CORS_ORIGINS environment variable is not set in production!');
+      console.warn('   Using default production origins for Render deployment.');
+      console.warn('   It is recommended to set CORS_ORIGINS in your Render dashboard.');
+      console.warn('   Example: CORS_ORIGINS=https://gnb-transfer.onrender.com,https://www.gnb-transfer.com');
+      
+      // Safe production defaults for Render
+      const defaultProdOrigins = [
+        'https://gnb-transfer.onrender.com',
+        'http://localhost:3000', // For local testing in production mode
+      ];
+      console.log('✓ Using default production CORS origins:', defaultProdOrigins);
+      return defaultProdOrigins;
     }
   }
 
@@ -39,9 +47,9 @@ const getAllowedOrigins = () => {
       for (const origin of origins) {
         // Check if origin looks like a valid URL
         if (!origin.startsWith('http://') && !origin.startsWith('https://')) {
-          console.error(`❌ FATAL: Invalid origin in CORS_ORIGINS: ${origin}`);
-          console.error('   Origins must start with http:// or https://');
-          process.exit(1);
+          console.warn(`⚠️  WARNING: Invalid origin in CORS_ORIGINS: ${origin}`);
+          console.warn('   Origins should start with http:// or https://');
+          console.warn('   This origin will be included but may not work correctly');
         }
 
         // Warn about http:// in production
@@ -162,14 +170,15 @@ export const validateCorsConfig = () => {
     if (process.env.NODE_ENV === 'production') {
       // In production, at least one origin must be configured
       if (origins.length === 0) {
-        console.error('❌ CORS validation failed: No origins configured');
+        console.warn('⚠️  CORS validation warning: No origins configured');
+        console.warn('   Server will start but CORS may not work correctly');
         return false;
       }
 
       // Check for common misconfigurations
       if (origins.includes('*')) {
-        console.error('❌ CORS validation failed: Wildcard (*) not allowed in production');
-        console.error('   Specify explicit origins for security');
+        console.warn('⚠️  CORS validation warning: Wildcard (*) not recommended in production');
+        console.warn('   Consider specifying explicit origins for better security');
         return false;
       }
 
@@ -183,7 +192,8 @@ export const validateCorsConfig = () => {
     console.log('✓ CORS configuration validated successfully');
     return true;
   } catch (error) {
-    console.error('❌ CORS validation error:', error.message);
+    console.warn('⚠️  CORS validation error:', error.message);
+    console.warn('   Server will continue with default CORS configuration');
     return false;
   }
 };

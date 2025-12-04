@@ -116,6 +116,20 @@ bookingSchema.index({ createdAt: -1 }); // Recent bookings
 bookingSchema.index({ tour: 1, date: 1 }); // Tour availability queries
 bookingSchema.index({ user: 1, createdAt: -1 }); // User booking history
 
+// Virtual for backward compatibility with tourId
+// This allows accessing tour via tourId property
+bookingSchema.virtual('tourIdVirtual').get(function() {
+  return this.tour;
+});
+
+bookingSchema.virtual('tourIdVirtual').set(function(value) {
+  this.tour = value;
+});
+
+// Include virtuals in JSON/Object output
+bookingSchema.set('toJSON', { virtuals: true });
+bookingSchema.set('toObject', { virtuals: true });
+
 const Booking = mongoose.models.Booking || mongoose.model('Booking', bookingSchema);
 
 export default Booking;

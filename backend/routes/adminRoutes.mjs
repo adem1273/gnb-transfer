@@ -10,6 +10,8 @@ import { requirePermission, requireAnyPermission } from '../config/permissions.m
 import { logAdminAction } from '../middlewares/adminLogger.mjs';
 import { clearModuleCache } from '../middlewares/moduleGuard.mjs';
 import { applyCampaignRules } from '../services/campaignScheduler.mjs';
+import logger from '../config/logger.mjs';
+import { PAGINATION } from '../constants/limits.mjs';
 
 const router = express.Router();
 
@@ -42,7 +44,7 @@ router.get('/settings', requireAuth(), requirePermission('settings.view'), async
 
     return res.apiSuccess(settings, 'Settings retrieved successfully');
   } catch (error) {
-    console.error('Error fetching settings:', error);
+    logger.error('Error fetching settings:', { error: error.message, stack: error.stack });
     return res.apiError('Failed to fetch settings', 500);
   }
 });
@@ -86,7 +88,7 @@ router.patch(
 
       return res.apiSuccess(settings, 'Settings updated successfully');
     } catch (error) {
-      console.error('Error updating settings:', error);
+      logger.error('Error updating settings:', { error: error.message, stack: error.stack });
       return res.apiError('Failed to update settings', 500);
     }
   }
@@ -102,7 +104,7 @@ router.get('/campaigns', requireAuth(['admin', 'manager']), async (req, res) => 
     const campaigns = await CampaignRule.find().sort({ createdAt: -1 });
     return res.apiSuccess(campaigns, 'Campaigns retrieved successfully');
   } catch (error) {
-    console.error('Error fetching campaigns:', error);
+    logger.error('Error fetching campaigns:', { error: error.message, stack: error.stack });
     return res.apiError('Failed to fetch campaigns', 500);
   }
 });
@@ -143,7 +145,7 @@ router.post(
 
       return res.apiSuccess(campaign, 'Campaign created successfully');
     } catch (error) {
-      console.error('Error creating campaign:', error);
+      logger.error('Error creating campaign:', { error: error.message, stack: error.stack });
       return res.apiError(error.message || 'Failed to create campaign', 500);
     }
   }
@@ -193,7 +195,7 @@ router.patch(
 
       return res.apiSuccess(campaign, 'Campaign updated successfully');
     } catch (error) {
-      console.error('Error updating campaign:', error);
+      logger.error('Error updating campaign:', { error: error.message, stack: error.stack });
       return res.apiError(error.message || 'Failed to update campaign', 500);
     }
   }
@@ -220,7 +222,7 @@ router.delete(
 
       return res.apiSuccess(null, 'Campaign deleted successfully');
     } catch (error) {
-      console.error('Error deleting campaign:', error);
+      logger.error('Error deleting campaign:', { error: error.message, stack: error.stack });
       return res.apiError('Failed to delete campaign', 500);
     }
   }
@@ -236,7 +238,7 @@ router.post('/campaigns/apply', requireAuth(['admin']), async (req, res) => {
     await applyCampaignRules();
     return res.apiSuccess(null, 'Campaign rules applied successfully');
   } catch (error) {
-    console.error('Error applying campaigns:', error);
+    logger.error('Error applying campaigns:', { error: error.message, stack: error.stack });
     return res.apiError('Failed to apply campaigns', 500);
   }
 });
@@ -341,7 +343,7 @@ router.get('/insights', requireAuth(['admin', 'manager']), async (req, res) => {
 
     return res.apiSuccess(insights, 'Insights retrieved successfully');
   } catch (error) {
-    console.error('Error fetching insights:', error);
+    logger.error('Error fetching insights:', { error: error.message, stack: error.stack });
     return res.apiError('Failed to fetch insights', 500);
   }
 });
@@ -415,7 +417,7 @@ router.get('/logs', requireAuth(['admin']), async (req, res) => {
       'Logs retrieved successfully'
     );
   } catch (error) {
-    console.error('Error fetching logs:', error);
+    logger.error('Error fetching logs:', { error: error.message, stack: error.stack });
     return res.apiError('Failed to fetch logs', 500);
   }
 });
@@ -449,7 +451,7 @@ router.get('/logs/export', requireAuth(['admin']), async (req, res) => {
       }
     }
 
-    const logs = await AdminLog.find(filter).sort({ createdAt: -1 }).limit(10000);
+    const logs = await AdminLog.find(filter).sort({ createdAt: -1 }).limit(PAGINATION.EXPORT_MAX_LIMIT);
 
     // Generate CSV
     const csvHeader = 'Timestamp,Action,User Email,User Name,Target Type,Target Name,IP Address\n';
@@ -475,7 +477,7 @@ router.get('/logs/export', requireAuth(['admin']), async (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename=admin-logs.csv');
     return res.send(csv);
   } catch (error) {
-    console.error('Error exporting logs:', error);
+    logger.error('Error exporting logs:', { error: error.message, stack: error.stack });
     return res.apiError('Failed to export logs', 500);
   }
 });
@@ -510,22 +512,74 @@ router.get('/analytics', requireAuth(['admin', 'manager']), async (req, res) => 
         startDate.setDate(now.getDate() - 30);
     }
 
-    // Fetch data
-    const bookings = await Booking.find({
-      createdAt: { $gte: startDate },
-    })
-      .populate('tour', 'title price')
-      .lean();
+    // Calculate previous period start for growth comparison
+    const periodDays = Math.round((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const previousPeriodStart = new Date(startDate);
+    previousPeriodStart.setDate(previousPeriodStart.getDate() - periodDays);
 
-    const allBookings = await Booking.find().lean();
-    const users = await User.find().lean();
-    const tours = await Tour.find().lean();
+    // Optimized: Use aggregation and countDocuments instead of fetching all documents
+    const [periodStats] = await Booking.aggregate([
+      {
+        $facet: {
+          // Current period bookings with tour info
+          currentPeriod: [
+            { $match: { createdAt: { $gte: startDate } } },
+            {
+              $lookup: {
+                from: 'tours',
+                localField: 'tour',
+                foreignField: '_id',
+                as: 'tourInfo',
+              },
+            },
+            { $unwind: { path: '$tourInfo', preserveNullAndEmptyArrays: true } },
+            {
+              $project: {
+                amount: 1,
+                status: 1,
+                paymentMethod: 1,
+                createdAt: 1,
+                'tourInfo.title': 1,
+                'tourInfo.price': 1,
+              },
+            },
+          ],
+          // Previous period for growth comparison
+          previousPeriod: [
+            {
+              $match: {
+                createdAt: {
+                  $gte: previousPeriodStart,
+                  $lt: startDate,
+                },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+                revenue: { $sum: '$amount' },
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    // Simple count queries (much faster than fetching all documents)
+    const totalUsers = await User.countDocuments();
+    const totalTours = await Tour.countDocuments();
+    const newUsersCount = await User.countDocuments({ createdAt: { $gte: startDate } });
+    const previousUsersCount = await User.countDocuments({
+      createdAt: { $gte: previousPeriodStart, $lt: startDate }
+    });
+
+    const bookings = periodStats.currentPeriod;
+    const previousStats = periodStats.previousPeriod[0] || { count: 0, revenue: 0 };
 
     // Calculate summary stats
     const totalRevenue = bookings.reduce((sum, b) => sum + (b.amount || 0), 0);
     const totalBookings = bookings.length;
-    const totalUsers = users.length;
-    const totalTours = tours.length;
     const avgBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
 
     // Status breakdown
@@ -543,7 +597,7 @@ router.get('/analytics', requireAuth(['admin', 'manager']), async (req, res) => 
     // Revenue by tour
     const revenueByTour = {};
     bookings.forEach((b) => {
-      const tourName = b.tour?.title || 'Unknown';
+      const tourName = b.tourInfo?.title || 'Unknown';
       revenueByTour[tourName] = (revenueByTour[tourName] || 0) + (b.amount || 0);
     });
 
@@ -556,7 +610,7 @@ router.get('/analytics', requireAuth(['admin', 'manager']), async (req, res) => 
     // Bookings by tour
     const bookingsByTour = {};
     bookings.forEach((b) => {
-      const tourName = b.tour?.title || 'Unknown';
+      const tourName = b.tourInfo?.title || 'Unknown';
       bookingsByTour[tourName] = (bookingsByTour[tourName] || 0) + 1;
     });
 
@@ -564,7 +618,7 @@ router.get('/analytics', requireAuth(['admin', 'manager']), async (req, res) => 
     const mostBookedTours = Object.entries(bookingsByTour)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
-      .map(([name, bookings]) => ({ name, bookings }));
+      .map(([name, bookingsCount]) => ({ name, bookings: bookingsCount }));
 
     // Daily revenue trend (last 30 days)
     const dailyRevenue = [];
@@ -590,35 +644,19 @@ router.get('/analytics', requireAuth(['admin', 'manager']), async (req, res) => 
       });
     }
 
-    // Growth metrics (compare with previous period)
-    const previousPeriodStart = new Date(startDate);
-    previousPeriodStart.setDate(
-      previousPeriodStart.getDate() - (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    const previousBookings = allBookings.filter((b) => {
-      const bookingDate = new Date(b.createdAt);
-      return bookingDate >= previousPeriodStart && bookingDate < startDate;
-    });
-
-    const previousRevenue = previousBookings.reduce((sum, b) => sum + (b.amount || 0), 0);
+    // Growth metrics using pre-calculated values
+    const previousRevenue = previousStats.revenue || 0;
+    const previousBookingsCount = previousStats.count || 0;
 
     const revenueGrowth =
       previousRevenue > 0 ? ((totalRevenue - previousRevenue) / previousRevenue) * 100 : 0;
 
     const bookingsGrowth =
-      previousBookings.length > 0
-        ? ((totalBookings - previousBookings.length) / previousBookings.length) * 100
+      previousBookingsCount > 0
+        ? ((totalBookings - previousBookingsCount) / previousBookingsCount) * 100
         : 0;
 
-    // User growth (new users in period)
-    const newUsers = users.filter((u) => new Date(u.createdAt) >= startDate).length;
-    const previousUsers = users.filter((u) => {
-      const userDate = new Date(u.createdAt);
-      return userDate >= previousPeriodStart && userDate < startDate;
-    }).length;
-
-    const userGrowth = previousUsers > 0 ? ((newUsers - previousUsers) / previousUsers) * 100 : 0;
+    const userGrowth = previousUsersCount > 0 ? ((newUsersCount - previousUsersCount) / previousUsersCount) * 100 : 0;
 
     // Response
     return res.apiSuccess(
@@ -643,7 +681,7 @@ router.get('/analytics', requireAuth(['admin', 'manager']), async (req, res) => 
       'Analytics retrieved successfully'
     );
   } catch (error) {
-    console.error('Error fetching analytics:', error);
+    logger.error('Error fetching analytics:', { error: error.message, stack: error.stack });
     return res.apiError('Failed to fetch analytics', 500);
   }
 });

@@ -1,4 +1,6 @@
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import express from 'express';
 import mongoose from 'mongoose';
@@ -14,9 +16,16 @@ import { responseMiddleware } from './middlewares/response.mjs';
 import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
 import { errorHandler } from './middlewares/errorHandler.mjs';
 import { getCacheStats } from './middlewares/cache.mjs';
+import { initRedis, getRedisStats } from './services/cacheService.mjs';
 import { requestLogger, errorLogger } from './middlewares/logging.mjs';
 import { requestIdMiddleware } from './middlewares/requestId.mjs';
-import { getMetrics, getPrometheusMetrics, trackError } from './middlewares/metrics.mjs';
+import { getMetrics, trackError } from './middlewares/metrics.mjs';
+import {
+  getMetrics as getPromMetrics,
+  getContentType as getPromContentType,
+} from './services/metricsService.mjs';
+import { metricsMiddleware } from './middlewares/prometheusMiddleware.mjs';
+import { DATABASE } from './constants/limits.mjs';
 
 import userRoutes from './routes/userRoutes.mjs';
 import tourRoutes from './routes/tourRoutes.mjs';
@@ -40,6 +49,9 @@ import driverStatsRoutes from './routes/driverStatsRoutes.mjs';
 import delayCompensationRoutes from './routes/delayCompensationRoutes.mjs';
 import revenueAnalyticsRoutes from './routes/revenueAnalyticsRoutes.mjs';
 import corporateRoutes from './routes/corporateRoutes.mjs';
+import docsRoutes from './routes/docsRoutes.mjs';
+import { routeRouter } from './routes/routeRoutes.mjs';
+import { pricingRouter } from './routes/pricingRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -48,6 +60,30 @@ import { initWeeklyReportScheduler } from './services/weeklyReportService.mjs';
 import { initSitemapScheduler } from './services/sitemapService.mjs';
 
 dotenv.config();
+
+// Get __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// === CRITICAL: EXACT PATH TO REACT BUILD ===
+// Construct absolute path to dist directory using path.resolve()
+// This works in any environment (local, Render, etc.) by resolving relative to backend directory
+// __dirname = /path/to/gnb-transfer/backend
+// path.resolve(__dirname, '..', 'dist') = /path/to/gnb-transfer/dist (absolute path)
+const buildPath = path.resolve(__dirname, '..', 'dist');
+logger.debug('FRONTEND PATH:', { buildPath }); // Logs absolute path to dist directory
+
+// Define PORT and HOST early (needed by health check endpoints)
+// Render assigns PORT dynamically - this is critical for deployment success
+const PORT = process.env.PORT || 10000;
+const HOST = '0.0.0.0';
+
+console.log('=== SERVER CONFIGURATION ===');
+console.log('PORT from environment:', process.env.PORT);
+console.log('PORT to use:', PORT);
+console.log('HOST:', HOST);
+console.log('NODE_ENV:', process.env.NODE_ENV || 'development');
+console.log('===========================');
 
 // Initialize Sentry early
 const sentryHandlers = initSentry(express());
@@ -120,6 +156,15 @@ app.use(helmet.referrerPolicy({ policy: 'no-referrer' }));
 //   next();
 // });
 
+// Additional security headers middleware
+app.use((req, res, next) => {
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
 app.use(cors(getCorsOptions()));
 app.use(compression());
 app.use(cookieParser());
@@ -136,7 +181,48 @@ app.use(requestLogger);
 app.use(globalRateLimiter);
 app.use(responseMiddleware);
 
-// Routes
+// Prometheus metrics middleware
+app.use(metricsMiddleware);
+
+// API Versioning - v1 routes
+// All API routes are versioned for backward compatibility
+const API_V1 = '/api/v1';
+
+// v1 Routes
+app.use(`${API_V1}/auth`, authRoutes);
+app.use(`${API_V1}/users`, userRoutes);
+app.use(`${API_V1}/tours`, tourRoutes);
+app.use(`${API_V1}/bookings`, bookingRoutes);
+app.use(`${API_V1}/delay`, delayRoutes);
+app.use(`${API_V1}/packages`, packageRoutes);
+app.use(`${API_V1}/chat`, chatRoutes);
+app.use(`${API_V1}/admin`, adminRoutes);
+app.use(`${API_V1}/finance`, financeRoutes);
+app.use(`${API_V1}/drivers`, driverRoutes);
+app.use(`${API_V1}/vehicles`, vehicleRoutes);
+app.use(`${API_V1}/coupons`, couponRoutes);
+app.use(`${API_V1}/referrals`, referralRoutes);
+app.use(`${API_V1}/faq`, faqRoutes);
+app.use(`${API_V1}/recommendations`, recommendationRoutes);
+app.use(`${API_V1}/support`, supportRoutes);
+app.use(`${API_V1}/routes`, routeRouter);
+app.use(`${API_V1}/pricing`, pricingRouter);
+
+// Feature toggle routes (v1)
+app.use(`${API_V1}/admin/features`, featureToggleRoutes);
+
+// New feature routes (v1 - protected by feature toggles)
+app.use(`${API_V1}/admin/fleet`, fleetRoutes);
+app.use(`${API_V1}/admin/drivers`, driverStatsRoutes);
+app.use(`${API_V1}/admin/delay`, delayCompensationRoutes);
+app.use(`${API_V1}/admin/analytics`, revenueAnalyticsRoutes);
+app.use(`${API_V1}/admin/corporate`, corporateRoutes);
+
+// API documentation endpoint (v1)
+app.use(`${API_V1}/docs`, docsRoutes);
+
+// Legacy routes (for backward compatibility)
+// These will be deprecated in future versions
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tours', tourRoutes);
@@ -153,43 +239,65 @@ app.use('/api/referrals', referralRoutes);
 app.use('/api/faq', faqRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/support', supportRoutes);
-
-// Feature toggle routes
+app.use('/api/routes', routeRouter);
+app.use('/api/pricing', pricingRouter);
 app.use('/api/admin/features', featureToggleRoutes);
-
-// New feature routes (protected by feature toggles)
 app.use('/api/admin/fleet', fleetRoutes);
 app.use('/api/admin/drivers', driverStatsRoutes);
 app.use('/api/admin/delay', delayCompensationRoutes);
 app.use('/api/admin/analytics', revenueAnalyticsRoutes);
 app.use('/api/admin/corporate', corporateRoutes);
+app.use('/api/docs', docsRoutes);
 
 // Health check endpoint (registered before other routes)
 app.get('/api/health', async (req, res) => {
-  const healthStatus = {
-    status: 'ok',
+  let dbConnected = false;
+  try {
+    await mongoose.connection.db.admin().ping();
+    dbConnected = true;
+  } catch (err) {
+    dbConnected = false;
+  }
+
+  const health = {
+    status: dbConnected ? 'healthy' : 'degraded',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
-    database: {
-      connected: mongoose.connection.readyState === 1,
-      state: ['disconnected', 'connected', 'connecting', 'disconnecting'][
-        mongoose.connection.readyState
-      ],
+    services: {
+      database: {
+        connected: dbConnected,
+        state: ['disconnected', 'connected', 'connecting', 'disconnecting'][
+          mongoose.connection.readyState
+        ],
+      },
+      cache: getCacheStats(),
+      redis: getRedisStats(),
     },
-    cache: getCacheStats(),
     memory: {
-      used: Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100, // MB
-      total: Math.round((process.memoryUsage().heapTotal / 1024 / 1024) * 100) / 100, // MB
+      heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+      heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB',
     },
   };
 
-  return res.apiSuccess(healthStatus, 'Server is healthy');
+  return res.status(dbConnected ? 200 : 503).json({ success: dbConnected, data: health });
 });
 
 // Legacy health check (for backward compatibility)
+// Enhanced to include port and CORS info for Render deployment verification
 app.get('/health', async (req, res) => {
-  res.apiSuccess({ status: 'ok' }, 'Server is running');
+  const corsOrigins = process.env.CORS_ORIGINS?.split(',').map(o => o.trim()) || 
+    (process.env.NODE_ENV === 'production' 
+      ? ['https://gnb-transfer.onrender.com', 'http://localhost:3000']
+      : ['http://localhost:5173', 'http://localhost:3000']);
+  
+  res.apiSuccess({ 
+    status: 'ok',
+    port: PORT,
+    host: HOST,
+    path: buildPath,
+    corsOrigins: corsOrigins.length > 0 ? corsOrigins : ['default configuration']
+  }, 'Server is running');
 });
 
 // Readiness check endpoint
@@ -225,10 +333,30 @@ app.get('/api/metrics', (req, res) => {
   res.json(metrics);
 });
 
-// Metrics endpoint (Prometheus format)
-app.get('/metrics', (req, res) => {
-  res.set('Content-Type', 'text/plain');
-  res.send(getPrometheusMetrics());
+// Prometheus metrics endpoint (prom-client format)
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', getPromContentType());
+    res.end(await getPromMetrics());
+  } catch (error) {
+    res.status(500).end(error.message);
+  }
+});
+
+// Serve static files from React build
+// This must come after API routes to avoid conflicts
+app.use(express.static(buildPath));
+
+// Handle client-side routing - send all non-API requests to React app
+app.get('*', (req, res) => {
+  const indexPath = path.join(buildPath, 'index.html');
+  logger.debug('SERVING INDEX:', { indexPath });
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      logger.error('SEND FILE ERROR:', { error: err.message });
+      res.status(500).send('Frontend failed to load. Path incorrect.');
+    }
+  });
 });
 
 // Error logging middleware
@@ -248,27 +376,65 @@ app.use((err, req, res, next) => {
 // Database connect
 const MONGO_URI = process.env.MONGO_URI || '';
 
-const connectDB = async () => {
+const connectDB = async (retryCount = 0) => {
   if (!MONGO_URI) {
     logger.warn('MONGO_URI is not set. Skipping database connection.');
     return;
   }
+  
   try {
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(MONGO_URI, {
+      serverSelectionTimeoutMS: DATABASE.SERVER_SELECTION_TIMEOUT_MS,
+      heartbeatFrequencyMS: DATABASE.HEARTBEAT_FREQUENCY_MS,
+    });
     logger.info('MongoDB connected successfully');
   } catch (err) {
-    logger.error('MongoDB connection failed:', { error: err.message });
-    logger.warn('Server will continue without database connection.');
+    logger.error(`MongoDB connection failed (attempt ${retryCount + 1}/${DATABASE.MAX_RETRIES}):`, {
+      error: err.message,
+    });
+    
+    if (retryCount < DATABASE.MAX_RETRIES - 1) {
+      logger.info(`Retrying in ${DATABASE.RETRY_DELAY_MS / 1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, DATABASE.RETRY_DELAY_MS));
+      return connectDB(retryCount + 1);
+    }
+    
+    logger.error('Max retry attempts reached.');
+    if (process.env.NODE_ENV === 'production') {
+      logger.error('FATAL: Cannot start production server without database');
+      process.exit(1);
+    }
+    logger.warn('Server will continue without database in development mode.');
   }
 };
 
+// Connection event handlers for reconnection
+mongoose.connection.on('disconnected', () => {
+  logger.warn('MongoDB disconnected. Attempting to reconnect...');
+});
+
+mongoose.connection.on('reconnected', () => {
+  logger.info('MongoDB reconnected successfully');
+});
+
+mongoose.connection.on('error', (err) => {
+  logger.error('MongoDB connection error:', { error: err.message });
+});
+
 // Safety: in production require JWT_SECRET
-if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-  logger.error('JWT_SECRET must be set in production. Aborting start.');
-  process.exit(1);
+if (!process.env.JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('FATAL: JWT_SECRET is required in production!');
+    process.exit(1);
+  } else {
+    logger.warn('WARNING: JWT_SECRET not set. Authentication will not work!');
+  }
 }
 
 await connectDB();
+
+// Initialize Redis cache
+initRedis();
 
 // Initialize feature toggles
 import featureToggleService from './services/featureToggleService.mjs';
@@ -341,12 +507,21 @@ initSitemapScheduler();
 
 logger.info('All schedulers initialized successfully');
 
-const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`, {
+// Start server (PORT and HOST already defined at top of file)
+const server = app.listen(PORT, HOST, () => {
+  logger.info(`Server running on http://${HOST}:${PORT}`, {
     environment: process.env.NODE_ENV || 'development',
     port: PORT,
+    host: HOST,
   });
+  // Console output for Render deployment logs - critical for deployment verification
+  console.log('\n=== SERVER STARTED SUCCESSFULLY ===');
+  console.log(`✓ Server listening on http://${HOST}:${PORT}`);
+  console.log(`✓ Health check endpoints: /health and /api/health`);
+  console.log(`✓ Port ${PORT} bound successfully`);
+  console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log('===================================\n');
+  
   if (!process.env.JWT_SECRET) {
     logger.warn('JWT_SECRET not set. Set JWT_SECRET for secure authentication.');
   }

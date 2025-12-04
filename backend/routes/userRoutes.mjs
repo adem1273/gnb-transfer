@@ -21,8 +21,31 @@ import {
   validateUserLogin,
   validateMongoId,
 } from '../validators/index.mjs';
+import { PASSWORD } from '../constants/limits.mjs';
 
 const router = express.Router();
+
+/**
+ * Validate password strength using centralized PASSWORD constants
+ * @param {string} password - Password to validate
+ * @returns {object} - Validation result with valid flag and errors array
+ */
+const validatePassword = (password) => {
+  const errors = [];
+  if (!password || password.length < PASSWORD.MIN_LENGTH) {
+    errors.push(`Password must be at least ${PASSWORD.MIN_LENGTH} characters`);
+  }
+  if (PASSWORD.REQUIRE_UPPERCASE && !/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter');
+  }
+  if (PASSWORD.REQUIRE_LOWERCASE && !/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter');
+  }
+  if (PASSWORD.REQUIRE_NUMBER && !/\d/.test(password)) {
+    errors.push('Password must contain at least one number');
+  }
+  return { valid: errors.length === 0, errors };
+};
 
 /**
  * @route   POST /api/users/register
@@ -30,7 +53,7 @@ const router = express.Router();
  * @access  Public
  * @body    {string} name - User's full name (2-100 characters)
  * @body    {string} email - Valid email address
- * @body    {string} password - Password (min 6 chars, must contain uppercase, lowercase, and number)
+ * @body    {string} password - Password (min 8 chars, must contain uppercase, lowercase, and number)
  * @returns {object} - Access token, refresh token, and user details (without password)
  *
  * Security measures:
@@ -48,6 +71,12 @@ router.post('/register', strictRateLimiter, validateUserRegistration, async (req
     // Validate required fields
     if (!name || !email || !password) {
       return res.apiError('Name, email, and password are required', 400);
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.apiError(passwordValidation.errors.join('. '), 400);
     }
 
     // Check if user already exists
@@ -68,12 +97,13 @@ router.post('/register', strictRateLimiter, validateUserRegistration, async (req
 
     // Generate tokens
     const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken();
+    const refreshTokenData = generateRefreshToken();
 
     // Store refresh token (hashed)
     const deviceInfo = getDeviceInfo(req);
     const ipAddress = getClientIP(req);
-    await storeRefreshToken(user._id, refreshToken, deviceInfo, ipAddress);
+    await storeRefreshToken(user._id, refreshTokenData, deviceInfo, ipAddress);
+    const refreshToken = refreshTokenData.token;
 
     return res.apiSuccess(
       {
@@ -132,12 +162,13 @@ router.post('/login', strictRateLimiter, validateUserLogin, async (req, res) => 
 
     // Generate tokens
     const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken();
+    const refreshTokenData = generateRefreshToken();
 
     // Store refresh token (hashed)
     const deviceInfo = getDeviceInfo(req);
     const ipAddress = getClientIP(req);
-    await storeRefreshToken(user._id, refreshToken, deviceInfo, ipAddress);
+    await storeRefreshToken(user._id, refreshTokenData, deviceInfo, ipAddress);
+    const refreshToken = refreshTokenData.token;
 
     // Send refresh token in httpOnly cookie if in production, otherwise in body
     if (process.env.NODE_ENV === 'production') {
@@ -450,7 +481,7 @@ router.post('/forgot-password', strictRateLimiter, async (req, res) => {
  * @desc    Reset password using token
  * @access  Public
  * @param   {string} token - Reset token from email
- * @body    {string} password - New password (min 6 characters)
+ * @body    {string} password - New password (min 8 characters with uppercase, lowercase, and number)
  * @returns {object} - Success message
  *
  * Security measures:
@@ -469,8 +500,10 @@ router.post('/reset-password/:token', strictRateLimiter, async (req, res) => {
       return res.apiError('Password is required', 400);
     }
 
-    if (password.length < 6) {
-      return res.apiError('Password must be at least 6 characters', 400);
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.apiError(passwordValidation.errors.join('. '), 400);
     }
 
     // Hash the token from URL to compare with stored hash

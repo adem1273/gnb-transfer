@@ -13,6 +13,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import Sidebar from './components/Sidebar';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import PWAUpdatePrompt from './components/PWAUpdatePrompt';
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
@@ -85,6 +86,7 @@ const MainLayout = () => {
       </main>
       <Footer />
       <PWAInstallPrompt />
+      <PWAUpdatePrompt />
       <Suspense fallback={null}>
         <LiveChat />
       </Suspense>
