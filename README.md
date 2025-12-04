@@ -134,11 +134,13 @@ This application implements comprehensive security measures for production deplo
 - Log rotation with compression (14-day retention)
 - Secure token storage (hashed in database)
 
-**API Endpoints:**
-- `POST /api/users/register` - User registration with validation
-- `POST /api/users/login` - Authentication with token generation
-- `POST /api/users/refresh` - Token refresh with rotation
-- `POST /api/users/logout` - Token revocation and cleanup
+**API Endpoints (v1):**
+- `POST /api/v1/users/register` - User registration with validation
+- `POST /api/v1/users/login` - Authentication with token generation
+- `POST /api/v1/users/refresh` - Token refresh with rotation
+- `POST /api/v1/users/logout` - Token revocation and cleanup
+
+**Note:** All API endpoints are available with `/api/v1` prefix. Legacy `/api` endpoints are also supported for backward compatibility.
 
 For detailed security documentation, see `backend/SECURITY_API_DOCS.md`
 
@@ -153,6 +155,50 @@ REFRESH_TOKEN_TTL=7d
 CORS_ORIGINS=https://your-frontend-domain.com
 MONGO_URI=your_mongodb_connection_string
 ```
+
+---
+
+## 📖 Runbook
+
+For operational procedures, incident response, and troubleshooting guides, see the comprehensive [Runbook](docs/RUNBOOK.md).
+
+The runbook covers:
+- Emergency contacts
+- Service health monitoring
+- Incident response procedures
+- Deployment and rollback procedures
+- Database operations
+- Security operations
+- Troubleshooting guide
+
+---
+
+## 🌱 Database Seeding
+
+To populate the database with sample data for development:
+
+```bash
+# Navigate to backend directory
+cd backend
+
+# Seed all data (users and tours)
+npm run seed
+
+# Seed only users
+npm run seed:users
+
+# Seed only tours
+npm run seed:tours
+
+# Clear and re-seed all data
+npm run seed:reset
+```
+
+**Sample credentials after seeding:**
+- Admin: `admin@gnbtransfer.com` / `Admin123!`
+- Manager: `manager@gnbtransfer.com` / `Manager123!`
+- Driver: `driver1@gnbtransfer.com` / `Driver123!`
+- User: `user@gnbtransfer.com` / `User1234!`
 
 ---
 

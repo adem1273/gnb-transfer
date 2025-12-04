@@ -184,7 +184,45 @@ app.use(responseMiddleware);
 // Prometheus metrics middleware
 app.use(metricsMiddleware);
 
-// Routes
+// API Versioning - v1 routes
+// All API routes are versioned for backward compatibility
+const API_V1 = '/api/v1';
+
+// v1 Routes
+app.use(`${API_V1}/auth`, authRoutes);
+app.use(`${API_V1}/users`, userRoutes);
+app.use(`${API_V1}/tours`, tourRoutes);
+app.use(`${API_V1}/bookings`, bookingRoutes);
+app.use(`${API_V1}/delay`, delayRoutes);
+app.use(`${API_V1}/packages`, packageRoutes);
+app.use(`${API_V1}/chat`, chatRoutes);
+app.use(`${API_V1}/admin`, adminRoutes);
+app.use(`${API_V1}/finance`, financeRoutes);
+app.use(`${API_V1}/drivers`, driverRoutes);
+app.use(`${API_V1}/vehicles`, vehicleRoutes);
+app.use(`${API_V1}/coupons`, couponRoutes);
+app.use(`${API_V1}/referrals`, referralRoutes);
+app.use(`${API_V1}/faq`, faqRoutes);
+app.use(`${API_V1}/recommendations`, recommendationRoutes);
+app.use(`${API_V1}/support`, supportRoutes);
+app.use(`${API_V1}/routes`, routeRouter);
+app.use(`${API_V1}/pricing`, pricingRouter);
+
+// Feature toggle routes (v1)
+app.use(`${API_V1}/admin/features`, featureToggleRoutes);
+
+// New feature routes (v1 - protected by feature toggles)
+app.use(`${API_V1}/admin/fleet`, fleetRoutes);
+app.use(`${API_V1}/admin/drivers`, driverStatsRoutes);
+app.use(`${API_V1}/admin/delay`, delayCompensationRoutes);
+app.use(`${API_V1}/admin/analytics`, revenueAnalyticsRoutes);
+app.use(`${API_V1}/admin/corporate`, corporateRoutes);
+
+// API documentation endpoint (v1)
+app.use(`${API_V1}/docs`, docsRoutes);
+
+// Legacy routes (for backward compatibility)
+// These will be deprecated in future versions
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tours', tourRoutes);
@@ -203,18 +241,12 @@ app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/routes', routeRouter);
 app.use('/api/pricing', pricingRouter);
-
-// Feature toggle routes
 app.use('/api/admin/features', featureToggleRoutes);
-
-// New feature routes (protected by feature toggles)
 app.use('/api/admin/fleet', fleetRoutes);
 app.use('/api/admin/drivers', driverStatsRoutes);
 app.use('/api/admin/delay', delayCompensationRoutes);
 app.use('/api/admin/analytics', revenueAnalyticsRoutes);
 app.use('/api/admin/corporate', corporateRoutes);
-
-// API documentation endpoint
 app.use('/api/docs', docsRoutes);
 
 // Health check endpoint (registered before other routes)

@@ -41,10 +41,18 @@ async function register() {
           // New service worker installed, show update notification
           console.log('New content available, please refresh');
           
-          // Optionally dispatch custom event for UI to handle
+          // Dispatch custom event for UI to handle
           window.dispatchEvent(new CustomEvent('swUpdated', { detail: registration }));
         }
       });
+    });
+
+    // Listen for controller change (when new SW takes over)
+    // This triggers a page reload to ensure the new version is used
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      console.log('Service worker controller changed - new version activated');
+      // Dispatch event to notify the app that a new version is active
+      window.dispatchEvent(new CustomEvent('swControllerChange'));
     });
 
     return registration;
@@ -122,9 +130,20 @@ export async function subscribeToPushNotifications(registration) {
   }
 }
 
+/**
+ * Skip waiting and activate new service worker immediately
+ * Call this when user accepts the update prompt
+ */
+export function skipWaiting(registration) {
+  if (registration && registration.waiting) {
+    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+  }
+}
+
 export default {
   registerServiceWorker,
   unregisterServiceWorker,
+  skipWaiting,
   requestNotificationPermission,
   subscribeToPushNotifications,
 };
