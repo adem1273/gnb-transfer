@@ -28,14 +28,14 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install frontend dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Lint frontend code
         run: npm run lint
         continue-on-error: true
 
       - name: Build frontend
-        run: npm run build
+        run: npx vite build
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL || 'http://localhost:5000/api' }}
 
@@ -72,9 +72,17 @@ jobs:
         run: npm run lint --prefix backend
         continue-on-error: true
 
-      - name: Run backend tests
-        run: npm run test --prefix backend --if-present
+      - name: Run backend tests with coverage
+        run: npm run test:coverage --prefix backend --if-present
         env:
           NODE_ENV: test
           JWT_SECRET: test-secret-key-for-ci
           MONGO_URI: ${{ secrets.MONGO_URI_TEST || '' }}
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: backend/coverage
+          retention-days: 7
