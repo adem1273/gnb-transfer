@@ -1,0 +1,411 @@
+name: Production Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: 'Deployment target'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - frontend
+          - backend
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  pre-deployment-checks:
+    name: Pre-Deployment Checks
+    runs-on: ubuntu-latest
+    outputs:
+      frontend_changed: ${{ steps.changes.outputs.frontend }}
+      backend_changed: ${{ steps.changes.outputs.backend }}
+      should_deploy_frontend: ${{ steps.decide.outputs.deploy_frontend }}
+      should_deploy_backend: ${{ steps.decide.outputs.deploy_backend }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Detect changes
+        id: changes
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "frontend=true" >> $GITHUB_OUTPUT
+            echo "backend=true" >> $GITHUB_OUTPUT
+          else
+            # Check if frontend files changed
+            if git diff --name-only HEAD^..HEAD | grep -qE '^(src/|public/|index.html|package.json|vite.config.js|tailwind.config.js)'; then
+              echo "frontend=true" >> $GITHUB_OUTPUT
+            else
+              echo "frontend=false" >> $GITHUB_OUTPUT
+            fi
+            
+            # Check if backend files changed
+            if git diff --name-only HEAD^..HEAD | grep -qE '^backend/'; then
+              echo "backend=true" >> $GITHUB_OUTPUT
+            else
+              echo "backend=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Decide what to deploy
+        id: decide
+        run: |
+          DEPLOY_TARGET="${{ github.event.inputs.deploy_target || 'both' }}"
+          FRONTEND_CHANGED="${{ steps.changes.outputs.frontend }}"
+          BACKEND_CHANGED="${{ steps.changes.outputs.backend }}"
+          
+          if [[ "$DEPLOY_TARGET" == "both" ]] || [[ "$DEPLOY_TARGET" == "frontend" ]]; then
+            if [[ "$FRONTEND_CHANGED" == "true" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              echo "deploy_frontend=true" >> $GITHUB_OUTPUT
+            else
+              echo "deploy_frontend=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "deploy_frontend=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ "$DEPLOY_TARGET" == "both" ]] || [[ "$DEPLOY_TARGET" == "backend" ]]; then
+            if [[ "$BACKEND_CHANGED" == "true" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              echo "deploy_backend=true" >> $GITHUB_OUTPUT
+            else
+              echo "deploy_backend=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "deploy_backend=false" >> $GITHUB_OUTPUT
+          fi
+
+  build-frontend:
+    name: Build Frontend
+    needs: pre-deployment-checks
+    if: needs.pre-deployment-checks.outputs.should_deploy_frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint frontend
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_STRIPE_PUBLIC_KEY: ${{ secrets.VITE_STRIPE_PUBLIC_KEY }}
+          VITE_GA_MEASUREMENT_ID: ${{ secrets.VITE_GA_MEASUREMENT_ID }}
+          VITE_CLARITY_PROJECT_ID: ${{ secrets.VITE_CLARITY_PROJECT_ID }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-production-build
+          path: dist/
+          retention-days: 30
+
+      - name: Verify build output
+        run: |
+          if [ ! -d "dist" ] || [ -z "$(ls -A dist)" ]; then
+            echo "Build failed: dist directory is empty"
+            exit 1
+          fi
+          echo "Build verification passed"
+          ls -lh dist/
+
+  test-backend:
+    name: Test Backend
+    needs: pre-deployment-checks
+    if: needs.pre-deployment-checks.outputs.should_deploy_backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Lint backend
+        working-directory: backend
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run backend tests
+        working-directory: backend
+        run: npm test
+        env:
+          NODE_ENV: test
+
+  deploy-frontend:
+    name: Deploy Frontend to Vercel
+    needs: [pre-deployment-checks, build-frontend]
+    if: needs.pre-deployment-checks.outputs.should_deploy_frontend == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment || 'production' }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: frontend-production-build
+          path: dist/
+
+      - name: Deploy to Vercel
+        id: deploy
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./
+
+      - name: Set deployment URL
+        run: |
+          echo "url=${{ steps.deploy.outputs.preview-url }}" >> $GITHUB_OUTPUT
+
+      - name: Comment deployment URL on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Frontend deployed to Vercel!\n\n🔗 Preview URL: ${{ steps.deploy.outputs.preview-url }}'
+            })
+
+  deploy-backend:
+    name: Deploy Backend to Render
+    needs: [pre-deployment-checks, test-backend]
+    if: needs.pre-deployment-checks.outputs.should_deploy_backend == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment || 'production' }}
+      url: ${{ secrets.BACKEND_URL }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Trigger Render deployment
+        run: |
+          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" ]; then
+            echo "⚠️  RENDER_DEPLOY_HOOK_URL not configured, skipping deployment"
+            exit 0
+          fi
+          
+          echo "🚀 Triggering Render deployment..."
+          RESPONSE=$(curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" -w "\n%{http_code}" -s)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          
+          if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
+            echo "✅ Deployment triggered successfully"
+          else
+            echo "❌ Deployment trigger failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      - name: Wait for deployment
+        run: |
+          echo "⏳ Waiting 60 seconds for deployment to start..."
+          sleep 60
+
+  verify-deployment:
+    name: Verify Production Deployment
+    needs: [deploy-frontend, deploy-backend]
+    if: always() && (needs.deploy-frontend.result == 'success' || needs.deploy-backend.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Verify backend health
+        id: backend-check
+        run: |
+          if [ -z "${{ secrets.BACKEND_URL }}" ]; then
+            echo "⚠️  BACKEND_URL not configured, skipping backend health check"
+            echo "status=skipped" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "🔍 Checking backend health at ${{ secrets.BACKEND_URL }}/api/health"
+          
+          MAX_ATTEMPTS=10
+          ATTEMPT=1
+          
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            RESPONSE=$(curl -s -w "\n%{http_code}" "${{ secrets.BACKEND_URL }}/api/health" || echo "000")
+            HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+            BODY=$(echo "$RESPONSE" | head -n-1)
+            
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Backend health check passed (attempt $ATTEMPT)"
+              echo "Response: $BODY"
+              echo "status=healthy" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            
+            echo "⏳ Health check attempt $ATTEMPT/$MAX_ATTEMPTS failed (HTTP $HTTP_CODE), retrying in 10s..."
+            sleep 10
+            ATTEMPT=$((ATTEMPT + 1))
+          done
+          
+          echo "❌ Backend health check failed after $MAX_ATTEMPTS attempts"
+          echo "status=unhealthy" >> $GITHUB_OUTPUT
+          exit 1
+        continue-on-error: true
+
+      - name: Verify frontend availability
+        id: frontend-check
+        run: |
+          if [ -z "${{ secrets.FRONTEND_URL }}" ]; then
+            echo "⚠️  FRONTEND_URL not configured, skipping frontend check"
+            echo "status=skipped" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "🔍 Checking frontend at ${{ secrets.FRONTEND_URL }}"
+          
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.FRONTEND_URL }}" || echo "000")
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Frontend is accessible"
+            echo "status=available" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Frontend check failed (HTTP $HTTP_CODE)"
+            echo "status=unavailable" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        continue-on-error: true
+
+      - name: Send deployment notification
+        if: always()
+        run: |
+          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            BACKEND_STATUS="${{ steps.backend-check.outputs.status }}"
+            FRONTEND_STATUS="${{ steps.frontend-check.outputs.status }}"
+            
+            if [[ "$BACKEND_STATUS" == "healthy" ]] && [[ "$FRONTEND_STATUS" == "available" ]]; then
+              STATUS_EMOJI="✅"
+              STATUS_TEXT="Deployment Successful"
+            else
+              STATUS_EMOJI="⚠️"
+              STATUS_TEXT="Deployment Completed with Warnings"
+            fi
+            
+            curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+              -H 'Content-Type: application/json' \
+              -d "{
+                \"text\": \"$STATUS_EMOJI $STATUS_TEXT\",
+                \"blocks\": [
+                  {
+                    \"type\": \"section\",
+                    \"text\": {
+                      \"type\": \"mrkdwn\",
+                      \"text\": \"*GNB Transfer Production Deployment*\n\nDeployment has been completed.\"
+                    }
+                  },
+                  {
+                    \"type\": \"section\",
+                    \"fields\": [
+                      {
+                        \"type\": \"mrkdwn\",
+                        \"text\": \"*Backend:* $BACKEND_STATUS\"
+                      },
+                      {
+                        \"type\": \"mrkdwn\",
+                        \"text\": \"*Frontend:* $FRONTEND_STATUS\"
+                      },
+                      {
+                        \"type\": \"mrkdwn\",
+                        \"text\": \"*Commit:* ${{ github.sha }}\"
+                      },
+                      {
+                        \"type\": \"mrkdwn\",
+                        \"text\": \"*Branch:* ${{ github.ref_name }}\"
+                      }
+                    ]
+                  },
+                  {
+                    \"type\": \"actions\",
+                    \"elements\": [
+                      {
+                        \"type\": \"button\",
+                        \"text\": {
+                          \"type\": \"plain_text\",
+                          \"text\": \"View Workflow\"
+                        },
+                        \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+                      }
+                    ]
+                  }
+                ]
+              }"
+          fi
+
+      - name: Create deployment summary
+        if: always()
+        run: |
+          echo "## 🚀 Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Status" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend:** ${{ steps.backend-check.outputs.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend:** ${{ steps.frontend-check.outputs.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -n "${{ secrets.BACKEND_URL }}" ]; then
+            echo "### URLs" >> $GITHUB_STEP_SUMMARY
+            echo "- **Backend:** ${{ secrets.BACKEND_URL }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -n "${{ secrets.FRONTEND_URL }}" ]; then
+            echo "- **Frontend:** ${{ secrets.FRONTEND_URL }}" >> $GITHUB_STEP_SUMMARY
+          fi

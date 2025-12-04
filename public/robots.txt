@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://gnb-transfer.com/sitemap.xml
+
+# Disallow admin and private routes
+Disallow: /admin/
+Disallow: /driver/
+Disallow: /api/
+
+# Allow important pages
+Allow: /
+Allow: /tours
+Allow: /booking
+Allow: /blog
+Allow: /contact
+Allow: /reviews

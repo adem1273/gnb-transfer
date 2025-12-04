@@ -66,9 +66,33 @@
     "role": "Rol"
   },
   "liveChat": {
-    "title": "Soporte de chat en vivo",
-    "description": "¡Nuestro equipo está aquí para ayudar! Pregúntenos cualquier cosa sobre nuestros servicios.",
-    "messagePlaceholder": "Tu mensaje..."
+    "title": "Asistente IA",
+    "description": "¡Nuestro asistente con IA está aquí para ayudarte 24/7! Pregúntanos cualquier cosa sobre nuestros servicios.",
+    "messagePlaceholder": "Escribe tu mensaje...",
+    "send": "Enviar",
+    "sending": "Enviando...",
+    "modeQuestion": "Hacer una pregunta",
+    "modeBooking": "Gestionar reserva",
+    "selectMode": "¿Cómo puedo ayudarte?",
+    "aiTyping": "IA está escribiendo...",
+    "recommendedTours": "Tours recomendados",
+    "viewTour": "Ver tour",
+    "bookNow": "Reservar ahora",
+    "bookingManagement": "Gestión de reservas",
+    "bookingId": "ID de reserva",
+    "enterBookingId": "Ingrese su ID de reserva",
+    "checkStatus": "Verificar estado",
+    "cancelBooking": "Cancelar",
+    "modifyBooking": "Modificar",
+    "needHelp": "¿Necesitas ayuda humana?",
+    "createTicket": "Crear ticket de soporte",
+    "ticketCreated": "¡Ticket de soporte creado! Nuestro equipo se pondrá en contacto pronto.",
+    "errorOccurred": "Ocurrió un error. Por favor, inténtalo de nuevo.",
+    "upsellMessage": "También te puede gustar:",
+    "specialOffer": "¡Oferta especial para ti!",
+    "affiliateLink": "Saber más",
+    "poweredByAI": "Impulsado por IA",
+    "languageChanged": "Idioma cambiado correctamente"
   },
   "reviews": {
     "title": "Lo que dicen nuestros clientes",
@@ -89,5 +113,8 @@
     "discount": "Descuento",
     "isCampaign": "Campaña",
     "actions": "Acciones"
+  },
+  "delay": {
+    "slogan": "Si nos retrasamos, pagamos."
   }
 }

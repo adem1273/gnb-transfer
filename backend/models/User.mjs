@@ -1,8 +1,32 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
+
+/**
+ * User Model
+ *
+ * @module models/User
+ * @description Mongoose model for user authentication and management
+ *
+ * Security features:
+ * - Passwords are automatically hashed before saving using bcrypt
+ * - Email uniqueness is enforced at database level
+ * - Email is stored in lowercase for case-insensitive matching
+ * - Password validation requires minimum 8 characters with uppercase, lowercase, and number
+ * - Supports role-based access control (user, admin, driver)
+ *
+ * Pre-save hook:
+ * - Hashes password only when it's new or modified
+ * - Uses configurable salt rounds (default: 10)
+ *
+ * Instance methods:
+ * - comparePassword: Verifies plain text password against stored hash
+ */
 
 const SALT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
 
+/**
+ * User schema definition
+ */
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: [true, 'Name is required'], trim: true },
@@ -14,16 +38,88 @@ const userSchema = new mongoose.Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'],
     },
-    password: { type: String, required: [true, 'Password is required'], minlength: [6, 'Password must be at least 6 characters'] },
-    role: { type: String, enum: ['user', 'admin', 'driver'], default: 'user' },
+    password: {
+      type: String,
+      required: [true, 'Password is required'],
+      minlength: [8, 'Password must be at least 8 characters'],
+      validate: {
+        validator: function(v) {
+          // Skip validation if password is already hashed (starts with $2)
+          if (v.startsWith('$2')) return true;
+          // At least one uppercase, one lowercase, one number
+          return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(v);
+        },
+        message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+      }
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin', 'superadmin', 'manager', 'support', 'driver'],
+      default: 'user',
+    },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    isCorporate: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    corporateDetails: {
+      companyName: { type: String, trim: true },
+      taxNumber: { type: String, trim: true },
+      address: { type: String, trim: true },
+      contactPerson: { type: String, trim: true },
+      billingEmail: { type: String, trim: true },
+      paymentTerms: {
+        type: String,
+        enum: ['net15', 'net30', 'net60', 'prepaid'],
+        default: 'net30',
+      },
+      discount: { type: Number, default: 0, min: 0, max: 100 },
+      contractStartDate: { type: Date },
+      contractEndDate: { type: Date },
+      monthlyInvoicing: { type: Boolean, default: false },
+    },
+    preferences: {
+      language: { type: String, default: 'en' },
+      tourCategories: [{ type: String }],
+      priceRange: {
+        min: { type: Number, default: 0 },
+        max: { type: Number, default: 10000 },
+      },
+    },
+    interactionLogs: [
+      {
+        action: { type: String, required: true },
+        tourId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tour' },
+        timestamp: { type: Date, default: Date.now },
+        metadata: { type: mongoose.Schema.Types.Mixed },
+      },
+    ],
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );
 
-// Ensure email unique index
-userSchema.index({ email: 1 }, { unique: true });
+// Performance indexes
+userSchema.index({ email: 1 }); // Email lookup optimization (unique already creates index)
+userSchema.index({ role: 1 }); // Role-based queries
+userSchema.index({ 'preferences.language': 1 }); // Language-based filtering
 
-// Hash password before saving
+/**
+ * Pre-save middleware to hash password
+ *
+ * @description Automatically hashes password before saving to database
+ * Only runs when password is new or modified to avoid unnecessary hashing
+ *
+ * Security:
+ * - Uses bcrypt with configurable salt rounds (BCRYPT_ROUNDS env variable)
+ * - Salt rounds default to 10 if not specified
+ * - Higher salt rounds increase security but slow down hashing
+ */
 userSchema.pre('save', async function (next) {
   try {
     // Only hash if password is new or modified
@@ -36,7 +132,23 @@ userSchema.pre('save', async function (next) {
   }
 });
 
-// Helper to compare provided password with stored hash
+/**
+ * Instance method to compare password with stored hash
+ *
+ * @param {string} candidatePassword - Plain text password to verify
+ * @returns {Promise<boolean>} - True if password matches, false otherwise
+ *
+ * @example
+ * const user = await User.findOne({ email });
+ * const isValid = await user.comparePassword('plainTextPassword');
+ * if (isValid) {
+ *   // Password is correct
+ * }
+ *
+ * Security:
+ * - Uses bcrypt.compare which is timing-attack safe
+ * - Never exposes the stored hash
+ */
 userSchema.methods.comparePassword = function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

@@ -28,7 +28,8 @@
     "runCommand": "Run Command",
     "generateSuggestions": "Generate Suggestions",
     "submitting": "Submitting...",
-    "submitReview": "Submit Review"
+    "submitReview": "Submit Review",
+    "close": "Close"
   },
   "forms": {
     "fullName": "Full Name",
@@ -39,7 +40,34 @@
     "cash": "Cash on Arrival",
     "creditCard": "Credit Card (Online)",
     "login": "Login",
-    "register": "Register"
+    "register": "Register",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "phone": "Phone Number",
+    "phonePlaceholder": "+90 555 123 4567",
+    "guests": "Number of Guests",
+    "date": "Preferred Date",
+    "pickupLocation": "Pickup Location",
+    "pickupLocationPlaceholder": "Hotel name or address",
+    "notes": "Additional Notes",
+    "notesPlaceholder": "Special requests or questions",
+    "optional": "(Optional)"
+  },
+  "auth": {
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "sendResetLink": "Send Reset Link",
+    "backToLogin": "Back to Login",
+    "noAccount": "Don't have an account?",
+    "register": "Register",
+    "forgotPasswordDescription": "Enter your email address and we'll send you a link to reset your password.",
+    "resetPasswordDescription": "Enter your new password below."
+  },
+  "common": {
+    "loading": "Loading..."
   },
   "messages": {
     "allFieldsRequired": "All fields are required.",
@@ -51,14 +79,28 @@
     "loadToursFailed": "Failed to load tours.",
     "bookingFailed": "Booking failed. Please try again.",
     "bookingDescription": "Book your tour or transfer with GNB Transfer.",
-    "bookingKeywords": "GNB Transfer, Booking, Airport Transfer, Tours"
+    "bookingKeywords": "GNB Transfer, Booking, Airport Transfer, Tours",
+    "emailRequired": "Email is required.",
+    "forgotPasswordFailed": "Failed to send reset email. Please try again.",
+    "checkEmail": "Check Your Email",
+    "resetEmailSent": "If that email exists in our system, a password reset link has been sent. Please check your email.",
+    "passwordMinLength": "Password must be at least 6 characters.",
+    "passwordsDoNotMatch": "Passwords do not match.",
+    "resetPasswordFailed": "Failed to reset password. The link may be invalid or expired.",
+    "passwordResetSuccess": "Password Reset Successful!",
+    "redirectingToLogin": "Redirecting to login page...",
+    "invalidEmail": "Please enter a valid email address.",
+    "invalidPhone": "Please enter a valid phone number (at least 10 digits).",
+    "nameTooShort": "Name must be at least 2 characters.",
+    "invalidGuestCount": "Number of guests must be between 1 and 50."
   },
   "footer": {
     "allRightsReserved": "All rights reserved."
   },
   "tourCard": {
     "noHiddenFees": "No hidden fees.",
-    "onSale": "On Sale"
+    "onSale": "On Sale",
+    "createPackage": "Create Your Package"
   },
   "userTable": {
     "name": "Name",
@@ -66,9 +108,33 @@
     "role": "Role"
   },
   "liveChat": {
-    "title": "Live Chat Support",
-    "description": "Our team is here to help! Ask us anything about our services.",
-    "messagePlaceholder": "Your message..."
+    "title": "AI Assistant",
+    "description": "Our AI-powered assistant is here to help 24/7! Ask us anything about our services.",
+    "messagePlaceholder": "Type your message...",
+    "send": "Send",
+    "sending": "Sending...",
+    "modeQuestion": "Ask a Question",
+    "modeBooking": "Manage Booking",
+    "selectMode": "How can I help you?",
+    "aiTyping": "AI is typing...",
+    "recommendedTours": "Recommended Tours",
+    "viewTour": "View Tour",
+    "bookNow": "Book Now",
+    "bookingManagement": "Booking Management",
+    "bookingId": "Booking ID",
+    "enterBookingId": "Enter your booking ID",
+    "checkStatus": "Check Status",
+    "cancelBooking": "Cancel Booking",
+    "modifyBooking": "Modify Booking",
+    "needHelp": "Need human support?",
+    "createTicket": "Create Support Ticket",
+    "ticketCreated": "Support ticket created! Our team will contact you soon.",
+    "errorOccurred": "An error occurred. Please try again.",
+    "upsellMessage": "You might also like:",
+    "specialOffer": "Special offer just for you!",
+    "affiliateLink": "Learn more",
+    "poweredByAI": "Powered by AI",
+    "languageChanged": "Language changed successfully"
   },
   "reviews": {
     "title": "What Our Customers Say",
@@ -89,5 +155,55 @@
     "discount": "Discount",
     "isCampaign": "Campaign",
     "actions": "Actions"
+  },
+  "delay": {
+    "guarantee": "Delay Guarantee",
+    "lowRisk": "Low Risk",
+    "mediumRisk": "Medium Risk",
+    "highRisk": "High Risk",
+    "riskScore": "Risk Score",
+    "estimatedDelay": "Estimated Delay",
+    "minutes": "min",
+    "discountEarned": "Discount Earned!",
+    "copy": "Copy",
+    "discountInfo": "Use this code for your next booking due to potential delay",
+    "guaranteeInfo": "Our delay guarantee ensures you receive compensation if your transfer is delayed more than 15 minutes.",
+    "calculating": "Calculating delay guarantee...",
+    "slogan": "If we delay, we pay."
+  },
+  "package": {
+    "smartBundle": "Smart Package for You",
+    "recommendedTour": "Recommended Tour",
+    "whyThisTour": "Why this tour?",
+    "bundlePrice": "Bundle Price",
+    "savings": "Your Savings",
+    "packageIncludes": "Package Includes",
+    "transfer": "Airport Transfer",
+    "selectedTour": "Selected Tour Experience",
+    "autoDiscount": "Automatic 15% Discount Applied",
+    "prioritySupport": "Priority Customer Support",
+    "bookNow": "Book This Package",
+    "notNow": "Not Now",
+    "aiPowered": "AI-Powered",
+    "personalizedMessage": "Personalized based on your preferences",
+    "createPackage": "Create Your Package",
+    "creating": "Creating...",
+    "loginRequired": "Please login to create a package",
+    "error": "Failed to create package. Please try again.",
+    "bookingRedirect": "Redirecting to booking..."
+  },
+  "booking": {
+    "recommendations": "Recommended Tours",
+    "confirmed": "Booking Confirmed!",
+    "thankYou": "Thank you for your booking.",
+    "newBooking": "Make Another Booking"
+  },
+  "guarantees": {
+    "fixedPrice": "Fixed Price",
+    "noHiddenFees": "No hidden fees",
+    "freeCancellation": "Free Cancellation",
+    "cancellationPolicy": "Cancel up to 24h before",
+    "flightTracking": "Flight Tracking",
+    "weMonitor": "We monitor your flight"
   }
 }

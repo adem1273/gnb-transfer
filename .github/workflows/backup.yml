@@ -1,0 +1,263 @@
+name: Database Backup
+
+# Automated MongoDB database backup with 7-day retention policy
+# - GitHub Artifacts: 7 days retention (included)
+# - AWS S3: 30 days retention (optional, requires AWS configuration)
+# Run schedule: Daily at 3 AM UTC
+
+on:
+  schedule:
+    # Run daily backup at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch: # Allow manual trigger
+    inputs:
+      backup_type:
+        description: 'Type of backup'
+        required: false
+        default: 'scheduled'
+        type: choice
+        options:
+          - scheduled
+          - manual
+          - emergency
+
+permissions:
+  contents: read
+
+jobs:
+  backup-mongodb:
+    name: Backup MongoDB Database
+    runs-on: ubuntu-latest
+    if: secrets.MONGO_URI != ''
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install MongoDB tools
+        run: |
+          wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-database-tools
+
+      - name: Create backup directory
+        run: mkdir -p backup
+
+      - name: Generate backup filename
+        id: backup-file
+        run: |
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          BACKUP_FILE="gnb-transfer-backup-${TIMESTAMP}"
+          echo "filename=${BACKUP_FILE}" >> $GITHUB_OUTPUT
+          echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
+
+      - name: Perform MongoDB dump
+        run: |
+          mongodump --uri="${{ secrets.MONGO_URI }}" \
+            --out=backup/${{ steps.backup-file.outputs.filename }} \
+            --gzip \
+            --verbose
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+
+      - name: Create backup archive
+        run: |
+          cd backup
+          tar -czf ${{ steps.backup-file.outputs.filename }}.tar.gz ${{ steps.backup-file.outputs.filename }}
+          ls -lh
+
+      - name: Encrypt backup
+        if: secrets.BACKUP_ENCRYPTION_KEY != ''
+        run: |
+          cd backup
+          openssl enc -aes-256-cbc -salt -pbkdf2 \
+            -in ${{ steps.backup-file.outputs.filename }}.tar.gz \
+            -out ${{ steps.backup-file.outputs.filename }}.tar.gz.enc \
+            -pass pass:"${{ secrets.BACKUP_ENCRYPTION_KEY }}"
+          rm ${{ steps.backup-file.outputs.filename }}.tar.gz
+          ls -lh
+
+      - name: Upload to artifacts (short-term)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mongodb-backup-${{ steps.backup-file.outputs.timestamp }}
+          path: backup/${{ steps.backup-file.outputs.filename }}.tar.gz*
+          retention-days: 7
+
+      - name: Configure AWS credentials
+        if: secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Upload to S3
+        if: secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != ''
+        run: |
+          BACKUP_FILE=$(ls backup/*.tar.gz* | head -1)
+          aws s3 cp "$BACKUP_FILE" \
+            s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/$(basename "$BACKUP_FILE") \
+            --storage-class STANDARD_IA
+          echo "Backup uploaded to S3 successfully"
+
+      - name: Cleanup old S3 backups (keep last 30 days)
+        if: secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != ''
+        run: |
+          CUTOFF_DATE=$(date -d '30 days ago' +%Y%m%d)
+          aws s3 ls s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/ | while read -r line; do
+            BACKUP_DATE=$(echo "$line" | grep -oP 'gnb-transfer-backup-\K[0-9]{8}' || echo "99999999")
+            BACKUP_FILE=$(echo "$line" | awk '{print $4}')
+            if [ "$BACKUP_DATE" -lt "$CUTOFF_DATE" ] && [ -n "$BACKUP_FILE" ]; then
+              echo "Deleting old backup: $BACKUP_FILE"
+              aws s3 rm "s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/$BACKUP_FILE"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Verify backup integrity
+        run: |
+          BACKUP_FILE=$(ls backup/*.tar.gz* | head -1)
+          if [ -f "$BACKUP_FILE" ]; then
+            SIZE=$(stat -f%z "$BACKUP_FILE" 2>/dev/null || stat -c%s "$BACKUP_FILE")
+            if [ "$SIZE" -gt 1000 ]; then
+              echo "Backup verification passed: $SIZE bytes"
+              echo "backup_status=success" >> $GITHUB_OUTPUT
+            else
+              echo "Backup verification failed: file too small ($SIZE bytes)"
+              echo "backup_status=failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          else
+            echo "Backup file not found"
+            echo "backup_status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Send success notification
+        if: success() && secrets.SLACK_WEBHOOK_URL != ''
+        run: |
+          curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "✅ Database Backup Successful",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*GNB Transfer Database Backup Completed*\n\nThe scheduled database backup has completed successfully."
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Backup Type:* ${{ github.event.inputs.backup_type || 'scheduled' }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Timestamp:* ${{ steps.backup-file.outputs.timestamp }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Storage:* S3 + GitHub Artifacts"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Retention:* 30 days (S3), 7 days (Artifacts)"
+                    }
+                  ]
+                }
+              ]
+            }'
+
+      - name: Send failure notification
+        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+        run: |
+          curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "🚨 Database Backup Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*GNB Transfer Database Backup Failed*\n\nThe scheduled database backup has failed. Immediate attention required."
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Time:* '"$(date -u '+%Y-%m-%d %H:%M:%S UTC')"'"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Workflow:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }'
+
+  verify-backup:
+    name: Verify Backup Restoration
+    needs: backup-mongodb
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install MongoDB tools
+        run: |
+          wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-database-tools
+
+      - name: Download latest backup artifact
+        uses: actions/download-artifact@v6
+        with:
+          pattern: mongodb-backup-*
+          merge-multiple: true
+          path: verify-backup/
+
+      - name: Decrypt backup if encrypted
+        if: secrets.BACKUP_ENCRYPTION_KEY != ''
+        run: |
+          cd verify-backup
+          ENCRYPTED_FILE=$(ls *.enc | head -1)
+          if [ -n "$ENCRYPTED_FILE" ]; then
+            openssl enc -aes-256-cbc -d -pbkdf2 \
+              -in "$ENCRYPTED_FILE" \
+              -out "${ENCRYPTED_FILE%.enc}" \
+              -pass pass:"${{ secrets.BACKUP_ENCRYPTION_KEY }}"
+            rm "$ENCRYPTED_FILE"
+          fi
+
+      - name: Extract backup
+        run: |
+          cd verify-backup
+          tar -xzf *.tar.gz
+          ls -lah
+
+      - name: Verify backup structure
+        run: |
+          cd verify-backup
+          if [ -d "gnb-transfer-backup-"* ]; then
+            echo "Backup structure verified ✓"
+            find . -type f -name "*.bson.gz" | head -10
+          else
+            echo "Backup structure verification failed"
+            exit 1
+          fi

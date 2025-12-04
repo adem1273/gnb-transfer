@@ -66,9 +66,33 @@
     "role": "الدور"
   },
   "liveChat": {
-    "title": "دعم الدردشة المباشرة",
-    "description": "فريقنا هنا للمساعدة! اسألنا عن أي شيء بخصوص خدماتنا.",
-    "messagePlaceholder": "رسالتك..."
+    "title": "مساعد الذكاء الاصطناعي",
+    "description": "مساعدنا المدعوم بالذكاء الاصطناعي هنا لمساعدتك 24/7! اسألنا أي شيء عن خدماتنا.",
+    "messagePlaceholder": "اكتب رسالتك...",
+    "send": "إرسال",
+    "sending": "جاري الإرسال...",
+    "modeQuestion": "اطرح سؤال",
+    "modeBooking": "إدارة الحجز",
+    "selectMode": "كيف يمكنني مساعدتك؟",
+    "aiTyping": "الذكاء الاصطناعي يكتب...",
+    "recommendedTours": "الجولات الموصى بها",
+    "viewTour": "عرض الجولة",
+    "bookNow": "احجز الآن",
+    "bookingManagement": "إدارة الحجز",
+    "bookingId": "رقم الحجز",
+    "enterBookingId": "أدخل رقم حجزك",
+    "checkStatus": "تحقق من الحالة",
+    "cancelBooking": "إلغاء",
+    "modifyBooking": "تعديل",
+    "needHelp": "هل تحتاج إلى دعم بشري؟",
+    "createTicket": "إنشاء تذكرة دعم",
+    "ticketCreated": "تم إنشاء تذكرة الدعم! سيتصل بك فريقنا قريبًا.",
+    "errorOccurred": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+    "upsellMessage": "قد يعجبك أيضًا:",
+    "specialOffer": "عرض خاص لك!",
+    "affiliateLink": "معرفة المزيد",
+    "poweredByAI": "مدعوم بالذكاء الاصطناعي",
+    "languageChanged": "تم تغيير اللغة بنجاح"
   },
   "reviews": {
     "title": "ماذا يقول عملاؤنا",
@@ -89,5 +113,8 @@
     "discount": "الخصم",
     "isCampaign": "الحملة",
     "actions": "الإجراءات"
+  },
+  "delay": {
+    "slogan": "إذا تأخرنا، ندفع."
   }
 }

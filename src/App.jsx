@@ -1,38 +1,65 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
-import { I18nextProvider, useTranslation } from 'react-i18next'; // useTranslation eklendi
+import { I18nextProvider, useTranslation } from 'react-i18next';
 import i18n from './i18n';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import Sidebar from './components/Sidebar';
 import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Loading from './components/Loading';
-import LiveChat from './components/LiveChat';
-import Feedback from './components/Feedback';
 import ErrorMessage from './components/ErrorMessage';
-// (NOT: AdminLayout ve MainLayout importları kaldırıldı — yerel tanımlar dosyada mevcut)
- 
-// Genel Kullanıcı Sayfaları
-import Home from './pages/Home';
-import Tours from './pages/Tours';
-import Booking from './pages/Booking';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Blog from './pages/Blog';
-import BlogPost from './components/BlogPost';
-import StripePayment from './components/StripePayment';
-import Contact from './pages/Contact';
- 
-// Admin Paneli Sayfaları
-import AdminDashboard from './pages/Dashboard';
-import AdminBookings from './pages/Bookings';
-import AdminUsers from './pages/Users';
-import AIAdminPanel from './components/AIAdminPanel';
-import AIMarketingPanel from './components/AIMarketingPanel';
-import VehicleManagement from './pages/VehicleManagement';
-import DriverPanel from './pages/DriverPanel';
- 
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Eager load critical components
+import Header from './components/Header';
+import Footer from './components/Footer';
+import Sidebar from './components/Sidebar';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
+import PWAUpdatePrompt from './components/PWAUpdatePrompt';
+
+// Lazy load pages for better performance
+const Home = lazy(() => import('./pages/Home'));
+const Tours = lazy(() => import('./pages/Tours'));
+const Booking = lazy(() => import('./pages/Booking'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Blog = lazy(() => import('./pages/Blog'));
+const BlogPost = lazy(() => import('./components/BlogPost'));
+const Contact = lazy(() => import('./pages/Contact'));
+
+// Lazy load payment and admin components (heavy)
+const StripePayment = lazy(() => import('./components/StripePayment'));
+const AdminDashboard = lazy(() => import('./pages/Dashboard'));
+const AdminBookings = lazy(() => import('./pages/Bookings'));
+const AdminUsers = lazy(() => import('./pages/Users'));
+const AIAdminPanel = lazy(() => import('./components/AIAdminPanel'));
+const AIMarketingPanel = lazy(() => import('./components/AIMarketingPanel'));
+const VehicleManagement = lazy(() => import('./pages/VehicleManagement'));
+const DriverPanel = lazy(() => import('./pages/DriverPanel'));
+
+// Lazy load new admin panel features
+const ModuleManagement = lazy(() => import('./pages/ModuleManagement'));
+const CampaignRules = lazy(() => import('./pages/CampaignRules'));
+const AIInsights = lazy(() => import('./pages/AIInsights'));
+const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
+const CalendarView = lazy(() => import('./pages/CalendarView'));
+const ActivityLogs = lazy(() => import('./pages/ActivityLogs'));
+const FinancePanel = lazy(() => import('./pages/FinancePanel'));
+const CouponManagement = lazy(() => import('./pages/CouponManagement'));
+const ReferralProgram = lazy(() => import('./pages/ReferralProgram'));
+
+// Lazy load feature toggle management and new features
+const FeatureManagement = lazy(() => import('./pages/FeatureManagement'));
+const FleetTrackingDashboard = lazy(() => import('./pages/FleetTrackingDashboard'));
+const DriverPerformance = lazy(() => import('./pages/DriverPerformance'));
+const DelayCompensationPanel = lazy(() => import('./pages/DelayCompensationPanel'));
+const RevenueAnalytics = lazy(() => import('./pages/RevenueAnalytics'));
+const CorporateClients = lazy(() => import('./pages/CorporateClients'));
+
+// Lazy load optional components (only load when needed)
+const LiveChat = lazy(() => import('./components/LiveChat'));
+const Feedback = lazy(() => import('./components/Feedback'));
+const FAQBot = lazy(() => import('./components/FAQBot'));
  
 // Genel Kullanıcı Düzeni
 const MainLayout = () => {
@@ -58,7 +85,11 @@ const MainLayout = () => {
         </div>
       </main>
       <Footer />
-      <LiveChat />
+      <PWAInstallPrompt />
+      <PWAUpdatePrompt />
+      <Suspense fallback={null}>
+        <LiveChat />
+      </Suspense>
     </div>
   );
 };
@@ -83,41 +114,67 @@ const AdminLayout = () => {
  
 function App() {
   return (
-    <I18nextProvider i18n={i18n}>
-      <Router>
-        <AuthProvider>
-          <Routes>
-            {/* Ana Kullanıcı Rotaları */}
-            <Route path="/" element={<MainLayout />}> 
-              <Route index element={<Home />} />
-              <Route path="tours" element={<Tours />} />
-              <Route path="booking" element={<Booking />} />
-              <Route path="login" element={<Login />} />
-              <Route path="register" element={<Register />} />
-              <Route path="blog" element={<Blog />} />
-              <Route path="blog/:id" element={<BlogPost />} />
-              <Route path="payment" element={<StripePayment />} />
-              <Route path="reviews" element={<Feedback />} />
-              <Route path="contact" element={<Contact />} />
-            </Route>
+    <ErrorBoundary fallbackMessage="GNB Transfer application encountered an error. Please refresh the page.">
+      <I18nextProvider i18n={i18n}>
+        <Router>
+          <AuthProvider>
+            <Suspense fallback={<Loading />}>
+              <Routes>
+              {/* Ana Kullanıcı Rotaları */}
+              <Route path="/" element={<MainLayout />}> 
+                <Route index element={<Home />} />
+                <Route path="tours" element={<Tours />} />
+                <Route path="booking" element={<Booking />} />
+                <Route path="login" element={<Login />} />
+                <Route path="register" element={<Register />} />
+                <Route path="forgot-password" element={<ForgotPassword />} />
+                <Route path="reset-password/:token" element={<ResetPassword />} />
+                <Route path="blog" element={<Blog />} />
+                <Route path="blog/:id" element={<BlogPost />} />
+                <Route path="payment" element={<StripePayment />} />
+                <Route path="reviews" element={<Suspense fallback={<Loading />}><Feedback /></Suspense>} />
+                <Route path="contact" element={<Contact />} />
+                <Route path="faq" element={<Suspense fallback={<Loading />}><FAQBot /></Suspense>} />
+              </Route>
  
-            {/* Admin Paneli Rotaları (Korunmuş) */}
-            <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']}><AdminLayout /></PrivateRoute>}> 
-              <Route index element={<AdminDashboard />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="bookings" element={<AdminBookings />} />
-              <Route path="ai" element={<AIAdminPanel />} />
-              <Route path="marketing" element={<AIMarketingPanel />} />
-              <Route path="vehicles" element={<VehicleManagement />} />
-            </Route>
-            
-            {/* Sürücü Paneli Rotası */}
-            <Route path="/driver" element={<PrivateRoute allowedRoles={['driver']}><DriverPanel /></PrivateRoute>} />
-          </Routes>
+              {/* Admin Paneli Rotaları (Korunmuş) */}
+              <Route path="/admin" element={<PrivateRoute allowedRoles={['admin', 'manager']}><AdminLayout /></PrivateRoute>}> 
+                <Route index element={<AdminDashboard />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="bookings" element={<AdminBookings />} />
+                <Route path="ai" element={<AIAdminPanel />} />
+                <Route path="marketing" element={<AIMarketingPanel />} />
+                <Route path="vehicles" element={<VehicleManagement />} />
+                <Route path="modules" element={<ModuleManagement />} />
+                <Route path="campaigns" element={<CampaignRules />} />
+                <Route path="insights" element={<AIInsights />} />
+                <Route path="notifications" element={<NotificationSettings />} />
+                <Route path="calendar" element={<CalendarView />} />
+                <Route path="logs" element={<ActivityLogs />} />
+                <Route path="finance" element={<FinancePanel />} />
+                <Route path="coupons" element={<CouponManagement />} />
+                <Route path="referrals" element={<ReferralProgram />} />
+                
+                {/* Feature Toggle Management */}
+                <Route path="features" element={<FeatureManagement />} />
+                
+                {/* New Feature Toggle Routes */}
+                <Route path="fleet" element={<FleetTrackingDashboard />} />
+                <Route path="drivers/performance" element={<DriverPerformance />} />
+                <Route path="delay-compensation" element={<DelayCompensationPanel />} />
+                <Route path="analytics" element={<RevenueAnalytics />} />
+                <Route path="corporate" element={<CorporateClients />} />
+              </Route>
+              
+              {/* Sürücü Paneli Rotası */}
+              <Route path="/driver" element={<PrivateRoute allowedRoles={['driver']}><DriverPanel /></PrivateRoute>} />
+            </Routes>
+          </Suspense>
         </AuthProvider>
       </Router>
     </I18nextProvider>
+    </ErrorBoundary>
   );
 }
  
