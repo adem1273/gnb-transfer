@@ -12,7 +12,11 @@
     "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "lint": "eslint . --ext .mjs,.js,.ts",
     "lint:fix": "eslint . --ext .mjs,.js,.ts --fix",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed": "node scripts/seed.mjs",
+    "seed:users": "node scripts/seed.mjs --users",
+    "seed:tours": "node scripts/seed.mjs --tours",
+    "seed:reset": "node scripts/seed.mjs --reset"
   },
   "keywords": [
     "gnb",
