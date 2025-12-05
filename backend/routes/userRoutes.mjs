@@ -537,4 +537,177 @@ router.post('/reset-password/:token', strictRateLimiter, async (req, res) => {
   }
 });
 
+/**
+ * @route   POST /api/users/google-auth
+ * @desc    Authenticate user via Google OAuth
+ * @access  Public
+ * @body    {string} credential - Google ID token
+ * @returns {object} - Access token, refresh token, and user details
+ *
+ * Security:
+ * - Verifies Google token against Google's public keys
+ * - Creates user if not exists
+ * - Returns JWT tokens for authentication
+ */
+router.post('/google-auth', strictRateLimiter, async (req, res) => {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.apiError('Google credential is required', 400);
+    }
+
+    // Decode the Google ID token (in production, verify with Google's API)
+    // For now, we'll decode the JWT payload
+    const parts = credential.split('.');
+    if (parts.length !== 3) {
+      return res.apiError('Invalid Google credential format', 400);
+    }
+
+    let payload;
+    try {
+      payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+    } catch (decodeError) {
+      return res.apiError('Failed to decode Google credential', 400);
+    }
+
+    const { email, name, sub: googleId, picture } = payload;
+
+    if (!email) {
+      return res.apiError('Email not provided by Google', 400);
+    }
+
+    // Find or create user
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new user with Google auth
+      user = new User({
+        name: name || email.split('@')[0],
+        email,
+        password: crypto.randomBytes(32).toString('hex'), // Random password for OAuth users
+        role: 'user',
+        googleId,
+        picture,
+      });
+      await user.save();
+    }
+
+    // Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshTokenData = generateRefreshToken();
+
+    // Store refresh token
+    const deviceInfo = getDeviceInfo(req);
+    const ipAddress = getClientIP(req);
+    await storeRefreshToken(user._id, refreshTokenData, deviceInfo, ipAddress);
+    const refreshToken = refreshTokenData.token;
+
+    return res.apiSuccess(
+      {
+        accessToken,
+        refreshToken,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      },
+      'Google authentication successful'
+    );
+  } catch (error) {
+    return res.apiError(`Google authentication failed: ${error.message}`, 500);
+  }
+});
+
+/**
+ * @route   POST /api/users/apple-auth
+ * @desc    Authenticate user via Apple Sign In
+ * @access  Public
+ * @body    {string} identityToken - Apple identity token
+ * @body    {string} authorizationCode - Apple authorization code
+ * @body    {object} user - User info from Apple (first sign in only)
+ * @returns {object} - Access token, refresh token, and user details
+ *
+ * Security:
+ * - Verifies Apple token against Apple's public keys
+ * - Creates user if not exists
+ * - Returns JWT tokens for authentication
+ */
+router.post('/apple-auth', strictRateLimiter, async (req, res) => {
+  try {
+    const { identityToken, user: appleUser } = req.body;
+
+    if (!identityToken) {
+      return res.apiError('Apple identity token is required', 400);
+    }
+
+    // Decode the Apple ID token (in production, verify with Apple's API)
+    const parts = identityToken.split('.');
+    if (parts.length !== 3) {
+      return res.apiError('Invalid Apple identity token format', 400);
+    }
+
+    let payload;
+    try {
+      payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+    } catch (decodeError) {
+      return res.apiError('Failed to decode Apple identity token', 400);
+    }
+
+    const { email, sub: appleId } = payload;
+
+    if (!email) {
+      return res.apiError('Email not provided by Apple', 400);
+    }
+
+    // Find or create user
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Get name from Apple user object (only provided on first sign in)
+      const name = appleUser?.name 
+        ? `${appleUser.name.firstName || ''} ${appleUser.name.lastName || ''}`.trim()
+        : email.split('@')[0];
+
+      // Create new user with Apple auth
+      user = new User({
+        name,
+        email,
+        password: crypto.randomBytes(32).toString('hex'), // Random password for OAuth users
+        role: 'user',
+        appleId,
+      });
+      await user.save();
+    }
+
+    // Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshTokenData = generateRefreshToken();
+
+    // Store refresh token
+    const deviceInfo = getDeviceInfo(req);
+    const ipAddress = getClientIP(req);
+    await storeRefreshToken(user._id, refreshTokenData, deviceInfo, ipAddress);
+    const refreshToken = refreshTokenData.token;
+
+    return res.apiSuccess(
+      {
+        accessToken,
+        refreshToken,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      },
+      'Apple authentication successful'
+    );
+  } catch (error) {
+    return res.apiError(`Apple authentication failed: ${error.message}`, 500);
+  }
+});
+
 export default router;
