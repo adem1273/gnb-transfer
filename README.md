@@ -4,6 +4,59 @@ Bu proje, **GNB Transfer** için hazırlanmış, modern bir MERN (MongoDB, Expre
 
 ---
 
+## 🌍 Multi-Language Support / Çok Dilli Destek
+
+GNB Transfer supports 9 languages with complete translations:
+
+| Flag | Language | Code | Direction |
+|------|----------|------|-----------|
+| 🇹🇷 | Türkçe (Default) | tr | LTR |
+| 🇬🇧 | English | en | LTR |
+| 🇸🇦 | العربية (Arabic) | ar | RTL |
+| 🇷🇺 | Русский (Russian) | ru | LTR |
+| 🇩🇪 | Deutsch (German) | de | LTR |
+| 🇫🇷 | Français (French) | fr | LTR |
+| 🇪🇸 | Español (Spanish) | es | LTR |
+| 🇨🇳 | 简体中文 (Chinese) | zh | LTR |
+| 🇮🇷 | فارسی (Persian) | fa | RTL |
+
+### Language Features
+
+- **Auto-detection**: Automatically detects user's browser language
+- **Fallback to Turkish**: If language is not supported, defaults to Turkish
+- **RTL Support**: Full right-to-left support for Arabic and Persian
+- **Language Switcher**: Beautiful dropdown in header with flags
+- **Mobile Globe Button**: Floating language button on mobile devices
+- **Persistent Selection**: Language choice is saved in localStorage
+
+### Translation Files Structure
+
+```
+src/locales/
+├── tr/translation.json   # Turkish (default)
+├── en/translation.json   # English
+├── ar/translation.json   # Arabic (RTL)
+├── ru/translation.json   # Russian
+├── de/translation.json   # German
+├── fr/translation.json   # French
+├── es/translation.json   # Spanish
+├── zh/translation.json   # Chinese
+└── fa/translation.json   # Persian (RTL)
+```
+
+### Using Translations in Code
+
+```jsx
+import { useTranslation } from 'react-i18next';
+
+function MyComponent() {
+  const { t } = useTranslation();
+  return <h1>{t('home.welcome')}</h1>;
+}
+```
+
+---
+
 ## 🚀 Özellikler
 - **Tam Yığın Geliştirme:** React (Vite + Tailwind) ön yüz ve Express.js arka yüz.
 - **Güvenlik:** JWT tabanlı kimlik doğrulama, bcrypt ile şifre hash'leme ve admin yetkisi kontrolü.
@@ -11,6 +64,7 @@ Bu proje, **GNB Transfer** için hazırlanmış, modern bir MERN (MongoDB, Expre
 - **Veritabanı:** MongoDB, Mongoose ORM ile entegrasyon.
 - **Modern Tasarım:** Tailwind CSS ile tamamen mobil uyumlu ve duyarlı tasarım.
 - **Ödeme Entegrasyonu:** Stripe için temel ödeme akışı.
+- **Çok Dilli Destek:** 9 dil desteği (Türkçe, İngilizce, Arapça, Rusça, Almanca, Fransızca, İspanyolca, Çince, Farsça)
 
 ---
 

@@ -7,12 +7,14 @@
     "adminPanel": "Admin Panel",
     "login": "Login",
     "register": "Register",
-    "logout": "Logout"
+    "logout": "Logout",
+    "language": "Language"
   },
   "home": {
     "welcome": "Welcome to GNB Transfer",
     "slogan": "Reliable airport transfers and exciting tours across Turkey.",
     "bookNow": "Book Now",
+    "exploreTours": "Explore Tours",
     "whyChooseUsTitle": "Why Choose GNB Transfer?",
     "trustBadge1Title": "Professional Drivers",
     "trustBadge1Desc": "Our experienced and professional drivers ensure a safe and comfortable journey.",
@@ -21,7 +23,9 @@
     "trustBadge3Title": "24/7 Support",
     "trustBadge3Desc": "We are here for you around the clock, ready to assist with any questions or needs.",
     "servicesTitle": "Our Services",
-    "campaignsTitle": "Limited Time Offers!"
+    "campaignsTitle": "Limited Time Offers!",
+    "specialOffers": "Special Offers",
+    "mostPopularToursTitle": "Most Popular Tours"
   },
   "buttons": {
     "submit": "Submit",
@@ -29,7 +33,17 @@
     "generateSuggestions": "Generate Suggestions",
     "submitting": "Submitting...",
     "submitReview": "Submit Review",
-    "close": "Close"
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "refresh": "Refresh"
   },
   "forms": {
     "fullName": "Full Name",
@@ -67,7 +81,22 @@
     "resetPasswordDescription": "Enter your new password below."
   },
   "common": {
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "all": "All",
+    "none": "None",
+    "select": "Select",
+    "noData": "No data found",
+    "actions": "Actions"
   },
   "messages": {
     "allFieldsRequired": "All fields are required.",
@@ -77,6 +106,7 @@
     "invalidCredentials": "Invalid credentials.",
     "loginFailed": "Login failed.",
     "loadToursFailed": "Failed to load tours.",
+    "loadingTours": "Loading tours...",
     "bookingFailed": "Booking failed. Please try again.",
     "bookingDescription": "Book your tour or transfer with GNB Transfer.",
     "bookingKeywords": "GNB Transfer, Booking, Airport Transfer, Tours",
@@ -95,7 +125,19 @@
     "invalidGuestCount": "Number of guests must be between 1 and 50."
   },
   "footer": {
-    "allRightsReserved": "All rights reserved."
+    "allRightsReserved": "All rights reserved.",
+    "company": "Company",
+    "about": "About Us",
+    "careers": "Careers",
+    "contact": "Contact",
+    "services": "Services",
+    "airport": "Airport Transfer",
+    "support": "Support",
+    "faq": "FAQ",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "cookies": "Cookies",
+    "description": "Professional tourism and transfer services with excellent customer satisfaction."
   },
   "tourCard": {
     "noHiddenFees": "No hidden fees.",
@@ -205,5 +247,63 @@
     "cancellationPolicy": "Cancel up to 24h before",
     "flightTracking": "Flight Tracking",
     "weMonitor": "We monitor your flight"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "bookings": "Bookings",
+    "vehicles": "Vehicles",
+    "tours": "Tours",
+    "calendar": "Calendar View",
+    "insights": "AI Insights",
+    "campaigns": "Campaigns",
+    "fleet": "Fleet Tracking",
+    "driverPerformance": "Driver Performance",
+    "delayCompensation": "Delay Compensation",
+    "analytics": "Revenue Analytics",
+    "corporate": "Corporate Clients",
+    "finance": "Finance",
+    "coupons": "Coupons",
+    "referrals": "Referral Program",
+    "features": "Feature Toggles",
+    "modules": "Modules",
+    "notifications": "Notifications",
+    "logs": "Activity Logs",
+    "aiAdmin": "AI Admin",
+    "aiMarketing": "AI Marketing",
+    "main": "Main",
+    "newFeatures": "New Features",
+    "businessOps": "Business & Ops",
+    "settings": "Settings",
+    "aiTools": "AI Tools",
+    "totalRevenue": "Total Revenue",
+    "totalBookings": "Total Bookings",
+    "totalUsers": "Total Users",
+    "avgBookingValue": "Avg Booking Value",
+    "revenueTrend": "Revenue Trend",
+    "bookingStatus": "Booking Status",
+    "paymentMethods": "Payment Methods",
+    "topToursByRevenue": "Top Tours by Revenue",
+    "mostBookedTours": "Most Booked Tours",
+    "analyticsDashboard": "Analytics Dashboard",
+    "last7Days": "Last 7 Days",
+    "last30Days": "Last 30 Days",
+    "last90Days": "Last 90 Days",
+    "lastYear": "Last Year"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "How can we help you?",
+    "name": "Your Name",
+    "email": "Your Email",
+    "subject": "Subject",
+    "message": "Your Message",
+    "send": "Send Message",
+    "successMessage": "Your message has been sent successfully. We will get back to you soon.",
+    "errorMessage": "Failed to send message. Please try again."
+  },
+  "languageSwitcher": {
+    "selectLanguage": "Select Language",
+    "currentLanguage": "Current Language"
   }
 }
