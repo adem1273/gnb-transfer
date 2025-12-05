@@ -57,6 +57,68 @@ function MyComponent() {
 
 ---
 
+## 📝 Blog System - 40 Sales-Oriented Posts in 9 Languages
+
+GNB Transfer includes a fully multilingual, high-conversion, sales-oriented blog system with **40 ready-made posts** translated into all 9 supported languages (360 total articles).
+
+### Blog Features
+
+- **Full 9-Language Support**: Every post is available in TR, EN, AR (RTL), RU, DE, FR, ES, ZH, and FA (RTL)
+- **Rich Admin Panel**: Create, edit, and delete posts with multilingual editor
+- **SEO Optimized**: 
+  - JSON-LD Article structured data
+  - OpenGraph meta tags
+  - Twitter Cards
+  - Canonical URLs for each language
+  - Automatic reading time calculation
+- **Conversion-Focused**:
+  - Every post includes strong CTAs to booking page
+  - WhatsApp contact integration
+  - Pricing tables with discount codes
+  - 3+ internal links per post
+- **Modern Features**:
+  - Share buttons (WhatsApp, Twitter, Facebook, LinkedIn)
+  - Related posts suggestions
+  - Category filtering
+  - Pagination
+  - View tracking
+
+### Blog Post Categories
+
+| Category | Description |
+|----------|-------------|
+| transfer-prices | VIP transfer pricing guides |
+| destinations | Tourist destination guides |
+| services | Service features and options |
+| tips | Travel tips and advice |
+| news | Company news and updates |
+| promotions | Special offers and discounts |
+| seasonal | Seasonal content (holidays, festivals) |
+
+### Seeding Blog Posts
+
+To populate the database with 40 sample blog posts:
+
+```bash
+cd backend
+node scripts/seedBlogPosts.mjs
+```
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/blogs` | GET | List published posts with pagination |
+| `/api/blogs/slug/:slug` | GET | Get post by slug |
+| `/api/blogs/categories` | GET | List all categories |
+| `/api/blogs/feed/rss` | GET | RSS feed |
+| `/api/blogs/admin/all` | GET | Admin: all posts (auth required) |
+| `/api/blogs` | POST | Create post (auth required) |
+| `/api/blogs/:id` | PUT | Update post (auth required) |
+| `/api/blogs/:id` | DELETE | Delete post (auth required) |
+
+---
+
 ## 🚀 Özellikler
 - **Tam Yığın Geliştirme:** React (Vite + Tailwind) ön yüz ve Express.js arka yüz.
 - **Güvenlik:** JWT tabanlı kimlik doğrulama, bcrypt ile şifre hash'leme ve admin yetkisi kontrolü.
@@ -66,6 +128,7 @@ function MyComponent() {
 - **Ödeme Entegrasyonu:** Stripe için temel ödeme akışı.
 - **Sosyal Giriş:** Google ve Apple ile tek tıkla giriş desteği.
 - **📋 Bakanlık Uyumlu Yolcu Bilgileri:** Türkiye Ulaştırma Bakanlığı düzenlemelerine uygun yolcu adı toplama sistemi.
+- **📝 Blog Sistemi:** 9 dilde 40 satış odaklı blog yazısı ile SEO uyumlu blog sistemi.
 
 ---
 
