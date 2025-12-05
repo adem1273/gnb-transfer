@@ -49,3 +49,5 @@ Thumbs.db
 coverage/
 .nyc_output/
 dist/
+package-lock.json
+node_modules/

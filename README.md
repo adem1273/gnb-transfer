@@ -64,7 +64,34 @@ function MyComponent() {
 - **Veritabanı:** MongoDB, Mongoose ORM ile entegrasyon.
 - **Modern Tasarım:** Tailwind CSS ile tamamen mobil uyumlu ve duyarlı tasarım.
 - **Ödeme Entegrasyonu:** Stripe için temel ödeme akışı.
-- **Çok Dilli Destek:** 9 dil desteği (Türkçe, İngilizce, Arapça, Rusça, Almanca, Fransızca, İspanyolca, Çince, Farsça)
+- **Sosyal Giriş:** Google ve Apple ile tek tıkla giriş desteği.
+- **📋 Bakanlık Uyumlu Yolcu Bilgileri:** Türkiye Ulaştırma Bakanlığı düzenlemelerine uygun yolcu adı toplama sistemi.
+
+---
+
+## 🏛️ Ministry-Compliant Passenger Name Collection (Bakanlık Uyumlu)
+
+This application implements **Turkish Ministry of Transport** compliant passenger name collection for transfer services.
+
+### Legal Requirement
+> "Araca binecek TÜM yolcuların adı-soyadı" (Names of ALL passengers boarding the vehicle)
+
+### Features
+- **Dynamic passenger name fields** based on adult + child count
+- **Separate first name and last name inputs** for each passenger
+- **Minimum one passenger required** - cannot proceed without at least one name
+- **Beautiful Tailwind UI** with Add/Remove passenger buttons
+- **Data persisted to MongoDB** in the Booking document
+- **Visible in Admin Panel** with expandable booking details
+- **Ready for confirmation emails, WhatsApp messages, and PDF tickets**
+
+### Booking Form Enhancements
+- **Phone number with country code selector** (+90, +966, +971, etc.)
+- **Flight number field** (required for transfers)
+- **Adult / Child / Infant counters** with beautiful counter UI
+- **Extra services**: Child seat, Baby seat, Meet & Greet, VIP Lounge
+- **Real-time total price calculation** including all extras
+- **WhatsApp link generation** for easy customer contact
 
 ---
 
@@ -208,7 +235,30 @@ ACCESS_TOKEN_TTL=15m
 REFRESH_TOKEN_TTL=7d
 CORS_ORIGINS=https://your-frontend-domain.com
 MONGO_URI=your_mongodb_connection_string
+
+# Frontend (.env in root directory)
+VITE_API_URL=https://your-backend-domain.com/api
+
+# Social Login (Optional - for Google and Apple Sign-In)
+VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id
+VITE_APPLE_CLIENT_ID=your-apple-sign-in-client-id
 ```
+
+### Social Login Setup
+
+**Google Sign-In:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing
+3. Enable Google+ API
+4. Create OAuth 2.0 credentials
+5. Add your domain to authorized origins
+6. Set `VITE_GOOGLE_CLIENT_ID` in your `.env` file
+
+**Apple Sign-In:**
+1. Go to [Apple Developer Portal](https://developer.apple.com/)
+2. Create a Services ID for Sign In with Apple
+3. Configure your domain and return URLs
+4. Set `VITE_APPLE_CLIENT_ID` in your `.env` file
 
 ---
 

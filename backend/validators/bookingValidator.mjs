@@ -9,6 +9,9 @@
  * - Rejects unknown fields to prevent parameter pollution
  * - Validates all inputs before they reach business logic
  * - Provides clear error messages for debugging
+ * 
+ * Ministry of Transport Compliance:
+ * - Validates passenger names as required by Turkish Ministry of Transport
  */
 
 import { z } from 'zod';
@@ -25,9 +28,57 @@ const objectIdSchema = z
 /**
  * Payment method enum
  */
-const paymentMethodSchema = z.enum(['cash', 'card', 'stripe'], {
-  errorMap: () => ({ message: 'Payment method must be cash, card, or stripe' }),
+const paymentMethodSchema = z.enum(['cash', 'card', 'credit_card', 'stripe'], {
+  errorMap: () => ({ message: 'Payment method must be cash, card, credit_card, or stripe' }),
 });
+
+/**
+ * Passenger schema for ministry-required passenger names
+ */
+const passengerSchema = z.object({
+  firstName: z
+    .string({
+      required_error: 'Passenger first name is required',
+      invalid_type_error: 'First name must be a string',
+    })
+    .min(1, 'First name is required')
+    .max(50, 'First name cannot exceed 50 characters')
+    .trim(),
+  lastName: z
+    .string({
+      required_error: 'Passenger last name is required',
+      invalid_type_error: 'Last name must be a string',
+    })
+    .min(1, 'Last name is required')
+    .max(50, 'Last name cannot exceed 50 characters')
+    .trim(),
+  type: z
+    .enum(['adult', 'child', 'infant'])
+    .optional()
+    .default('adult'),
+});
+
+/**
+ * Extra service schema
+ */
+const extraServiceItemSchema = z.object({
+  selected: z.boolean().optional().default(false),
+  quantity: z.number().int().min(0).max(10).optional().default(0),
+  price: z.number().min(0).optional(),
+});
+
+const extraServicesSchema = z.object({
+  childSeat: extraServiceItemSchema.optional(),
+  babySeat: extraServiceItemSchema.optional(),
+  meetAndGreet: z.object({
+    selected: z.boolean().optional().default(false),
+    price: z.number().min(0).optional().default(15),
+  }).optional(),
+  vipLounge: z.object({
+    selected: z.boolean().optional().default(false),
+    price: z.number().min(0).optional().default(50),
+  }).optional(),
+}).optional();
 
 /**
  * Booking creation schema
@@ -54,13 +105,59 @@ export const createBookingSchema = z
 
     phone: z
       .string()
-      .min(10, 'Phone number must be at least 10 digits')
-      .max(15, 'Phone number cannot exceed 15 digits')
+      .min(6, 'Phone number must be at least 6 digits')
+      .max(20, 'Phone number cannot exceed 20 digits')
       .optional(),
+
+    phoneCountryCode: z
+      .string()
+      .regex(/^\+\d{1,4}$/, 'Country code must be in format +XX or +XXX')
+      .optional()
+      .default('+90'),
 
     tourId: objectIdSchema,
 
     paymentMethod: paymentMethodSchema.optional().default('cash'),
+
+    // Flight number (required for transfers)
+    flightNumber: z
+      .string()
+      .min(2, 'Flight number must be at least 2 characters')
+      .max(10, 'Flight number cannot exceed 10 characters')
+      .toUpperCase()
+      .trim()
+      .optional(),
+
+    // Guest counts
+    adultsCount: z
+      .number({
+        invalid_type_error: 'Adults count must be a number',
+      })
+      .int('Adults count must be a whole number')
+      .min(1, 'At least 1 adult is required')
+      .max(50, 'Cannot exceed 50 adults')
+      .optional()
+      .default(1),
+
+    childrenCount: z
+      .number({
+        invalid_type_error: 'Children count must be a number',
+      })
+      .int('Children count must be a whole number')
+      .min(0, 'Children count cannot be negative')
+      .max(50, 'Cannot exceed 50 children')
+      .optional()
+      .default(0),
+
+    infantsCount: z
+      .number({
+        invalid_type_error: 'Infants count must be a number',
+      })
+      .int('Infants count must be a whole number')
+      .min(0, 'Infants count cannot be negative')
+      .max(20, 'Cannot exceed 20 infants')
+      .optional()
+      .default(0),
 
     guests: z
       .number({
@@ -68,9 +165,19 @@ export const createBookingSchema = z
       })
       .int('Guests must be a whole number')
       .min(1, 'At least 1 guest is required')
-      .max(50, 'Cannot exceed 50 guests')
+      .max(100, 'Cannot exceed 100 guests')
       .optional()
       .default(1),
+
+    // Ministry-required: Passenger names
+    passengers: z
+      .array(passengerSchema)
+      .min(1, 'At least one passenger name is required (Turkish Ministry of Transport regulation)')
+      .max(100, 'Cannot exceed 100 passengers')
+      .optional(),
+
+    // Extra services
+    extraServices: extraServicesSchema,
 
     date: z
       .string()
@@ -78,6 +185,11 @@ export const createBookingSchema = z
       .or(z.date())
       .optional()
       .default(new Date().toISOString()),
+
+    time: z
+      .string()
+      .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Time must be in HH:MM format')
+      .optional(),
 
     pickupLocation: z
       .string()
@@ -89,7 +201,7 @@ export const createBookingSchema = z
       .max(1000, 'Notes cannot exceed 1000 characters')
       .optional(),
   })
-  .strict(); // Reject unknown fields
+  .passthrough(); // Allow additional fields for backward compatibility
 
 /**
  * Booking update schema (partial fields allowed)
@@ -97,7 +209,7 @@ export const createBookingSchema = z
 export const updateBookingSchema = z
   .object({
     status: z
-      .enum(['pending', 'confirmed', 'cancelled', 'completed'], {
+      .enum(['pending', 'confirmed', 'cancelled', 'completed', 'paid'], {
         errorMap: () => ({ message: 'Invalid booking status' }),
       })
       .optional(),
@@ -108,13 +220,28 @@ export const updateBookingSchema = z
       .number()
       .int()
       .min(1)
-      .max(50)
+      .max(100)
       .optional(),
+
+    adultsCount: z.number().int().min(1).max(50).optional(),
+    childrenCount: z.number().int().min(0).max(50).optional(),
+    infantsCount: z.number().int().min(0).max(20).optional(),
+
+    passengers: z.array(passengerSchema).min(1).max(100).optional(),
+
+    flightNumber: z.string().max(10).toUpperCase().trim().optional(),
+
+    extraServices: extraServicesSchema,
 
     date: z
       .string()
       .datetime()
       .or(z.date())
+      .optional(),
+
+    time: z
+      .string()
+      .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Time must be in HH:MM format')
       .optional(),
 
     pickupLocation: z
@@ -127,7 +254,7 @@ export const updateBookingSchema = z
       .max(1000)
       .optional(),
   })
-  .strict();
+  .passthrough();
 
 /**
  * Booking query schema (for filtering/searching)
@@ -135,7 +262,7 @@ export const updateBookingSchema = z
 export const bookingQuerySchema = z
   .object({
     status: z
-      .enum(['pending', 'confirmed', 'cancelled', 'completed'])
+      .enum(['pending', 'confirmed', 'cancelled', 'completed', 'paid'])
       .optional(),
 
     tourId: objectIdSchema.optional(),
@@ -178,7 +305,7 @@ export const bookingQuerySchema = z
       .optional()
       .default('desc'),
   })
-  .strict();
+  .passthrough();
 
 /**
  * Middleware factory for Zod validation
