@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import API from '../utils/api';
 import Loading from '../components/Loading';
-import ErrorMessage from '../components/ErrorMessage';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function PricingManagement() {
   const [activeTab, setActiveTab] = useState('routes');

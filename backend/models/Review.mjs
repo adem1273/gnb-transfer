@@ -6,6 +6,7 @@
  */
 
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -171,7 +172,6 @@ reviewSchema.statics.getDriverRating = async function (driverId) {
 
 // Generate review token
 reviewSchema.methods.generateReviewToken = function () {
-  const crypto = require('crypto');
   const token = crypto.randomBytes(32).toString('hex');
   this.reviewToken = token;
   this.tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days

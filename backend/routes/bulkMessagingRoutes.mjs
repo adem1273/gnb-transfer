@@ -148,8 +148,10 @@ router.post('/send-email', requireAuth(['admin']), async (req, res) => {
         };
 
         for (const [key, value] of Object.entries(replacements)) {
-          subject = subject.replace(new RegExp(key.replace(/[{}]/g, '\\$&'), 'g'), value);
-          content = content.replace(new RegExp(key.replace(/[{}]/g, '\\$&'), 'g'), value);
+          // Escape all special regex characters in the key to prevent ReDoS
+          const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          subject = subject.replace(new RegExp(escapedKey, 'g'), String(value));
+          content = content.replace(new RegExp(escapedKey, 'g'), String(value));
         }
 
         // Send email
@@ -236,9 +238,11 @@ router.post('/generate-whatsapp', requireAuth(['admin', 'manager']), async (req,
       };
 
       for (const [key, value] of Object.entries(replacements)) {
+        // Escape all special regex characters in the key to prevent ReDoS
+        const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         personalizedMessage = personalizedMessage.replace(
-          new RegExp(key.replace(/[{}]/g, '\\$&'), 'g'),
-          value
+          new RegExp(escapedKey, 'g'),
+          String(value)
         );
       }
 

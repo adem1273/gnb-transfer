@@ -69,6 +69,83 @@ function MyComponent() {
 
 ---
 
+## 🎯 Ultimate Admin Features (12 New Features)
+
+### 1. 💵 Dynamic Pricing & Services
+- **Full base price table** for airport ↔ district routes
+- **Extra services pricing** (child seat, meet & greet, VIP lounge, etc.)
+- **Seasonal multipliers** (e.g., summer ×1.2)
+- **Currency switcher** with manual exchange rates
+- **Night surcharge** configuration
+- **Tax rate** management
+
+### 2. 🚗 Drivers & Vehicles Management
+- Add/edit/delete drivers with full profiles
+- Vehicle assignment and availability toggle
+- Driver performance tracking
+- License and document management
+
+### 3. 📍 Live Booking Status Tracking
+- Statuses: Pending → Assigned → On Way → Picked Up → Completed / Cancelled
+- Admin manual status change
+- Real-time fleet tracking
+
+### 4. 📨 Bulk WhatsApp & Email Sender
+- Select multiple bookings
+- Template or custom message
+- WhatsApp link generation
+- Email bulk sending
+
+### 5. 📄 Invoice & PDF Generation
+- One-click PDF invoice
+- Company logo and passenger names
+- Turkish e-fatura fields
+- QR code support
+
+### 6. 📊 Income-Expense & Profit Dashboard
+- Monthly/yearly revenue tracking
+- Profit margin calculation
+- Payment method breakdown
+- Export to CSV/PDF
+
+### 7. 🏢 Corporate Client Panel
+- Company profiles with tax info
+- Discount percentages
+- Monthly invoicing
+- Booking statistics
+
+### 8. 🎁 Loyalty / Points System
+- Automatic points per transfer
+- 5th ride: 20% off
+- 10th ride: free (configurable)
+- Tier system (Bronze, Silver, Gold, Platinum)
+
+### 9. ⭐ Review & Rating System
+- Post-transfer auto email
+- Stars + comments
+- Homepage featured reviews
+- Admin response capability
+
+### 10. 🗺️ Live Vehicle Map Tracking
+- Real-time driver locations
+- Google Maps integration
+- Fleet overview dashboard
+
+### 11. 📝 Blog & SEO Content Manager
+- Add/edit/delete blog posts
+- Title, slug, content, featured image
+- SEO meta fields
+- Multi-language support
+- Category and tag management
+
+### 12. 📈 Ad Pixel & Conversion Tracking Dashboard
+- Google/Meta pixel integration
+- Campaign performance
+- Conversion tracking
+- Revenue attribution
+
+---
+
 ## 🏛️ Ministry-Compliant Passenger Name Collection (Bakanlık Uyumlu)
 
 This application implements **Turkish Ministry of Transport** compliant passenger name collection for transfer services.
@@ -221,6 +298,18 @@ This application implements comprehensive security measures for production deplo
 - `POST /api/v1/users/refresh` - Token refresh with rotation
 - `POST /api/v1/users/logout` - Token revocation and cleanup
 
+**New Admin API Endpoints:**
+- `GET/POST/PATCH/DELETE /api/v1/admin/base-pricing` - Route pricing management
+- `GET/POST/PATCH/DELETE /api/v1/admin/extra-services` - Extra services pricing
+- `GET/PATCH /api/v1/admin/settings` - Global settings (currency, pricing modifiers)
+- `GET/POST /api/v1/reviews` - Review management
+- `GET/POST/PATCH/DELETE /api/v1/blog` - Blog & SEO content
+- `GET/POST /api/v1/loyalty` - Loyalty points system
+- `GET/POST /api/v1/admin/messaging` - Bulk messaging
+- `GET /api/v1/invoices/:bookingId` - PDF invoice generation
+- `GET/POST /api/v1/tracking` - Ad pixel & conversion tracking
+- `GET /api/v1/admin/tracking/dashboard` - Ad tracking dashboard
+
 **Note:** All API endpoints are available with `/api/v1` prefix. Legacy `/api` endpoints are also supported for backward compatibility.
 
 For detailed security documentation, see `backend/SECURITY_API_DOCS.md`
@@ -274,6 +363,29 @@ The runbook covers:
 - Database operations
 - Security operations
 - Troubleshooting guide
+
+---
+
+## 🗄️ Database Collections
+
+The application uses the following MongoDB collections:
+
+### Core Collections
+- `users` - User accounts and authentication
+- `tours` - Tour/transfer listings
+- `bookings` - Customer bookings
+- `vehicles` - Fleet vehicles
+- `drivers` - Driver profiles
+
+### New Feature Collections
+- `basepricings` - Route pricing (airport ↔ district)
+- `extraservices` - Extra service pricing (child seat, VIP lounge, etc.)
+- `settings` - Global app settings (currency, pricing modifiers, seasonal multipliers)
+- `reviews` - Customer reviews and ratings
+- `blogposts` - Blog content for SEO
+- `loyaltypoints` - Customer loyalty points and rewards
+- `adtrackings` - Ad pixel and conversion tracking
+- `coupons` - Discount coupons
 
 ---
 
