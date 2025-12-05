@@ -27,6 +27,8 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./components/BlogPost'));
 const Contact = lazy(() => import('./pages/Contact'));
+const About = lazy(() => import('./pages/About'));
+const Services = lazy(() => import('./pages/Services'));
 
 // Lazy load payment and admin components (heavy)
 const StripePayment = lazy(() => import('./components/StripePayment'));
@@ -69,7 +71,7 @@ const AdTrackingDashboard = lazy(() => import('./pages/AdTrackingDashboard'));
 const LiveChat = lazy(() => import('./components/LiveChat'));
 const Feedback = lazy(() => import('./components/Feedback'));
 const FAQBot = lazy(() => import('./components/FAQBot'));
- 
+
 // Main User Layout
 const MainLayout = () => {
   const { t } = useTranslation();
@@ -103,12 +105,12 @@ const MainLayout = () => {
     </div>
   );
 };
- 
+
 // Admin Panel Layout
 const AdminLayout = () => {
   const { loading } = useAuth();
   if (loading) return <Loading />;
-  
+
   return (
     <div className="flex">
       <Sidebar />
@@ -121,7 +123,7 @@ const AdminLayout = () => {
     </div>
   );
 };
- 
+
 function App() {
   return (
     <ErrorBoundary fallbackMessage="GNB Transfer application encountered an error. Please refresh the page.">
@@ -195,5 +197,5 @@ function App() {
     </ErrorBoundary>
   );
 }
- 
+
 export default App;

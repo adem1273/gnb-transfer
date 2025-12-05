@@ -52,19 +52,16 @@ class ErrorBoundary extends React.Component {
                 />
               </svg>
             </div>
-            <h2 className="mt-6 text-2xl font-bold text-center text-gray-900">
-              Bir Hata Oluştu
-            </h2>
+            <h2 className="mt-6 text-2xl font-bold text-center text-gray-900">Bir Hata Oluştu</h2>
             <p className="mt-3 text-center text-gray-600">
-              {this.props.fallbackMessage || 'Sayfa yüklenirken bir sorun oluştu. Lütfen tekrar deneyin.'}
+              {this.props.fallbackMessage ||
+                'Sayfa yüklenirken bir sorun oluştu. Lütfen tekrar deneyin.'}
             </p>
-            
+
             {/* Development mode error details */}
             {isDevelopment && this.state.error && (
               <div className="mt-4 p-4 bg-gray-100 rounded-lg overflow-auto max-h-40">
-                <p className="text-sm font-mono text-red-600">
-                  {this.state.error.toString()}
-                </p>
+                <p className="text-sm font-mono text-red-600">{this.state.error.toString()}</p>
                 {this.state.errorInfo && (
                   <pre className="mt-2 text-xs text-gray-600 whitespace-pre-wrap">
                     {this.state.errorInfo.componentStack}

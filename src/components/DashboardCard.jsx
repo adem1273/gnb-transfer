@@ -6,28 +6,28 @@ function DashboardCard({ title, value, subtitle, trend, icon, color = 'blue' }) 
     blue: {
       bg: 'bg-blue-50',
       border: 'border-blue-200',
-      text: 'text-blue-600'
+      text: 'text-blue-600',
     },
     green: {
       bg: 'bg-green-50',
       border: 'border-green-200',
-      text: 'text-green-600'
+      text: 'text-green-600',
     },
     red: {
       bg: 'bg-red-50',
       border: 'border-red-200',
-      text: 'text-red-600'
+      text: 'text-red-600',
     },
     purple: {
       bg: 'bg-purple-50',
       border: 'border-purple-200',
-      text: 'text-purple-600'
+      text: 'text-purple-600',
     },
     yellow: {
       bg: 'bg-yellow-50',
       border: 'border-yellow-200',
-      text: 'text-yellow-600'
-    }
+      text: 'text-yellow-600',
+    },
   };
 
   const colors = colorClasses[color] || colorClasses.blue;
@@ -41,16 +41,44 @@ function DashboardCard({ title, value, subtitle, trend, icon, color = 'blue' }) 
           {subtitle && (
             <div className="mt-2 flex items-center text-sm">
               {trend === 'up' && (
-                <svg className="w-4 h-4 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                <svg
+                  className="w-4 h-4 text-green-500 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 10l7-7m0 0l7 7m-7-7v18"
+                  />
                 </svg>
               )}
               {trend === 'down' && (
-                <svg className="w-4 h-4 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                <svg
+                  className="w-4 h-4 text-red-500 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                  />
                 </svg>
               )}
-              <span className={trend === 'up' ? 'text-green-700' : trend === 'down' ? 'text-red-700' : 'text-gray-600'}>
+              <span
+                className={
+                  trend === 'up'
+                    ? 'text-green-700'
+                    : trend === 'down'
+                      ? 'text-red-700'
+                      : 'text-gray-600'
+                }
+              >
                 {subtitle}
               </span>
             </div>

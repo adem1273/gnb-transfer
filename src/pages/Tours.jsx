@@ -47,7 +47,7 @@ function Tours() {
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      result = result.filter(tour => {
+      result = result.filter((tour) => {
         if (selectedCategory === 'campaigns') return tour.isCampaign;
         if (selectedCategory === 'featured') return tour.isFeatured;
         return tour.category === selectedCategory;
@@ -56,7 +56,7 @@ function Tours() {
 
     // Filter by price
     if (priceRange !== 'all') {
-      result = result.filter(tour => {
+      result = result.filter((tour) => {
         const price = tour.price;
         if (priceRange === 'budget') return price < 50;
         if (priceRange === 'mid') return price >= 50 && price <= 150;
@@ -98,20 +98,23 @@ function Tours() {
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.5 }
+    transition: { duration: 0.5 },
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Helmet>
         <title>Tours - GNB Transfer</title>
-        <meta name="description" content="Explore our wide range of tours and transfer services in Turkey" />
+        <meta
+          name="description"
+          content="Explore our wide range of tours and transfer services in Turkey"
+        />
       </Helmet>
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-16">
         <div className="container mx-auto px-4">
-          <motion.h1 
+          <motion.h1
             className="text-4xl md:text-5xl font-bold mb-4"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -119,7 +122,7 @@ function Tours() {
           >
             {t('tours.title') || 'Explore Our Tours'}
           </motion.h1>
-          <motion.p 
+          <motion.p
             className="text-xl text-blue-100"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -132,7 +135,7 @@ function Tours() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Filter Section */}
-        <motion.div 
+        <motion.div
           className="bg-white rounded-xl shadow-md p-6 mb-8"
           variants={fadeInUp}
           initial="initial"
@@ -149,8 +152,10 @@ function Tours() {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.label}</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -183,8 +188,12 @@ function Tours() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="popular">{t('tours.filter.popular') || 'Most Popular'}</option>
-                <option value="price-low">{t('tours.filter.priceLow') || 'Price: Low to High'}</option>
-                <option value="price-high">{t('tours.filter.priceHigh') || 'Price: High to Low'}</option>
+                <option value="price-low">
+                  {t('tours.filter.priceLow') || 'Price: Low to High'}
+                </option>
+                <option value="price-high">
+                  {t('tours.filter.priceHigh') || 'Price: High to Low'}
+                </option>
                 <option value="name">{t('tours.filter.name') || 'Name (A-Z)'}</option>
               </select>
             </div>
@@ -193,40 +202,34 @@ function Tours() {
           {/* Results Count */}
           <div className="mt-4 pt-4 border-t border-gray-200">
             <p className="text-gray-600">
-              {t('tours.showing')} <span className="font-semibold">{filteredTours.length}</span> {t('tours.results')}
+              {t('tours.showing')} <span className="font-semibold">{filteredTours.length}</span>{' '}
+              {t('tours.results')}
             </p>
           </div>
         </motion.div>
 
         {/* Tours Grid */}
         {filteredTours.length > 0 ? (
-          <motion.div 
+          <motion.div
             className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
             initial="initial"
             animate="animate"
             variants={{
               animate: {
                 transition: {
-                  staggerChildren: 0.1
-                }
-              }
+                  staggerChildren: 0.1,
+                },
+              },
             }}
           >
             {filteredTours.map((tour) => (
-              <motion.div
-                key={tour._id}
-                variants={fadeInUp}
-              >
-                <TourCard 
-                  tour={tour} 
-                  showPackageButton={!!user}
-                  userId={user?._id}
-                />
+              <motion.div key={tour._id} variants={fadeInUp}>
+                <TourCard tour={tour} showPackageButton={!!user} userId={user?._id} />
               </motion.div>
             ))}
           </motion.div>
         ) : (
-          <motion.div 
+          <motion.div
             className="text-center py-16"
             variants={fadeInUp}
             initial="initial"

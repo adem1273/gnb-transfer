@@ -53,11 +53,18 @@ export const initClarity = (projectId) => {
   }
 
   // Load Clarity script
-  (function(c,l,a,r,i,t,y){
-    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-  })(window, document, "clarity", "script", projectId);
+  (function (c, l, a, r, i, t, y) {
+    c[a] =
+      c[a] ||
+      function () {
+        (c[a].q = c[a].q || []).push(arguments);
+      };
+    t = l.createElement(r);
+    t.async = 1;
+    t.src = 'https://www.clarity.ms/tag/' + i;
+    y = l.getElementsByTagName(r)[0];
+    y.parentNode.insertBefore(t, y);
+  })(window, document, 'clarity', 'script', projectId);
 
   console.log('Microsoft Clarity initialized');
 };
@@ -119,24 +126,30 @@ export const trackBookingComplete = (bookingId, tourName, tourPrice, paymentMeth
       transaction_id: bookingId,
       value: tourPrice,
       currency: 'EUR',
-      items: [{
-        item_id: bookingId,
-        item_name: tourName,
-        price: tourPrice,
-        quantity: 1,
-      }],
+      items: [
+        {
+          item_id: bookingId,
+          item_name: tourName,
+          price: tourPrice,
+          quantity: 1,
+        },
+      ],
       payment_type: paymentMethod,
     });
   }
 
   // Clarity
   if (isClarityLoaded()) {
-    window.clarity('set', 'booking_complete', JSON.stringify({
-      bookingId,
-      tourName,
-      tourPrice,
-      paymentMethod,
-    }));
+    window.clarity(
+      'set',
+      'booking_complete',
+      JSON.stringify({
+        bookingId,
+        tourName,
+        tourPrice,
+        paymentMethod,
+      })
+    );
   }
 
   console.log('Booking complete tracked:', { bookingId, tourName, tourPrice });

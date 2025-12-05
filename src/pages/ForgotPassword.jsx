@@ -67,13 +67,9 @@ function ForgotPassword() {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-green-800">
-                  {t('messages.checkEmail')}
-                </h3>
+                <h3 className="text-sm font-medium text-green-800">{t('messages.checkEmail')}</h3>
                 <div className="mt-2 text-sm text-green-700">
-                  <p>
-                    {t('messages.resetEmailSent')}
-                  </p>
+                  <p>{t('messages.resetEmailSent')}</p>
                 </div>
                 <div className="mt-4">
                   <Link
@@ -122,10 +118,7 @@ function ForgotPassword() {
             </div>
 
             <div className="text-center">
-              <Link
-                to="/login"
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
+              <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
                 {t('auth.backToLogin')}
               </Link>
             </div>

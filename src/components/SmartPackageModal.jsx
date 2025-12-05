@@ -107,7 +107,7 @@ function SmartPackageModal({ isOpen, onClose, packageData, onAccept }) {
           {/* AI Badge */}
           <div className="mt-4 text-center">
             <p className="text-xs text-gray-500">
-              <span className="font-semibold">🤖 {t('package.aiPowered', 'AI-Powered')}</span> - 
+              <span className="font-semibold">🤖 {t('package.aiPowered', 'AI-Powered')}</span> -
               {t('package.personalizedMessage', ' Personalized based on your preferences')}
             </p>
           </div>

@@ -137,9 +137,7 @@ function NotificationSettings() {
             <button
               onClick={() => handleToggle('bookingConfirmation')}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                settings.notificationSettings.bookingConfirmation
-                  ? 'bg-green-600'
-                  : 'bg-gray-300'
+                settings.notificationSettings.bookingConfirmation ? 'bg-green-600' : 'bg-gray-300'
               }`}
             >
               <span
@@ -167,9 +165,7 @@ function NotificationSettings() {
             >
               <span
                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  settings.notificationSettings.paymentReceived
-                    ? 'translate-x-6'
-                    : 'translate-x-1'
+                  settings.notificationSettings.paymentReceived ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
@@ -178,9 +174,7 @@ function NotificationSettings() {
           <div className="flex items-center justify-between p-4 border rounded hover:bg-gray-50">
             <div>
               <h4 className="text-lg font-semibold">Campaign Started</h4>
-              <p className="text-sm text-gray-600">
-                Notify users when a new campaign starts
-              </p>
+              <p className="text-sm text-gray-600">Notify users when a new campaign starts</p>
             </div>
             <button
               onClick={() => handleToggle('campaignStarted')}
@@ -190,9 +184,7 @@ function NotificationSettings() {
             >
               <span
                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  settings.notificationSettings.campaignStarted
-                    ? 'translate-x-6'
-                    : 'translate-x-1'
+                  settings.notificationSettings.campaignStarted ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>

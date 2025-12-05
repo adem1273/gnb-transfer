@@ -7,9 +7,9 @@ function FAQBot() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: 'Hello! I\'m your GNB Transfer assistant. How can I help you today?',
-      timestamp: new Date()
-    }
+      content: "Hello! I'm your GNB Transfer assistant. How can I help you today?",
+      timestamp: new Date(),
+    },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -45,16 +45,16 @@ function FAQBot() {
     const userMessage = {
       role: 'user',
       content: input,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setLoading(true);
 
     try {
       const response = await axios.post(`${API_URL}/faq/ask`, {
-        question: input
+        question: input,
       });
 
       const botMessage = {
@@ -62,18 +62,18 @@ function FAQBot() {
         content: response.data.data.answer,
         confidence: response.data.data.confidence,
         category: response.data.data.category,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, botMessage]);
+      setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error('FAQ bot error:', error);
       const errorMessage = {
         role: 'assistant',
         content: 'Sorry, I encountered an error. Please try again or contact support.',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setLoading(false);
     }
@@ -100,9 +100,7 @@ function FAQBot() {
           >
             <div
               className={`max-w-[70%] rounded-lg p-3 ${
-                message.role === 'user'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-100 text-gray-800'
+                message.role === 'user' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-800'
               }`}
             >
               <p className="text-sm">{message.content}</p>
@@ -112,9 +110,7 @@ function FAQBot() {
                 </div>
               )}
               {message.category && (
-                <div className="text-xs mt-1 opacity-75">
-                  Category: {message.category}
-                </div>
+                <div className="text-xs mt-1 opacity-75">Category: {message.category}</div>
               )}
             </div>
           </div>

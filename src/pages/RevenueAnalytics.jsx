@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+} from 'recharts';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -75,14 +86,16 @@ function RevenueAnalytics() {
               <h3 className="text-sm font-semibold opacity-90">Total Revenue</h3>
               <p className="text-3xl font-bold">${summary.totalRevenue.toFixed(2)}</p>
               <p className="text-xs mt-1">
-                {summary.revenueGrowth >= 0 ? '↑' : '↓'} {Math.abs(summary.revenueGrowth)}% vs prev period
+                {summary.revenueGrowth >= 0 ? '↑' : '↓'} {Math.abs(summary.revenueGrowth)}% vs prev
+                period
               </p>
             </div>
             <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg">
               <h3 className="text-sm font-semibold opacity-90">Total Bookings</h3>
               <p className="text-3xl font-bold">{summary.totalBookings}</p>
               <p className="text-xs mt-1">
-                {summary.bookingGrowth >= 0 ? '↑' : '↓'} {Math.abs(summary.bookingGrowth)}% vs prev period
+                {summary.bookingGrowth >= 0 ? '↑' : '↓'} {Math.abs(summary.bookingGrowth)}% vs prev
+                period
               </p>
             </div>
             <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-lg">
@@ -109,8 +122,20 @@ function RevenueAnalytics() {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} name="Revenue ($)" />
-                <Line type="monotone" dataKey="bookings" stroke="#10b981" strokeWidth={2} name="Bookings" />
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  name="Revenue ($)"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="bookings"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  name="Bookings"
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>

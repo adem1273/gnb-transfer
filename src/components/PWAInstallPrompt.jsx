@@ -12,10 +12,10 @@ function PWAInstallPrompt() {
     const handleBeforeInstallPrompt = (e) => {
       // Prevent the default mini-infobar from appearing
       e.preventDefault();
-      
+
       // Save the event for later use
       setDeferredPrompt(e);
-      
+
       // Show our custom install prompt
       setShowPrompt(true);
     };
@@ -62,10 +62,10 @@ function PWAInstallPrompt() {
   const wasDismissedRecently = () => {
     const dismissed = localStorage.getItem('pwa-install-dismissed');
     if (!dismissed) return false;
-    
+
     const dismissedTime = parseInt(dismissed, 10);
     const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
-    
+
     return Date.now() - dismissedTime < sevenDaysInMs;
   };
 
@@ -93,9 +93,7 @@ function PWAInstallPrompt() {
             </svg>
           </div>
           <div className="ml-3 flex-1">
-            <h3 className="text-sm font-medium text-gray-900">
-              Install GNB Transfer
-            </h3>
+            <h3 className="text-sm font-medium text-gray-900">Install GNB Transfer</h3>
             <p className="mt-1 text-sm text-gray-500">
               Install our app for quick access and offline support
             </p>

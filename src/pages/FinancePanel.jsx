@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import API from '../utils/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
@@ -13,7 +27,7 @@ function FinancePanel() {
   const [error, setError] = useState('');
   const [dateRange, setDateRange] = useState({
     startDate: '',
-    endDate: ''
+    endDate: '',
   });
 
   useEffect(() => {
@@ -29,7 +43,7 @@ function FinancePanel() {
 
       const [overviewRes, forecastRes] = await Promise.all([
         API.get(`/finance/overview?${params.toString()}`),
-        API.get('/finance/forecast?days=30')
+        API.get('/finance/forecast?days=30'),
       ]);
 
       setOverview(overviewRes.data.data);
@@ -57,8 +71,8 @@ function FinancePanel() {
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}${url}?${params.toString()}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
       });
 
       if (!response.ok) throw new Error('Export failed');
@@ -83,7 +97,7 @@ function FinancePanel() {
 
   const paymentMethodData = Object.entries(overview.paymentMethods || {}).map(([name, value]) => ({
     name,
-    value: Math.round(value * 100) / 100
+    value: Math.round(value * 100) / 100,
   }));
 
   return (
@@ -140,7 +154,9 @@ function FinancePanel() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-gradient-to-br from-purple-500 to-purple-700 text-white p-6 rounded-lg shadow-lg">
           <div className="text-sm opacity-90">Total Revenue</div>
-          <div className="text-3xl font-bold mt-2">${overview.summary.totalRevenue.toLocaleString()}</div>
+          <div className="text-3xl font-bold mt-2">
+            ${overview.summary.totalRevenue.toLocaleString()}
+          </div>
         </div>
         <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white p-6 rounded-lg shadow-lg">
           <div className="text-sm opacity-90">Total Bookings</div>
@@ -148,12 +164,18 @@ function FinancePanel() {
         </div>
         <div className="bg-gradient-to-br from-green-500 to-green-700 text-white p-6 rounded-lg shadow-lg">
           <div className="text-sm opacity-90">Estimated Profit</div>
-          <div className="text-3xl font-bold mt-2">${overview.summary.estimatedProfit.toLocaleString()}</div>
-          <div className="text-xs opacity-75 mt-1">{overview.summary.profitMargin.toFixed(1)}% margin</div>
+          <div className="text-3xl font-bold mt-2">
+            ${overview.summary.estimatedProfit.toLocaleString()}
+          </div>
+          <div className="text-xs opacity-75 mt-1">
+            {overview.summary.profitMargin.toFixed(1)}% margin
+          </div>
         </div>
         <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 text-white p-6 rounded-lg shadow-lg">
           <div className="text-sm opacity-90">Avg Booking Value</div>
-          <div className="text-3xl font-bold mt-2">${overview.summary.avgBookingValue.toFixed(2)}</div>
+          <div className="text-3xl font-bold mt-2">
+            ${overview.summary.avgBookingValue.toFixed(2)}
+          </div>
         </div>
       </div>
 
@@ -211,7 +233,9 @@ function FinancePanel() {
             </span>
           </h2>
           <div className="mb-4 p-3 bg-blue-50 rounded">
-            <p className="text-sm text-gray-700">{forecast.bookingForecast.analytics.interpretation}</p>
+            <p className="text-sm text-gray-700">
+              {forecast.bookingForecast.analytics.interpretation}
+            </p>
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={forecast.bookingForecast.forecast}>
@@ -220,7 +244,13 @@ function FinancePanel() {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="predictedBookings" stroke="#667eea" strokeWidth={2} name="Predicted Bookings" />
+              <Line
+                type="monotone"
+                dataKey="predictedBookings"
+                stroke="#667eea"
+                strokeWidth={2}
+                name="Predicted Bookings"
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>

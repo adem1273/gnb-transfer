@@ -67,11 +67,10 @@ function PWAUpdatePrompt() {
             </svg>
           </div>
           <div className="ml-3 flex-1">
-            <h3 className="text-sm font-medium text-gray-900">
-              Update Available
-            </h3>
+            <h3 className="text-sm font-medium text-gray-900">Update Available</h3>
             <p className="mt-1 text-sm text-gray-500">
-              A new version of GNB Transfer is available. Update now to get the latest features and improvements.
+              A new version of GNB Transfer is available. Update now to get the latest features and
+              improvements.
             </p>
             <div className="mt-3 flex space-x-3">
               <button

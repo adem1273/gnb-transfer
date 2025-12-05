@@ -43,9 +43,7 @@ function ResetPassword() {
       }, 3000);
     } catch (err) {
       console.error('Reset password error:', err);
-      setError(
-        err.response?.data?.error || t('messages.resetPasswordFailed')
-      );
+      setError(err.response?.data?.error || t('messages.resetPasswordFailed'));
     } finally {
       setLoading(false);
     }
@@ -103,10 +101,7 @@ function ResetPassword() {
             )}
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 {t('form.newPassword')}
               </label>
               <input
@@ -123,10 +118,7 @@ function ResetPassword() {
             </div>
 
             <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                 {t('form.confirmPassword')}
               </label>
               <input
@@ -153,10 +145,7 @@ function ResetPassword() {
             </div>
 
             <div className="text-center">
-              <Link
-                to="/login"
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
+              <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
                 {t('auth.backToLogin')}
               </Link>
             </div>

@@ -109,9 +109,7 @@ function DriverPerformance() {
                         <div className="text-sm text-gray-500">{driver.driverEmail}</div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-center font-semibold">
-                      {driver.totalBookings}
-                    </td>
+                    <td className="py-3 px-4 text-center font-semibold">{driver.totalBookings}</td>
                     <td className="py-3 px-4 text-center">{driver.completedBookings}</td>
                     <td className="py-3 px-4 text-center font-semibold text-green-600">
                       ${driver.revenue.toFixed(2)}
@@ -122,8 +120,8 @@ function DriverPerformance() {
                           driver.onTimeRate >= 90
                             ? 'bg-green-100 text-green-800'
                             : driver.onTimeRate >= 70
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
                         }`}
                       >
                         {driver.onTimeRate}%
@@ -133,9 +131,7 @@ function DriverPerformance() {
                       <div className="flex items-center justify-center">
                         <span className="text-yellow-500">⭐</span>
                         <span className="ml-1">{driver.averageRating.toFixed(1)}</span>
-                        <span className="text-xs text-gray-500 ml-1">
-                          ({driver.totalRatings})
-                        </span>
+                        <span className="text-xs text-gray-500 ml-1">({driver.totalRatings})</span>
                       </div>
                     </td>
                   </tr>

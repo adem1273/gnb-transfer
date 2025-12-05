@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements
-} from '@stripe/react-stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import API from '../utils/api';
 
 // Stripe public key'inizi .env dosyasından alın
@@ -30,7 +25,7 @@ const CheckoutForm = ({ bookingId }) => {
     try {
       // Örnek bir miktar gönderiliyor, bu gerçek uygulamada dinamik olmalı
       const { data: clientSecret } = await API.post('/create-payment-intent', {
-        amount: 5000 // 50.00 TL için 5000 kuruş
+        amount: 5000, // 50.00 TL için 5000 kuruş
       });
 
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {

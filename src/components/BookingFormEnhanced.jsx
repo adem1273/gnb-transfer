@@ -46,7 +46,7 @@ const EXTRA_SERVICES = {
 
 /**
  * Enhanced Booking Form with Ministry-compliant passenger name collection
- * 
+ *
  * Turkish Ministry of Transport Requirement:
  * All passenger names (first + last name) must be collected for transfer services.
  * At least one passenger name is required for booking.
@@ -54,7 +54,7 @@ const EXTRA_SERVICES = {
 function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -97,7 +97,7 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
   const extraServicesTotal = useMemo(() => {
     let total = 0;
     const { extraServices } = formData;
-    
+
     if (extraServices.childSeat.selected) {
       total += extraServices.childSeat.quantity * extraServices.childSeat.price;
     }
@@ -110,90 +110,106 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
     if (extraServices.vipLounge.selected) {
       total += extraServices.vipLounge.price;
     }
-    
+
     return total;
   }, [formData.extraServices]);
 
   // Calculate total price
   const calculatedPrice = useMemo(() => {
     const totalGuests = formData.adultsCount + formData.childrenCount + formData.infantsCount;
-    return Math.max(0, (basePrice * totalGuests) + extraServicesTotal - discount);
-  }, [basePrice, formData.adultsCount, formData.childrenCount, formData.infantsCount, extraServicesTotal, discount]);
+    return Math.max(0, basePrice * totalGuests + extraServicesTotal - discount);
+  }, [
+    basePrice,
+    formData.adultsCount,
+    formData.childrenCount,
+    formData.infantsCount,
+    extraServicesTotal,
+    discount,
+  ]);
 
   // Update passengers array when counts change
   useEffect(() => {
     const requiredPassengers = totalPassengerCount;
     const currentPassengers = [...formData.passengers];
-    
+
     // Add passengers if needed
     while (currentPassengers.length < requiredPassengers) {
       const newIndex = currentPassengers.length;
       const type = newIndex < formData.adultsCount ? 'adult' : 'child';
       currentPassengers.push({ firstName: '', lastName: '', type });
     }
-    
+
     // Remove passengers if needed
     while (currentPassengers.length > requiredPassengers && currentPassengers.length > 1) {
       currentPassengers.pop();
     }
-    
+
     // Update types
     currentPassengers.forEach((p, index) => {
       p.type = index < formData.adultsCount ? 'adult' : 'child';
     });
-    
-    setFormData(prev => ({ ...prev, passengers: currentPassengers }));
+
+    setFormData((prev) => ({ ...prev, passengers: currentPassengers }));
   }, [totalPassengerCount, formData.adultsCount]);
 
   // Validate discount code via backend API
-  const validateDiscountCode = useCallback(async (code, bookingAmount, tourId) => {
-    if (!code || !bookingAmount) {
-      return { valid: false, discountAmount: 0 };
-    }
-
-    setDiscountLoading(true);
-    setDiscountError('');
-
-    try {
-      const response = await API.post('/coupons/validate', {
-        code,
-        bookingAmount,
-        tourId
-      });
-      
-      if (response.data?.success && response.data?.data?.valid) {
-        return {
-          valid: true,
-          discountAmount: response.data.data.discountAmount || 0
-        };
+  const validateDiscountCode = useCallback(
+    async (code, bookingAmount, tourId) => {
+      if (!code || !bookingAmount) {
+        return { valid: false, discountAmount: 0 };
       }
-      return { valid: false, discountAmount: 0 };
-    } catch (error) {
-      let errorMessage;
-      const errorCode = error.response?.data?.error;
-      
-      if (error.response?.status === 404) {
-        errorMessage = t('booking.errors.codeNotFound') || 'Discount code not found';
-      } else if (typeof errorCode === 'string' && errorCode.includes('expired')) {
-        errorMessage = t('booking.errors.codeExpired') || 'This discount code has expired';
-      } else if (typeof errorCode === 'string' && errorCode.includes('limit')) {
-        errorMessage = t('booking.errors.codeLimitReached') || 'This discount code has reached its usage limit';
-      } else if (typeof errorCode === 'string' && errorCode.includes('minimum')) {
-        errorMessage = t('booking.errors.minimumNotMet') || 'Minimum purchase amount not met for this code';
-      } else {
-        errorMessage = (typeof errorCode === 'string' ? errorCode : '') || t('booking.errors.invalidDiscountCode') || 'Invalid discount code';
+
+      setDiscountLoading(true);
+      setDiscountError('');
+
+      try {
+        const response = await API.post('/coupons/validate', {
+          code,
+          bookingAmount,
+          tourId,
+        });
+
+        if (response.data?.success && response.data?.data?.valid) {
+          return {
+            valid: true,
+            discountAmount: response.data.data.discountAmount || 0,
+          };
+        }
+        return { valid: false, discountAmount: 0 };
+      } catch (error) {
+        let errorMessage;
+        const errorCode = error.response?.data?.error;
+
+        if (error.response?.status === 404) {
+          errorMessage = t('booking.errors.codeNotFound') || 'Discount code not found';
+        } else if (typeof errorCode === 'string' && errorCode.includes('expired')) {
+          errorMessage = t('booking.errors.codeExpired') || 'This discount code has expired';
+        } else if (typeof errorCode === 'string' && errorCode.includes('limit')) {
+          errorMessage =
+            t('booking.errors.codeLimitReached') ||
+            'This discount code has reached its usage limit';
+        } else if (typeof errorCode === 'string' && errorCode.includes('minimum')) {
+          errorMessage =
+            t('booking.errors.minimumNotMet') || 'Minimum purchase amount not met for this code';
+        } else {
+          errorMessage =
+            (typeof errorCode === 'string' ? errorCode : '') ||
+            t('booking.errors.invalidDiscountCode') ||
+            'Invalid discount code';
+        }
+
+        setDiscountError(errorMessage);
+        return { valid: false, discountAmount: 0 };
+      } finally {
+        setDiscountLoading(false);
       }
-      
-      setDiscountError(errorMessage);
-      return { valid: false, discountAmount: 0 };
-    } finally {
-      setDiscountLoading(false);
-    }
-  }, [t]);
+    },
+    [t]
+  );
 
   // Update base price when tour changes
   useEffect(() => {
-    const selectedTour = tours.find(tour => tour._id === formData.tourId);
+    const selectedTour = tours.find((tour) => tour._id === formData.tourId);
     if (selectedTour) {
       setBasePrice(selectedTour.price);
     } else {
@@ -218,38 +234,47 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
     } else {
       setDiscount(0);
     }
-  }, [formData.discountCode, formData.tourId, formData.adultsCount, formData.childrenCount, formData.infantsCount, basePrice, extraServicesTotal, validateDiscountCode]);
+  }, [
+    formData.discountCode,
+    formData.tourId,
+    formData.adultsCount,
+    formData.childrenCount,
+    formData.infantsCount,
+    basePrice,
+    extraServicesTotal,
+    validateDiscountCode,
+  ]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     if (type === 'checkbox') {
-      setFormData(prev => ({ ...prev, [name]: checked }));
+      setFormData((prev) => ({ ...prev, [name]: checked }));
     } else if (type === 'number') {
-      setFormData(prev => ({ ...prev, [name]: parseInt(value, 10) || 0 }));
+      setFormData((prev) => ({ ...prev, [name]: parseInt(value, 10) || 0 }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
-    
+
     // Clear error for this field
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
   const handlePassengerChange = (index, field, value) => {
     const newPassengers = [...formData.passengers];
     newPassengers[index] = { ...newPassengers[index], [field]: value };
-    setFormData(prev => ({ ...prev, passengers: newPassengers }));
-    
+    setFormData((prev) => ({ ...prev, passengers: newPassengers }));
+
     // Clear passenger errors
     if (errors.passengers) {
-      setErrors(prev => ({ ...prev, passengers: '' }));
+      setErrors((prev) => ({ ...prev, passengers: '' }));
     }
   };
 
   const handleExtraServiceChange = (service, field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       extraServices: {
         ...prev.extraServices,
@@ -262,15 +287,15 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
   };
 
   const handleGuestCountChange = (type, delta) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const currentValue = prev[type];
       let newValue = Math.max(type === 'adultsCount' ? 1 : 0, currentValue + delta);
-      
+
       // Max limits
       if (type === 'adultsCount') newValue = Math.min(newValue, 50);
       if (type === 'childrenCount') newValue = Math.min(newValue, 50);
       if (type === 'infantsCount') newValue = Math.min(newValue, 20);
-      
+
       return { ...prev, [type]: newValue };
     });
   };
@@ -278,7 +303,7 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
   const addPassenger = () => {
     if (formData.passengers.length < 100) {
       const type = formData.passengers.length < formData.adultsCount ? 'adult' : 'child';
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         passengers: [...prev.passengers, { firstName: '', lastName: '', type }],
       }));
@@ -287,7 +312,7 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
 
   const removePassenger = (index) => {
     if (formData.passengers.length > 1) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         passengers: prev.passengers.filter((_, i) => i !== index),
       }));
@@ -299,9 +324,12 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
     const phoneRegex = /^[\d\s\-()]+$/;
 
     if (step === 1) {
-      if (!formData.name.trim()) newErrors.name = t('booking.errors.nameRequired') || 'Name is required';
-      if (!formData.email.trim()) newErrors.email = t('booking.errors.emailRequired') || 'Email is required';
-      if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = t('booking.errors.emailInvalid') || 'Email is invalid';
+      if (!formData.name.trim())
+        newErrors.name = t('booking.errors.nameRequired') || 'Name is required';
+      if (!formData.email.trim())
+        newErrors.email = t('booking.errors.emailRequired') || 'Email is required';
+      if (!/\S+@\S+\.\S+/.test(formData.email))
+        newErrors.email = t('booking.errors.emailInvalid') || 'Email is invalid';
       if (!formData.phone.trim()) {
         newErrors.phone = t('booking.errors.phoneRequired') || 'Phone is required';
       } else {
@@ -311,19 +339,28 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
         }
       }
     } else if (step === 2) {
-      if (!formData.tourId) newErrors.tourId = t('booking.errors.tourRequired') || 'Please select a tour';
+      if (!formData.tourId)
+        newErrors.tourId = t('booking.errors.tourRequired') || 'Please select a tour';
       if (!formData.date) newErrors.date = t('booking.errors.dateRequired') || 'Date is required';
       if (!formData.time) newErrors.time = t('booking.errors.timeRequired') || 'Time is required';
-      if (!formData.flightNumber.trim()) newErrors.flightNumber = t('booking.errors.flightRequired') || 'Flight number is required';
-      if (!formData.pickupLocation.trim()) newErrors.pickupLocation = t('booking.errors.locationRequired') || 'Pickup location is required';
+      if (!formData.flightNumber.trim())
+        newErrors.flightNumber = t('booking.errors.flightRequired') || 'Flight number is required';
+      if (!formData.pickupLocation.trim())
+        newErrors.pickupLocation =
+          t('booking.errors.locationRequired') || 'Pickup location is required';
     } else if (step === 3) {
       // Validate passengers (Ministry requirement)
-      const hasEmptyPassenger = formData.passengers.some(p => !p.firstName.trim() || !p.lastName.trim());
+      const hasEmptyPassenger = formData.passengers.some(
+        (p) => !p.firstName.trim() || !p.lastName.trim()
+      );
       if (hasEmptyPassenger) {
-        newErrors.passengers = t('booking.errors.passengersRequired') || 'All passenger names are required (Ministry regulation)';
+        newErrors.passengers =
+          t('booking.errors.passengersRequired') ||
+          'All passenger names are required (Ministry regulation)';
       }
       if (formData.passengers.length === 0) {
-        newErrors.passengers = t('booking.errors.atLeastOnePassenger') || 'At least one passenger name is required';
+        newErrors.passengers =
+          t('booking.errors.atLeastOnePassenger') || 'At least one passenger name is required';
       }
     }
 
@@ -333,12 +370,12 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
 
   const nextStep = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+      setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
     }
   };
 
   const prevStep = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
   const handleSubmit = (e) => {
@@ -358,17 +395,35 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
   const stepVariants = {
     enter: { x: 100, opacity: 0 },
     center: { x: 0, opacity: 1 },
-    exit: { x: -100, opacity: 0 }
+    exit: { x: -100, opacity: 0 },
   };
 
   // Counter component for guests with proper accessibility
   const CounterInput = ({ label, value, onIncrease, onDecrease, min = 0, icon }) => (
-    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg" role="group" aria-label={label}>
+    <div
+      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+      role="group"
+      aria-label={label}
+    >
       <div className="flex items-center gap-2">
-        <span className="text-xl" aria-hidden="true">{icon}</span>
-        <span className="font-medium text-gray-700" id={`counter-label-${label.replace(/\s+/g, '-').toLowerCase()}`}>{label}</span>
+        <span className="text-xl" aria-hidden="true">
+          {icon}
+        </span>
+        <span
+          className="font-medium text-gray-700"
+          id={`counter-label-${label.replace(/\s+/g, '-').toLowerCase()}`}
+        >
+          {label}
+        </span>
       </div>
-      <div className="flex items-center gap-3" role="spinbutton" aria-valuenow={value} aria-valuemin={min} aria-valuemax={100} aria-labelledby={`counter-label-${label.replace(/\s+/g, '-').toLowerCase()}`}>
+      <div
+        className="flex items-center gap-3"
+        role="spinbutton"
+        aria-valuenow={value}
+        aria-valuemin={min}
+        aria-valuemax={100}
+        aria-labelledby={`counter-label-${label.replace(/\s+/g, '-').toLowerCase()}`}
+      >
         <button
           type="button"
           onClick={onDecrease}
@@ -376,23 +431,37 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
           aria-label={`Decrease ${label}`}
           aria-disabled={value <= min}
           className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-            value <= min 
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+            value <= min
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
               : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
           }`}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
           </svg>
         </button>
-        <span className="w-8 text-center font-semibold text-lg" aria-live="polite">{value}</span>
+        <span className="w-8 text-center font-semibold text-lg" aria-live="polite">
+          {value}
+        </span>
         <button
           type="button"
           onClick={onIncrease}
           aria-label={`Increase ${label}`}
           className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
         </button>
@@ -414,19 +483,24 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                   }`}
                   initial={{ scale: 0.8 }}
                   animate={{ scale: currentStep === step ? 1.1 : 1 }}
-                  transition={{ type: "spring", stiffness: 300 }}
+                  transition={{ type: 'spring', stiffness: 300 }}
                 >
                   {currentStep > step ? '✓' : step}
                 </motion.div>
                 <span className="text-xs mt-2 text-gray-600 absolute -bottom-6 whitespace-nowrap hidden md:block">
-                  {step === 1 ? t('booking.step1') || 'Contact' : 
-                   step === 2 ? t('booking.step2') || 'Details' : 
-                   step === 3 ? t('booking.step3Passengers') || 'Passengers' :
-                   t('booking.step4') || 'Review'}
+                  {step === 1
+                    ? t('booking.step1') || 'Contact'
+                    : step === 2
+                      ? t('booking.step2') || 'Details'
+                      : step === 3
+                        ? t('booking.step3Passengers') || 'Passengers'
+                        : t('booking.step4') || 'Review'}
                 </span>
               </div>
               {step < totalSteps && (
-                <div className={`flex-1 h-1 mx-1 md:mx-2 ${currentStep > step ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                <div
+                  className={`flex-1 h-1 mx-1 md:mx-2 ${currentStep > step ? 'bg-blue-600' : 'bg-gray-200'}`}
+                />
               )}
             </div>
           ))}
@@ -448,7 +522,7 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
               <h2 className="text-xl md:text-2xl font-bold mb-6 text-gray-800">
                 {t('booking.personalInfo') || 'Contact Information'}
               </h2>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -487,7 +561,7 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                 {/* Phone with Country Code */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('booking.phone') || 'Phone Number'} * 
+                    {t('booking.phone') || 'Phone Number'} *
                     <span className="text-gray-500 text-xs ml-1">(WhatsApp)</span>
                   </label>
                   <div className="flex gap-2">
@@ -533,7 +607,7 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
               <h2 className="text-xl md:text-2xl font-bold mb-6 text-gray-800">
                 {t('booking.tourDetails') || 'Transfer Details'}
               </h2>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -548,7 +622,7 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                     }`}
                   >
                     <option value="">{t('booking.chooseTour') || 'Choose a service...'}</option>
-                    {tours.map(tour => (
+                    {tours.map((tour) => (
                       <option key={tour._id} value={tour._id}>
                         {tour.title} - ${tour.price}
                       </option>
@@ -573,7 +647,9 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                     placeholder="TK 1234"
                     maxLength={10}
                   />
-                  {errors.flightNumber && <p className="text-red-500 text-sm mt-1">{errors.flightNumber}</p>}
+                  {errors.flightNumber && (
+                    <p className="text-red-500 text-sm mt-1">{errors.flightNumber}</p>
+                  )}
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
@@ -625,7 +701,9 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                     }`}
                     placeholder={t('booking.locationPlaceholder') || 'Hotel name or address'}
                   />
-                  {errors.pickupLocation && <p className="text-red-500 text-sm mt-1">{errors.pickupLocation}</p>}
+                  {errors.pickupLocation && (
+                    <p className="text-red-500 text-sm mt-1">{errors.pickupLocation}</p>
+                  )}
                 </div>
 
                 {/* Guest Counters */}
@@ -662,28 +740,42 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('booking.extraServices') || 'Extra Services'}
                   </label>
-                  
+
                   {/* Child Seat */}
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
                         checked={formData.extraServices.childSeat.selected}
-                        onChange={(e) => handleExtraServiceChange('childSeat', 'selected', e.target.checked)}
+                        onChange={(e) =>
+                          handleExtraServiceChange('childSeat', 'selected', e.target.checked)
+                        }
                         className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                       />
                       <span className="text-xl">{EXTRA_SERVICES.childSeat.icon}</span>
-                      <span className="font-medium text-gray-700">{t('booking.childSeat') || 'Child Seat'}</span>
-                      <span className="text-sm text-green-600">(+${EXTRA_SERVICES.childSeat.price}/ea)</span>
+                      <span className="font-medium text-gray-700">
+                        {t('booking.childSeat') || 'Child Seat'}
+                      </span>
+                      <span className="text-sm text-green-600">
+                        (+${EXTRA_SERVICES.childSeat.price}/ea)
+                      </span>
                     </div>
                     {formData.extraServices.childSeat.selected && (
                       <select
                         value={formData.extraServices.childSeat.quantity}
-                        onChange={(e) => handleExtraServiceChange('childSeat', 'quantity', parseInt(e.target.value, 10))}
+                        onChange={(e) =>
+                          handleExtraServiceChange(
+                            'childSeat',
+                            'quantity',
+                            parseInt(e.target.value, 10)
+                          )
+                        }
                         className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
                       >
-                        {[1, 2, 3, 4, 5].map(n => (
-                          <option key={n} value={n}>{n}</option>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
                         ))}
                       </select>
                     )}
@@ -695,21 +787,35 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                       <input
                         type="checkbox"
                         checked={formData.extraServices.babySeat.selected}
-                        onChange={(e) => handleExtraServiceChange('babySeat', 'selected', e.target.checked)}
+                        onChange={(e) =>
+                          handleExtraServiceChange('babySeat', 'selected', e.target.checked)
+                        }
                         className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                       />
                       <span className="text-xl">{EXTRA_SERVICES.babySeat.icon}</span>
-                      <span className="font-medium text-gray-700">{t('booking.babySeat') || 'Baby Seat'}</span>
-                      <span className="text-sm text-green-600">(+${EXTRA_SERVICES.babySeat.price}/ea)</span>
+                      <span className="font-medium text-gray-700">
+                        {t('booking.babySeat') || 'Baby Seat'}
+                      </span>
+                      <span className="text-sm text-green-600">
+                        (+${EXTRA_SERVICES.babySeat.price}/ea)
+                      </span>
                     </div>
                     {formData.extraServices.babySeat.selected && (
                       <select
                         value={formData.extraServices.babySeat.quantity}
-                        onChange={(e) => handleExtraServiceChange('babySeat', 'quantity', parseInt(e.target.value, 10))}
+                        onChange={(e) =>
+                          handleExtraServiceChange(
+                            'babySeat',
+                            'quantity',
+                            parseInt(e.target.value, 10)
+                          )
+                        }
                         className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
                       >
-                        {[1, 2, 3, 4, 5].map(n => (
-                          <option key={n} value={n}>{n}</option>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
                         ))}
                       </select>
                     )}
@@ -720,12 +826,18 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                     <input
                       type="checkbox"
                       checked={formData.extraServices.meetAndGreet.selected}
-                      onChange={(e) => handleExtraServiceChange('meetAndGreet', 'selected', e.target.checked)}
+                      onChange={(e) =>
+                        handleExtraServiceChange('meetAndGreet', 'selected', e.target.checked)
+                      }
                       className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                     />
                     <span className="text-xl ml-2">{EXTRA_SERVICES.meetAndGreet.icon}</span>
-                    <span className="font-medium text-gray-700 ml-2">{t('booking.meetAndGreet') || 'Meet & Greet'}</span>
-                    <span className="text-sm text-green-600 ml-2">(+${EXTRA_SERVICES.meetAndGreet.price})</span>
+                    <span className="font-medium text-gray-700 ml-2">
+                      {t('booking.meetAndGreet') || 'Meet & Greet'}
+                    </span>
+                    <span className="text-sm text-green-600 ml-2">
+                      (+${EXTRA_SERVICES.meetAndGreet.price})
+                    </span>
                   </div>
 
                   {/* VIP Lounge */}
@@ -733,12 +845,18 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                     <input
                       type="checkbox"
                       checked={formData.extraServices.vipLounge.selected}
-                      onChange={(e) => handleExtraServiceChange('vipLounge', 'selected', e.target.checked)}
+                      onChange={(e) =>
+                        handleExtraServiceChange('vipLounge', 'selected', e.target.checked)
+                      }
                       className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                     />
                     <span className="text-xl ml-2">{EXTRA_SERVICES.vipLounge.icon}</span>
-                    <span className="font-medium text-gray-700 ml-2">{t('booking.vipLounge') || 'VIP Lounge Access'}</span>
-                    <span className="text-sm text-green-600 ml-2">(+${EXTRA_SERVICES.vipLounge.price})</span>
+                    <span className="font-medium text-gray-700 ml-2">
+                      {t('booking.vipLounge') || 'VIP Lounge Access'}
+                    </span>
+                    <span className="text-sm text-green-600 ml-2">
+                      (+${EXTRA_SERVICES.vipLounge.price})
+                    </span>
                   </div>
                 </div>
               </div>
@@ -761,19 +879,30 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                 </h2>
                 <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p className="text-sm text-amber-800 flex items-start gap-2">
-                    <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    <svg
+                      className="w-5 h-5 flex-shrink-0 mt-0.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     <span>
                       <strong>{t('booking.ministryRequirement') || 'Ministry Requirement'}:</strong>{' '}
-                      {t('booking.ministryRequirementText') || 'Turkish Ministry of Transport requires all passenger names for transfer services.'}
+                      {t('booking.ministryRequirementText') ||
+                        'Turkish Ministry of Transport requires all passenger names for transfer services.'}
                     </span>
                   </p>
                 </div>
               </div>
 
               {errors.passengers && (
-                <p className="text-red-500 text-sm mb-4 p-3 bg-red-50 rounded-lg">{errors.passengers}</p>
+                <p className="text-red-500 text-sm mb-4 p-3 bg-red-50 rounded-lg">
+                  {errors.passengers}
+                </p>
               )}
 
               <div className="space-y-4">
@@ -784,8 +913,8 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                         <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
                           {index + 1}
                         </span>
-                        {passenger.type === 'adult' 
-                          ? t('booking.adultPassenger') || 'Adult Passenger' 
+                        {passenger.type === 'adult'
+                          ? t('booking.adultPassenger') || 'Adult Passenger'
                           : t('booking.childPassenger') || 'Child Passenger'}
                       </span>
                       {formData.passengers.length > 1 && (
@@ -794,8 +923,18 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                           onClick={() => removePassenger(index)}
                           className="text-red-500 hover:text-red-700 text-sm flex items-center gap-1"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
                           </svg>
                           {t('booking.remove') || 'Remove'}
                         </button>
@@ -809,7 +948,9 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                         <input
                           type="text"
                           value={passenger.firstName}
-                          onChange={(e) => handlePassengerChange(index, 'firstName', e.target.value)}
+                          onChange={(e) =>
+                            handlePassengerChange(index, 'firstName', e.target.value)
+                          }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder={t('booking.firstNamePlaceholder') || 'First name'}
                         />
@@ -837,7 +978,12 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                     className="w-full py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
                     </svg>
                     {t('booking.addPassenger') || 'Add Passenger'}
                   </button>
@@ -855,7 +1001,9 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                   onChange={handleChange}
                   rows="3"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={t('booking.requestsPlaceholder') || 'Any special requirements or requests?'}
+                  placeholder={
+                    t('booking.requestsPlaceholder') || 'Any special requirements or requests?'
+                  }
                 />
               </div>
             </motion.div>
@@ -874,11 +1022,13 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
               <h2 className="text-xl md:text-2xl font-bold mb-6 text-gray-800">
                 {t('booking.reviewAndPay') || 'Review & Payment'}
               </h2>
-              
+
               <div className="space-y-6">
                 {/* Booking Summary */}
                 <div className="bg-gray-50 p-4 md:p-6 rounded-lg">
-                  <h3 className="font-semibold text-lg mb-4">{t('booking.summary') || 'Booking Summary'}</h3>
+                  <h3 className="font-semibold text-lg mb-4">
+                    {t('booking.summary') || 'Booking Summary'}
+                  </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">{t('booking.name') || 'Name'}:</span>
@@ -890,26 +1040,38 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">{t('booking.phone') || 'Phone'}:</span>
-                      <span className="font-medium">{formData.phoneCountryCode} {formData.phone}</span>
+                      <span className="font-medium">
+                        {formData.phoneCountryCode} {formData.phone}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">{t('booking.flightNumber') || 'Flight'}:</span>
+                      <span className="text-gray-600">
+                        {t('booking.flightNumber') || 'Flight'}:
+                      </span>
                       <span className="font-medium">{formData.flightNumber}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">{t('booking.date') || 'Date'}:</span>
-                      <span className="font-medium">{formData.date} {t('booking.at') || 'at'} {formData.time}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{t('booking.passengers') || 'Passengers'}:</span>
                       <span className="font-medium">
-                        {formData.adultsCount} {t('booking.adults') || 'Adults'}
-                        {formData.childrenCount > 0 && `, ${formData.childrenCount} ${t('booking.children') || 'Children'}`}
-                        {formData.infantsCount > 0 && `, ${formData.infantsCount} ${t('booking.infants') || 'Infants'}`}
+                        {formData.date} {t('booking.at') || 'at'} {formData.time}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">{t('booking.pickupLocation') || 'Pickup'}:</span>
+                      <span className="text-gray-600">
+                        {t('booking.passengers') || 'Passengers'}:
+                      </span>
+                      <span className="font-medium">
+                        {formData.adultsCount} {t('booking.adults') || 'Adults'}
+                        {formData.childrenCount > 0 &&
+                          `, ${formData.childrenCount} ${t('booking.children') || 'Children'}`}
+                        {formData.infantsCount > 0 &&
+                          `, ${formData.infantsCount} ${t('booking.infants') || 'Infants'}`}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">
+                        {t('booking.pickupLocation') || 'Pickup'}:
+                      </span>
                       <span className="font-medium">{formData.pickupLocation}</span>
                     </div>
                   </div>
@@ -917,12 +1079,18 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
 
                 {/* Passenger Names Summary */}
                 <div className="bg-gray-50 p-4 md:p-6 rounded-lg">
-                  <h3 className="font-semibold text-lg mb-3">{t('booking.passengerList') || 'Passenger List'}</h3>
+                  <h3 className="font-semibold text-lg mb-3">
+                    {t('booking.passengerList') || 'Passenger List'}
+                  </h3>
                   <div className="space-y-1 text-sm">
                     {formData.passengers.map((p, i) => (
                       <div key={i} className="flex justify-between py-1">
-                        <span className="text-gray-600">{i + 1}. {p.type === 'adult' ? '👤' : '🧒'}</span>
-                        <span className="font-medium">{p.firstName} {p.lastName}</span>
+                        <span className="text-gray-600">
+                          {i + 1}. {p.type === 'adult' ? '👤' : '🧒'}
+                        </span>
+                        <span className="font-medium">
+                          {p.firstName} {p.lastName}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -932,24 +1100,34 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                 <div className="bg-blue-50 p-4 md:p-6 rounded-lg">
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>{t('booking.basePrice') || 'Base Price'} ({formData.adultsCount + formData.childrenCount + formData.infantsCount} {t('booking.passengers') || 'passengers'}):</span>
-                      <span>${(basePrice * (formData.adultsCount + formData.childrenCount + formData.infantsCount)).toFixed(2)}</span>
+                      <span>
+                        {t('booking.basePrice') || 'Base Price'} (
+                        {formData.adultsCount + formData.childrenCount + formData.infantsCount}{' '}
+                        {t('booking.passengers') || 'passengers'}):
+                      </span>
+                      <span>
+                        $
+                        {(
+                          basePrice *
+                          (formData.adultsCount + formData.childrenCount + formData.infantsCount)
+                        ).toFixed(2)}
+                      </span>
                     </div>
-                    
+
                     {extraServicesTotal > 0 && (
                       <div className="flex justify-between text-sm">
                         <span>{t('booking.extraServices') || 'Extra Services'}:</span>
                         <span>+${extraServicesTotal.toFixed(2)}</span>
                       </div>
                     )}
-                    
+
                     {discount > 0 && (
                       <div className="flex justify-between text-sm text-green-600">
                         <span>{t('booking.discount') || 'Discount'}:</span>
                         <span>-${discount.toFixed(2)}</span>
                       </div>
                     )}
-                    
+
                     <div className="border-t pt-2 flex justify-between font-bold text-lg">
                       <span>{t('booking.total') || 'Total'}:</span>
                       <span className="text-blue-600">${calculatedPrice.toFixed(2)}</span>
@@ -997,7 +1175,9 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="cash">{t('booking.cashOnArrival') || 'Cash on Arrival'}</option>
-                    <option value="credit_card">{t('booking.creditCard') || 'Credit Card (Online)'}</option>
+                    <option value="credit_card">
+                      {t('booking.creditCard') || 'Credit Card (Online)'}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -1009,8 +1189,12 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
         {basePrice > 0 && currentStep < 4 && (
           <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
             <div className="flex justify-between items-center">
-              <span className="text-gray-700 font-medium">{t('booking.estimatedTotal') || 'Estimated Total'}:</span>
-              <span className="text-2xl font-bold text-blue-600">${calculatedPrice.toFixed(2)}</span>
+              <span className="text-gray-700 font-medium">
+                {t('booking.estimatedTotal') || 'Estimated Total'}:
+              </span>
+              <span className="text-2xl font-bold text-blue-600">
+                ${calculatedPrice.toFixed(2)}
+              </span>
             </div>
           </div>
         )}
@@ -1048,7 +1232,12 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
             >
               <span>{t('booking.confirmBooking') || 'Confirm Booking'}</span>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </motion.button>
           )}

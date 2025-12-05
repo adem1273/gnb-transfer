@@ -9,7 +9,7 @@ function Dashboard() {
   const [stats, setStats] = useState({
     users: 0,
     tours: 0,
-    bookings: 0
+    bookings: 0,
   });
 
   const [loading, setLoading] = useState(true);
@@ -25,7 +25,7 @@ function Dashboard() {
         setStats({
           users: usersRes.data.length,
           tours: toursRes.data.length,
-          bookings: bookingsRes.data.length
+          bookings: bookingsRes.data.length,
         });
         setLoading(false);
       } catch (err) {

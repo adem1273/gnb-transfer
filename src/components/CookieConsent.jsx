@@ -57,12 +57,12 @@ export default function CookieConsent() {
                 <strong>🍪 We value your privacy</strong>
               </p>
               <p className="text-gray-300">
-                We use cookies and analytics to improve your experience, analyze site traffic, 
-                and understand where our users come from. By clicking &quot;Accept&quot;, you consent 
-                to our use of cookies and analytics tools.
+                We use cookies and analytics to improve your experience, analyze site traffic, and
+                understand where our users come from. By clicking &quot;Accept&quot;, you consent to
+                our use of cookies and analytics tools.
               </p>
-              <a 
-                href="/privacy-policy" 
+              <a
+                href="/privacy-policy"
                 className="text-blue-400 hover:text-blue-300 underline text-sm mt-1 inline-block"
               >
                 Learn more in our Privacy Policy

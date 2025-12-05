@@ -20,12 +20,9 @@ function DelayCompensationPanel() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${API_URL}/admin/delay/pending?status=${statusFilter}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`${API_URL}/admin/delay/pending?status=${statusFilter}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.data.success) {
         setCompensations(response.data.data.compensations);
@@ -127,7 +124,10 @@ function DelayCompensationPanel() {
         <div className="space-y-4">
           {compensations.length > 0 ? (
             compensations.map((comp) => (
-              <div key={comp._id} className="border rounded-lg p-4 hover:shadow-lg transition-shadow">
+              <div
+                key={comp._id}
+                className="border rounded-lg p-4 hover:shadow-lg transition-shadow"
+              >
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">
@@ -167,8 +167,8 @@ function DelayCompensationPanel() {
                         comp.status === 'pending'
                           ? 'bg-yellow-100 text-yellow-800'
                           : comp.status === 'approved'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
                       }`}
                     >
                       {comp.status}

@@ -10,16 +10,16 @@ import DelayBadge from '../components/DelayBadge';
 import { useAuth } from '../context/AuthContext';
 
 function Booking() {
-  const [form, setForm] = useState({ 
-    name: '', 
-    email: '', 
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
     phone: '',
-    tourId: '', 
+    tourId: '',
     paymentMethod: 'cash',
     guests: 1,
     date: '',
     pickupLocation: '',
-    notes: ''
+    notes: '',
   });
   const [tours, setTours] = useState([]);
   const [recommendedTours, setRecommendedTours] = useState([]);
@@ -53,7 +53,7 @@ function Booking() {
     try {
       if (selectedTourId) {
         const res = await API.get('/tours/most-popular'); // Bu rota arka uçta eklenmeli
-        setRecommendedTours(res.data.filter(tour => tour._id !== selectedTourId));
+        setRecommendedTours(res.data.filter((tour) => tour._id !== selectedTourId));
       } else {
         setRecommendedTours([]);
       }
@@ -108,27 +108,27 @@ function Booking() {
 
     try {
       const res = await API.post('/bookings', form);
-      
+
       if (form.paymentMethod === 'credit_card') {
         navigate('/payment', { state: { bookingId: res.data._id } });
       } else {
         setSuccess(t('messages.bookingCashSuccess'));
         setBookingConfirmed(true);
-        
+
         // Calculate delay metrics after successful booking
         await calculateDelayMetrics(res.data._id);
-        
+
         // Reset form
-        setForm({ 
-          name: '', 
-          email: '', 
+        setForm({
+          name: '',
+          email: '',
           phone: '',
-          tourId: '', 
+          tourId: '',
           paymentMethod: 'cash',
           guests: 1,
           date: '',
           pickupLocation: '',
-          notes: ''
+          notes: '',
         });
         setRecommendedTours([]);
       }
@@ -146,9 +146,9 @@ function Booking() {
       const response = await API.post('/delay/calculate', {
         bookingId,
         origin: 'Istanbul Airport',
-        destination: 'Hotel in Sultanahmet'
+        destination: 'Hotel in Sultanahmet',
       });
-      
+
       setDelayMetrics(response.data);
     } catch (error) {
       console.error('Error calculating delay metrics:', error);
@@ -174,7 +174,7 @@ function Booking() {
         <h2 className="text-2xl font-bold mb-4">{t('header.booking')}</h2>
         {error && <ErrorMessage message={error} />}
         {success && <p className="text-green-500 mb-2">{success}</p>}
-        
+
         {!bookingConfirmed ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -192,7 +192,7 @@ function Booking() {
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 {t('forms.email')} *
@@ -208,7 +208,7 @@ function Booking() {
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                 {t('forms.phone')} {t('forms.optional')}
@@ -223,7 +223,7 @@ function Booking() {
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label htmlFor="tourId" className="block text-sm font-medium text-gray-700 mb-1">
                 {t('forms.selectTour')} *
@@ -244,7 +244,7 @@ function Booking() {
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label htmlFor="guests" className="block text-sm font-medium text-gray-700 mb-1">
                 {t('forms.guests')}
@@ -260,7 +260,7 @@ function Booking() {
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
                 {t('forms.date')} {t('forms.optional')}
@@ -275,9 +275,12 @@ function Booking() {
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
-              <label htmlFor="pickupLocation" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="pickupLocation"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 {t('forms.pickupLocation')} {t('forms.optional')}
               </label>
               <input
@@ -290,7 +293,7 @@ function Booking() {
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
                 {t('forms.notes')} {t('forms.optional')}
@@ -305,16 +308,16 @@ function Booking() {
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div className="mb-2">
               <label htmlFor="paymentMethod" className="block text-gray-700 text-sm font-bold mb-2">
                 {t('forms.paymentMethod')}
               </label>
-              <select 
+              <select
                 id="paymentMethod"
-                name="paymentMethod" 
-                value={form.paymentMethod} 
-                onChange={handleChange} 
+                name="paymentMethod"
+                value={form.paymentMethod}
+                onChange={handleChange}
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="cash">{t('forms.cash')}</option>
@@ -335,9 +338,11 @@ function Booking() {
               <h3 className="text-lg font-bold text-green-800 mb-2">
                 {t('booking.confirmed', 'Booking Confirmed!')}
               </h3>
-              <p className="text-green-700">{t('booking.thankYou', 'Thank you for your booking.')}</p>
+              <p className="text-green-700">
+                {t('booking.thankYou', 'Thank you for your booking.')}
+              </p>
             </div>
-            
+
             {loadingDelay ? (
               <div className="text-center py-4">
                 <Loading message={t('delay.calculating', 'Calculating delay guarantee...')} />
@@ -349,7 +354,7 @@ function Booking() {
                 discountCode={delayMetrics.discountCode}
               />
             ) : null}
-            
+
             <button
               onClick={() => {
                 setBookingConfirmed(false);
@@ -363,18 +368,13 @@ function Booking() {
           </div>
         )}
       </div>
-      
+
       {recommendedTours.length > 0 && (
         <div className="flex-1 mt-8 md:mt-0 max-w-lg mx-auto md:mx-0">
           <h3 className="text-xl font-bold mb-4">{t('booking.recommendations')}</h3>
           <div className="grid grid-cols-1 gap-4">
-            {recommendedTours.map(tour => (
-              <TourCard 
-                key={tour._id} 
-                tour={tour} 
-                showPackageButton={!!user}
-                userId={user?._id}
-              />
+            {recommendedTours.map((tour) => (
+              <TourCard key={tour._id} tour={tour} showPackageButton={!!user} userId={user?._id} />
             ))}
           </div>
         </div>
