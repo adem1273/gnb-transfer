@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { fleetImages } from '../config/images';
-import OptimizedImage from './OptimizedImage';
 
 /**
  * FleetSection Component
@@ -43,12 +42,6 @@ function FleetSection() {
       features: ['leather', 'ac', 'wifi', 'usb', 'water'],
     },
   ];
-
-  const fadeInUp = {
-    initial: { opacity: 0, y: 30 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.5 },
-  };
 
   return (
     <section className="py-16 md:py-24 bg-gray-50">
