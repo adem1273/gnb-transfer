@@ -380,21 +380,190 @@ For detailed security documentation, see `backend/SECURITY_API_DOCS.md`
 ### Required Environment Variables
 
 ```bash
-# Backend (.env in backend/)
-NODE_ENV=production
-JWT_SECRET=your-super-secret-jwt-key-change-this
-ACCESS_TOKEN_TTL=15m
-REFRESH_TOKEN_TTL=7d
-CORS_ORIGINS=https://your-frontend-domain.com
-MONGO_URI=your_mongodb_connection_string
+# Backend (Required in production)
+MONGO_URI=           # MongoDB connection string
+JWT_SECRET=          # Generate with: openssl rand -base64 64
+CORS_ORIGINS=        # Comma-separated list of frontend URLs
 
-# Frontend (.env in root directory)
-VITE_API_URL=https://your-backend-domain.com/api
+# Backend (Optional - features disabled if not set)
+STRIPE_SECRET_KEY=   # For payment processing
+STRIPE_WEBHOOK_SECRET= # For Stripe webhooks
+OPENAI_API_KEY=      # For AI features
+GOOGLE_CLIENT_ID=    # For Google OAuth
+GOOGLE_CLIENT_SECRET= # For Google OAuth
+SENTRY_DSN=          # For error tracking
 
-# Social Login (Optional - for Google and Apple Sign-In)
-VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id
-VITE_APPLE_CLIENT_ID=your-apple-sign-in-client-id
+# Frontend (Vite)
+VITE_API_URL=        # Backend API URL
+VITE_STRIPE_PUBLIC_KEY= # Stripe publishable key
+VITE_GOOGLE_CLIENT_ID= # For Google Sign-In
+VITE_GA_MEASUREMENT_ID= # For Google Analytics
 ```
+
+---
+
+## 🔐 Deployment: Adding Secrets
+
+This section explains how to securely add environment variables in various deployment platforms.
+
+### Generate Secure Secrets
+
+Before deploying, generate secure values for your secrets:
+
+```bash
+# Generate JWT_SECRET (64+ characters recommended)
+openssl rand -base64 64 | tr -d '\n'
+
+# Generate SESSION_SECRET
+openssl rand -base64 32
+
+# Generate BACKUP_ENCRYPTION_KEY
+openssl rand -hex 32
+```
+
+### Vercel Deployment
+
+**Adding Environment Variables:**
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Select your project
+3. Navigate to **Settings** → **Environment Variables**
+4. Add each variable:
+   - Click **Add New**
+   - Enter the variable name (e.g., `VITE_API_URL`)
+   - Enter the value
+   - Select environments: **Production**, **Preview**, **Development** as needed
+   - Click **Save**
+
+**Required Variables for Vercel (Frontend):**
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VITE_API_URL` | Backend API URL | `https://api.yourdomain.com/api` |
+| `VITE_STRIPE_PUBLIC_KEY` | Stripe publishable key | `pk_live_...` |
+| `VITE_GOOGLE_CLIENT_ID` | Google OAuth client ID | `123...apps.googleusercontent.com` |
+
+**Tips:**
+- Use different values for Production vs Preview environments
+- Never use test keys (sk_test_, pk_test_) in Production
+
+### Render Deployment
+
+**Adding Environment Variables:**
+
+1. Go to [Render Dashboard](https://dashboard.render.com/)
+2. Select your service (Web Service or Background Worker)
+3. Navigate to **Environment** tab
+4. Click **Add Environment Variable**
+5. Enter the key and value
+6. Click **Save Changes** (service will redeploy)
+
+**Required Variables for Render (Backend):**
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `NODE_ENV` | Set to `production` | ✅ Yes |
+| `PORT` | Usually auto-set by Render | Auto |
+| `MONGO_URI` | MongoDB Atlas connection string | ✅ Yes |
+| `JWT_SECRET` | 64+ character random string | ✅ Yes |
+| `CORS_ORIGINS` | Frontend URL(s), comma-separated | ✅ Yes |
+| `STRIPE_SECRET_KEY` | Stripe secret key | For payments |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret | For payments |
+| `OPENAI_API_KEY` | OpenAI API key | For AI features |
+
+**Generate JWT_SECRET in Render:**
+1. In the Environment tab, click **Generate** next to the value field
+2. Or paste a pre-generated value from `openssl rand -base64 64`
+
+**Secret Files (Alternative):**
+1. Navigate to **Environment** → **Secret Files**
+2. Upload `.env` file content
+3. Set filename to `.env`
+
+### GitHub Actions Secrets
+
+**For CI/CD Pipelines:**
+
+1. Go to your repository on GitHub
+2. Navigate to **Settings** → **Secrets and variables** → **Actions**
+3. Click **New repository secret**
+4. Add each secret:
+   - Name: `MONGO_URI`
+   - Secret: Your MongoDB connection string
+   - Click **Add secret**
+
+**Required Secrets for GitHub Actions:**
+| Secret Name | Description |
+|-------------|-------------|
+| `MONGO_URI` | MongoDB connection string for tests |
+| `JWT_SECRET` | JWT secret for test environment |
+| `VERCEL_TOKEN` | For Vercel deployment (optional) |
+| `RENDER_API_KEY` | For Render deployment (optional) |
+
+**Using Secrets in Workflows:**
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm test
+```
+
+**Environment-Specific Secrets:**
+1. Go to **Settings** → **Environments**
+2. Create environments: `production`, `staging`
+3. Add environment-specific secrets
+4. Reference in workflow:
+```yaml
+jobs:
+  deploy:
+    environment: production
+    env:
+      API_KEY: ${{ secrets.API_KEY }}
+```
+
+### Railway Deployment
+
+**Adding Environment Variables:**
+
+1. Go to [Railway Dashboard](https://railway.app/dashboard)
+2. Select your project
+3. Click on your service
+4. Navigate to **Variables** tab
+5. Add variables one by one or use **RAW Editor** for bulk import
+
+**Bulk Import (RAW Editor):**
+```
+NODE_ENV=production
+MONGO_URI=mongodb+srv://...
+JWT_SECRET=your-secret-here
+CORS_ORIGINS=https://yourapp.vercel.app
+```
+
+### MongoDB Atlas Connection String
+
+**Getting your MONGO_URI:**
+
+1. Go to [MongoDB Atlas](https://cloud.mongodb.com/)
+2. Navigate to your cluster → **Connect**
+3. Choose **Connect your application**
+4. Copy the connection string
+5. Replace `<password>` with your database user password
+6. Replace `<dbname>` with your database name
+
+**Connection String Format:**
+```
+mongodb+srv://username:password@cluster.mongodb.net/dbname?retryWrites=true&w=majority
+```
+
+**Security Tips:**
+- Create a dedicated database user for each environment
+- Use IP whitelisting (or allow access from anywhere for serverless)
+- Enable MongoDB Atlas monitoring
+
+---
 
 ### Social Login Setup
 
@@ -404,13 +573,13 @@ VITE_APPLE_CLIENT_ID=your-apple-sign-in-client-id
 3. Enable Google+ API
 4. Create OAuth 2.0 credentials
 5. Add your domain to authorized origins
-6. Set `VITE_GOOGLE_CLIENT_ID` in your `.env` file
+6. Set `VITE_GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in your environment
 
 **Apple Sign-In:**
 1. Go to [Apple Developer Portal](https://developer.apple.com/)
 2. Create a Services ID for Sign In with Apple
 3. Configure your domain and return URLs
-4. Set `VITE_APPLE_CLIENT_ID` in your `.env` file
+4. Set `VITE_APPLE_CLIENT_ID` and related secrets
 
 ---
 

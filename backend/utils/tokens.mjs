@@ -13,8 +13,8 @@
 
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { getJwtSecret } from '../config/env.mjs';
 
-const JWT_SECRET = process.env.JWT_SECRET || '';
 const ACCESS_TOKEN_TTL = process.env.ACCESS_TOKEN_TTL || '15m';
 const REFRESH_TOKEN_TTL = process.env.REFRESH_TOKEN_TTL || '7d';
 
@@ -29,11 +29,8 @@ const REFRESH_TOKEN_TTL = process.env.REFRESH_TOKEN_TTL || '7d';
  * const token = generateAccessToken({ id: '123', email: 'user@example.com', role: 'user' });
  */
 export const generateAccessToken = (payload, ttl = ACCESS_TOKEN_TTL) => {
-  if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET is not configured');
-  }
-
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: ttl });
+  const secret = getJwtSecret();
+  return jwt.sign(payload, secret, { expiresIn: ttl });
 };
 
 /**
@@ -75,11 +72,8 @@ export const hashRefreshToken = (plain) => {
  * }
  */
 export const verifyAccessToken = (token) => {
-  if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET is not configured');
-  }
-
-  return jwt.verify(token, JWT_SECRET);
+  const secret = getJwtSecret();
+  return jwt.verify(token, secret);
 };
 
 /**

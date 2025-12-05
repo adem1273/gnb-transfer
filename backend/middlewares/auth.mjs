@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { getJwtSecret } from '../config/env.mjs';
 
 /**
  * Authentication & authorization middleware
@@ -10,15 +11,13 @@ import jwt from 'jsonwebtoken';
  * - Verifies JWT tokens using RS256 or HS256 algorithm
  * - Enforces role-based access control
  * - Returns appropriate HTTP status codes (401 for auth, 403 for authorization)
- * - No default/fallback secret - requires JWT_SECRET environment variable
+ * - Uses centralized JWT_SECRET from env module
  *
  * Exports:
  * - requireAuth(roles = []) -> middleware for route protection
  * - requireRole(...roles) -> middleware generator for specific roles
  * - requireAdmin -> shorthand for admin-only routes
  */
-
-const { JWT_SECRET } = process.env;
 
 /**
  * Middleware to require authentication and optionally check user roles
@@ -47,8 +46,11 @@ const { JWT_SECRET } = process.env;
 export const requireAuth =
   (roles = []) =>
   (req, res, next) => {
-    if (!JWT_SECRET) {
-      console.error('Server misconfiguration: JWT_SECRET is not set.');
+    let jwtSecret;
+    try {
+      jwtSecret = getJwtSecret();
+    } catch (error) {
+      console.error('Server misconfiguration:', error.message);
       return res.apiError('Server misconfiguration: authentication secret not configured', 500);
     }
 
@@ -59,7 +61,7 @@ export const requireAuth =
 
     const token = authHeader.slice(7); // remove 'Bearer '
     try {
-      const payload = jwt.verify(token, JWT_SECRET);
+      const payload = jwt.verify(token, jwtSecret);
       req.user = payload;
       if (Array.isArray(roles) && roles.length > 0 && !roles.includes(payload.role)) {
         return res.apiError('Insufficient permissions', 403);
@@ -116,7 +118,11 @@ export const requireAdmin = requireRole('admin');
  * router.get('/tours', optionalAuth, handler);
  */
 export const optionalAuth = (req, res, next) => {
-  if (!JWT_SECRET) {
+  let jwtSecret;
+  try {
+    jwtSecret = getJwtSecret();
+  } catch (error) {
+    // In development without JWT_SECRET, continue without auth
     return next();
   }
 
@@ -127,7 +133,7 @@ export const optionalAuth = (req, res, next) => {
 
   const token = authHeader.slice(7);
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    const payload = jwt.verify(token, jwtSecret);
     req.user = payload;
   } catch (err) {
     // Token invalid/expired, but continue without user
