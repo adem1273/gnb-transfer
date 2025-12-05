@@ -58,8 +58,25 @@ router.use(sanitizeRequest);
  */
 router.post('/', strictRateLimiter, validateZod(createBookingSchema, 'body'), async (req, res) => {
   try {
-    const { name, email, phone, tourId, paymentMethod, guests, date, pickupLocation, notes } =
-      req.body;
+    const { 
+      name, 
+      email, 
+      phone, 
+      phoneCountryCode,
+      tourId, 
+      paymentMethod, 
+      guests, 
+      adultsCount,
+      childrenCount,
+      infantsCount,
+      passengers,
+      flightNumber,
+      extraServices,
+      date, 
+      time,
+      pickupLocation, 
+      notes 
+    } = req.body;
 
     // Note: Validation already done by Zod schema, including ObjectId validation
 
@@ -72,6 +89,30 @@ router.post('/', strictRateLimiter, validateZod(createBookingSchema, 'body'), as
     // Determine status based on payment method
     const status = paymentMethod === 'cash' ? 'pending' : 'confirmed';
 
+    // Calculate total guests
+    const totalGuests = (adultsCount || 1) + (childrenCount || 0) + (infantsCount || 0);
+
+    // Calculate extra services total
+    let extraServicesTotal = 0;
+    if (extraServices) {
+      if (extraServices.childSeat?.selected) {
+        extraServicesTotal += (extraServices.childSeat.quantity || 0) * (extraServices.childSeat.price || 10);
+      }
+      if (extraServices.babySeat?.selected) {
+        extraServicesTotal += (extraServices.babySeat.quantity || 0) * (extraServices.babySeat.price || 10);
+      }
+      if (extraServices.meetAndGreet?.selected) {
+        extraServicesTotal += extraServices.meetAndGreet.price || 15;
+      }
+      if (extraServices.vipLounge?.selected) {
+        extraServicesTotal += extraServices.vipLounge.price || 50;
+      }
+    }
+
+    // Calculate total amount
+    const baseAmount = tour.price * totalGuests;
+    const totalAmount = baseAmount + extraServicesTotal;
+
     // Create booking
     // Note: Both 'tour' (required by model) and 'tourId' (used for backward compatibility)
     // reference the same tour. This dual-field approach allows gradual migration while
@@ -80,13 +121,22 @@ router.post('/', strictRateLimiter, validateZod(createBookingSchema, 'body'), as
       name,
       email,
       phone,
+      phoneCountryCode: phoneCountryCode || '+90',
       tour: tourId,
       tourId,
       paymentMethod: paymentMethod || 'cash',
       status,
-      guests: guests || 1,
+      guests: guests || totalGuests || 1,
+      adultsCount: adultsCount || 1,
+      childrenCount: childrenCount || 0,
+      infantsCount: infantsCount || 0,
+      passengers: passengers || [{ firstName: name.split(' ')[0] || name, lastName: name.split(' ').slice(1).join(' ') || '-', type: 'adult' }],
+      flightNumber,
+      extraServices,
+      extraServicesTotal,
       date: date || new Date(),
-      amount: tour.price * (guests || 1),
+      time,
+      amount: totalAmount,
       pickupLocation,
       notes,
     });

@@ -1,8 +1,33 @@
 /**
  * Booking model with validation and indexes
+ * 
+ * Ministry of Transport Compliance:
+ * - Turkish Ministry of Transport requires passenger names for all transfers
+ * - All passengers (adults + children) must have their names recorded
  */
 
 import mongoose from 'mongoose';
+
+// Passenger schema for ministry-required passenger name collection
+const passengerSchema = new mongoose.Schema({
+  firstName: {
+    type: String,
+    required: [true, 'Passenger first name is required'],
+    trim: true,
+    maxlength: [50, 'First name cannot exceed 50 characters'],
+  },
+  lastName: {
+    type: String,
+    required: [true, 'Passenger last name is required'],
+    trim: true,
+    maxlength: [50, 'Last name cannot exceed 50 characters'],
+  },
+  type: {
+    type: String,
+    enum: ['adult', 'child', 'infant'],
+    default: 'adult',
+  },
+}, { _id: false });
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -19,6 +44,17 @@ const bookingSchema = new mongoose.Schema(
       match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'],
     },
     phone: {
+      type: String,
+      trim: true,
+    },
+    // Phone with country code for WhatsApp integration
+    phoneCountryCode: {
+      type: String,
+      trim: true,
+      default: '+90',
+    },
+    // WhatsApp link generated from phone and country code
+    whatsappLink: {
       type: String,
       trim: true,
     },
@@ -39,10 +75,77 @@ const bookingSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    time: {
+      type: String,
+      trim: true,
+    },
+    // Flight information (required for transfers)
+    flightNumber: {
+      type: String,
+      trim: true,
+      uppercase: true,
+    },
+    // Guest counts by type
+    adultsCount: {
+      type: Number,
+      default: 1,
+      min: [1, 'Must have at least 1 adult'],
+      max: [50, 'Cannot exceed 50 adults'],
+    },
+    childrenCount: {
+      type: Number,
+      default: 0,
+      min: [0, 'Children count cannot be negative'],
+      max: [50, 'Cannot exceed 50 children'],
+    },
+    infantsCount: {
+      type: Number,
+      default: 0,
+      min: [0, 'Infants count cannot be negative'],
+      max: [20, 'Cannot exceed 20 infants'],
+    },
     guests: {
       type: Number,
       default: 1,
       min: [1, 'Must have at least 1 guest'],
+    },
+    // Ministry-required: All passenger names
+    passengers: {
+      type: [passengerSchema],
+      validate: {
+        validator: function(v) {
+          // At least one passenger is required
+          return v && v.length >= 1;
+        },
+        message: 'At least one passenger name is required (Turkish Ministry of Transport regulation)',
+      },
+    },
+    // Extra services
+    extraServices: {
+      childSeat: {
+        selected: { type: Boolean, default: false },
+        quantity: { type: Number, default: 0, min: 0, max: 10 },
+        price: { type: Number, default: 10 },
+      },
+      babySeat: {
+        selected: { type: Boolean, default: false },
+        quantity: { type: Number, default: 0, min: 0, max: 10 },
+        price: { type: Number, default: 10 },
+      },
+      meetAndGreet: {
+        selected: { type: Boolean, default: false },
+        price: { type: Number, default: 15 },
+      },
+      vipLounge: {
+        selected: { type: Boolean, default: false },
+        price: { type: Number, default: 50 },
+      },
+    },
+    // Extra services total
+    extraServicesTotal: {
+      type: Number,
+      default: 0,
+      min: [0, 'Extra services total cannot be negative'],
     },
     amount: {
       type: Number,
@@ -115,6 +218,39 @@ bookingSchema.index({ date: 1 }); // Date-based queries
 bookingSchema.index({ createdAt: -1 }); // Recent bookings
 bookingSchema.index({ tour: 1, date: 1 }); // Tour availability queries
 bookingSchema.index({ user: 1, createdAt: -1 }); // User booking history
+
+// Pre-save hook to generate WhatsApp link
+bookingSchema.pre('save', function(next) {
+  if (this.phone && this.phoneCountryCode) {
+    // Remove non-digit characters from phone for WhatsApp link
+    const cleanPhone = this.phone.replace(/\D/g, '');
+    const cleanCountryCode = this.phoneCountryCode.replace(/\D/g, '');
+    this.whatsappLink = `https://wa.me/${cleanCountryCode}${cleanPhone}`;
+  }
+  
+  // Calculate total guests from individual counts
+  this.guests = (this.adultsCount || 1) + (this.childrenCount || 0) + (this.infantsCount || 0);
+  
+  // Calculate extra services total
+  let extraTotal = 0;
+  if (this.extraServices) {
+    if (this.extraServices.childSeat?.selected) {
+      extraTotal += (this.extraServices.childSeat.quantity || 0) * (this.extraServices.childSeat.price || 10);
+    }
+    if (this.extraServices.babySeat?.selected) {
+      extraTotal += (this.extraServices.babySeat.quantity || 0) * (this.extraServices.babySeat.price || 10);
+    }
+    if (this.extraServices.meetAndGreet?.selected) {
+      extraTotal += this.extraServices.meetAndGreet.price || 15;
+    }
+    if (this.extraServices.vipLounge?.selected) {
+      extraTotal += this.extraServices.vipLounge.price || 50;
+    }
+  }
+  this.extraServicesTotal = extraTotal;
+  
+  next();
+});
 
 // Virtual for backward compatibility with tourId
 // This allows accessing tour via tourId property
