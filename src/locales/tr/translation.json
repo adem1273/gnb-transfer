@@ -305,5 +305,146 @@
   "languageSwitcher": {
     "selectLanguage": "Dil Seçin",
     "currentLanguage": "Mevcut Dil"
+  },
+  "images": {
+    "hero": {
+      "luxuryVanFamily": "Uluslararası aile lüks Mercedes van transfer hizmetinin keyfini çıkarıyor",
+      "airportPickup": "Lüks araçla profesyonel havalimanı karşılama hizmeti",
+      "premiumTransfer": "Modern Mercedes van ile premium transfer hizmeti",
+      "familyTravel": "Konforlu lüks araçta mutlu aile seyahati"
+    },
+    "fleet": {
+      "mercedesVitoExterior": "Beyaz Mercedes Vito lüks van dış görünüm",
+      "mercedesVitoBlack": "Siyah Mercedes Vito premium transfer aracı",
+      "mercedesVianoSilver": "Gümüş Mercedes Viano konforlu yolcu minibüsü",
+      "mercedesVianoWhite": "Beyaz Mercedes Viano lüks ulaşım",
+      "mercedesSprinterWhite": "Beyaz Mercedes Sprinter geniş grup taşıma aracı",
+      "mercedesSprinterBlack": "Siyah Mercedes Sprinter premium araç",
+      "leatherInterior": "Transfer aracının lüks deri iç mekanı",
+      "spaciousInterior": "Geniş ve konforlu araç iç mekanı",
+      "premiumSeating": "Lüks van'da premium koltuk düzeni",
+      "spaciousTrunk": "Bavul depolama için geniş bagaj",
+      "luggageHandling": "Profesyonel bagaj taşıma hizmeti",
+      "cargoSpace": "Aile bagajı için geniş yük alanı"
+    },
+    "services": {
+      "childSeat": "Araçta güvenli çocuk koltuğu kurulu",
+      "babySeat": "Transfer sırasında bebek güvenliği için bebek koltuğu",
+      "meetAndGreet": "Havalimanı varışlarında karşılama hizmeti",
+      "vipLounge": "Premium yolcular için VIP havalimanı salonu erişimi",
+      "welcomeSign": "Havalimanında misafir adı ile karşılama tabelası"
+    },
+    "drivers": {
+      "professional1": "İş kıyafetli profesyonel sürücü yardıma hazır",
+      "professional2": "Premium hizmet sunan deneyimli şoför",
+      "professional3": "Konforlu yolculuk sağlayan güler yüzlü sürücü",
+      "professional4": "VIP transfer hizmeti sunan üniformalı sürücü"
+    },
+    "airports": {
+      "istanbulAirport": "İstanbul Havalimanı modern terminal binası",
+      "airportTerminal": "Havalimanı terminal varış alanı",
+      "sabihaGokcen": "Sabiha Gökçen Uluslararası Havalimanı",
+      "arrivalHall": "Havalimanı varış salonu buluşma noktası"
+    },
+    "reviews": {
+      "happyFamily1": "Mükemmel transfer deneyimi sonrası mutlu aile",
+      "happyFamily2": "Tur hizmetinden memnun müşteriler",
+      "happyFamily3": "Olumlu deneyim yaşayan uluslararası gezginler",
+      "happyFamily4": "Hizmetten memnun iş seyahati yapanlar",
+      "happyFamily5": "Transfer için 5 yıldızlı değerlendirme veren aile"
+    },
+    "blog": {
+      "istanbulSkyline": "Güzel İstanbul şehir manzarası",
+      "blueMosque": "İstanbul'daki tarihi Sultanahmet Camii",
+      "hagiaSophia": "Muhteşem Ayasofya anıtı",
+      "cappadociaBalloons": "Kapadokya üzerinde sıcak hava balonları",
+      "cappadociaLandscape": "Benzersiz Kapadokya kaya oluşumları",
+      "pamukkaleTerraces": "Pamukkale beyaz travertenleri",
+      "uludagMountain": "Bursa'da kar kaplı Uludağ",
+      "travelAdventure": "Heyecan verici seyahat macerası manzarası",
+      "scenicRoad": "Güzel manzaralı yol gezisi görünümü",
+      "mountainView": "Muhteşem dağ manzarası görünümü"
+    },
+    "about": {
+      "ourTeam": "Özel profesyonel ekibimiz",
+      "ourOffice": "Modern GNB Transfer ofisi",
+      "ourMission": "Müşteri memnuniyeti üzerinde çalışan ekip"
+    },
+    "servicesPage": {
+      "airportTransfer": "Havalimanı transfer hizmeti uygulamada",
+      "cityTours": "İstanbul şehir turu deneyimi",
+      "privateCharter": "Özel kiralama araç hizmeti",
+      "corporateTravel": "Kurumsal iş seyahati çözümü"
+    }
+  },
+  "fleet": {
+    "title": "Premium Filomuz",
+    "subtitle": "Her durum için lüks araçlar",
+    "mercedesVito": "Mercedes Vito",
+    "mercedesViano": "Mercedes Viano",
+    "mercedesSprinter": "Mercedes Sprinter",
+    "passengers": "yolcu",
+    "luggage": "bavul",
+    "features": {
+      "leather": "Deri koltuklar",
+      "ac": "Klima kontrolü",
+      "wifi": "Ücretsiz WiFi",
+      "usb": "USB şarj",
+      "water": "Ücretsiz su"
+    },
+    "viewAll": "Tüm Araçları Görüntüle",
+    "exteriorGallery": "Dış Görünüm Galerisi",
+    "interiorGallery": "İç Mekan Galerisi"
+  },
+  "about": {
+    "title": "GNB Transfer Hakkında",
+    "subtitle": "Türkiye'de premium transferler için güvenilir ortağınız",
+    "ourStory": "Hikayemiz",
+    "ourStoryText": "Mükemmellik tutkusuyla kurulan GNB Transfer, 2018'den bu yana Türkiye genelinde premium havalimanı transfer ve tur hizmetleri sunmaktadır. Her yolculuğun konforlu, güvenli ve unutulmaz olması gerektiğine inanıyoruz.",
+    "ourMission": "Misyonumuz",
+    "ourMissionText": "Profesyonel sürücüler, lüks araçlar ve olağanüstü müşteri hizmetleri ile dünya standartlarında transfer hizmeti sunmak. Her seyahati premium bir deneyim haline getirmeye çalışıyoruz.",
+    "ourValues": "Değerlerimiz",
+    "safety": "Önce Güvenlik",
+    "safetyText": "Tam sigortalı araçlar ve profesyonel sürücülerle güvenliğiniz en büyük önceliğimizdir.",
+    "comfort": "Konfor",
+    "comfortText": "Premium olanaklarla donatılmış lüks filomuzla şık seyahat edin.",
+    "reliability": "Güvenilirlik",
+    "reliabilityText": "Gerçek zamanlı uçuş takibi ve dakik alımlarla 7/24 hizmet.",
+    "stats": {
+      "happyCustomers": "Mutlu Müşteriler",
+      "completedTransfers": "Tamamlanan Transferler",
+      "professionalDrivers": "Profesyonel Sürücüler",
+      "yearsExperience": "Yıllık Deneyim"
+    },
+    "meetTeam": "Ekibimizle Tanışın",
+    "teamDescription": "Özel profesyonel ekibimiz size en iyi seyahat deneyimini sunmaya kararlıdır."
+  },
+  "services": {
+    "title": "Hizmetlerimiz",
+    "subtitle": "Kapsamlı transfer ve tur çözümleri",
+    "airportTransfer": {
+      "title": "Havalimanı Transferi",
+      "description": "İstanbul Havalimanı ve Sabiha Gökçen'de konforlu ve güvenilir havalimanı alım ve bırakma hizmetleri."
+    },
+    "cityTours": {
+      "title": "Şehir Turları",
+      "description": "Rehberli tur hizmetlerimizle İstanbul ve Türkiye'nin en güzel destinasyonlarını keşfedin."
+    },
+    "privateCharter": {
+      "title": "Özel Kiralama",
+      "description": "Özel günler, etkinlikler ve özelleştirilmiş güzergahlar için özel araç kiralama."
+    },
+    "corporateTravel": {
+      "title": "Kurumsal Seyahat",
+      "description": "İş seyahati yapanlar ve kurumsal etkinlikler için profesyonel ulaşım çözümleri."
+    },
+    "features": {
+      "flightTracking": "Gerçek zamanlı uçuş takibi",
+      "meetGreet": "Karşılama hizmeti",
+      "childSeats": "Çocuk ve bebek koltuğu mevcut",
+      "multilingual": "Çok dilli sürücüler",
+      "support": "7/24 müşteri desteği",
+      "fixedPricing": "Sabit şeffaf fiyatlandırma"
+    }
   }
 }
