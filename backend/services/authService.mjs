@@ -15,14 +15,10 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import RefreshToken from '../models/RefreshToken.mjs';
+import { getJwtSecret } from '../config/env.mjs';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-  console.error('FATAL ERROR: JWT_SECRET environment variable is not set!');
-  console.error('Server cannot start without JWT_SECRET for security reasons.');
-  process.exit(1);
-}
+// Get JWT_SECRET from centralized env module (supports auto-generation in dev)
+const getSecret = () => getJwtSecret();
 
 const ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || '15m'; // 15 minutes
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || '30d'; // 30 days
@@ -77,9 +73,7 @@ const parseRefreshToken = (token) => {
  * They are verified on each protected route request
  */
 export const generateAccessToken = (user) => {
-  if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET is not configured');
-  }
+  const secret = getSecret();
 
   return jwt.sign(
     {
@@ -87,7 +81,7 @@ export const generateAccessToken = (user) => {
       email: user.email,
       role: user.role,
     },
-    JWT_SECRET,
+    secret,
     { expiresIn: ACCESS_TOKEN_EXPIRY }
   );
 };

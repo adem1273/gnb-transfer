@@ -2,6 +2,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// Load environment variables first (before any other imports)
+dotenv.config();
+
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -10,6 +13,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 
 import logger from './config/logger.mjs';
+import { validateEnv, getJwtSecret, env } from './config/env.mjs';
 import { initSentry } from './config/sentry.mjs';
 import { getCorsOptions, validateCorsConfig } from './config/cors.mjs';
 import { responseMiddleware } from './middlewares/response.mjs';
@@ -59,7 +63,6 @@ import settingsRoutes from './routes/settingsRoutes.mjs';
 import basePricingRoutes from './routes/basePricingRoutes.mjs';
 import extraServicesRoutes from './routes/extraServicesRoutes.mjs';
 import reviewRoutes from './routes/reviewRoutes.mjs';
-import blogRoutes from './routes/blogRoutes.mjs';
 import adTrackingRoutes from './routes/adTrackingRoutes.mjs';
 import loyaltyRoutes from './routes/loyaltyRoutes.mjs';
 import bulkMessagingRoutes from './routes/bulkMessagingRoutes.mjs';
@@ -71,11 +74,17 @@ import { initDynamicPricing } from './services/dynamicPricingService.mjs';
 import { initWeeklyReportScheduler } from './services/weeklyReportService.mjs';
 import { initSitemapScheduler } from './services/sitemapService.mjs';
 
-dotenv.config();
-
 // Get __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Validate environment variables early (will throw if critical vars missing in production)
+try {
+  validateEnv();
+} catch (error) {
+  console.error('Environment validation failed:', error.message);
+  process.exit(1);
+}
 
 // === CRITICAL: EXACT PATH TO REACT BUILD ===
 // Construct absolute path to dist directory using path.resolve()
@@ -461,15 +470,8 @@ mongoose.connection.on('error', (err) => {
   logger.error('MongoDB connection error:', { error: err.message });
 });
 
-// Safety: in production require JWT_SECRET
-if (!process.env.JWT_SECRET) {
-  if (process.env.NODE_ENV === 'production') {
-    console.error('FATAL: JWT_SECRET is required in production!');
-    process.exit(1);
-  } else {
-    logger.warn('WARNING: JWT_SECRET not set. Authentication will not work!');
-  }
-}
+// JWT_SECRET validation is now handled by validateEnv() at startup
+// getJwtSecret() is used throughout the app for consistent secret access
 
 await connectDB();
 
@@ -561,10 +563,6 @@ const server = app.listen(PORT, HOST, () => {
   console.log(`✓ Port ${PORT} bound successfully`);
   console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log('===================================\n');
-  
-  if (!process.env.JWT_SECRET) {
-    logger.warn('JWT_SECRET not set. Set JWT_SECRET for secure authentication.');
-  }
 });
 
 // Graceful shutdown handler

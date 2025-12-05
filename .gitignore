@@ -3,16 +3,17 @@ node_modules/
 backend/node_modules/
 frontend/node_modules/
 
-# Environment variables
-backend/.env
-backend/.env.test
-frontend/.env
-frontend/.env.local
+# Environment variables - NEVER commit real secrets
+# All .env files are ignored except .env.example templates
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
 
 # Build output
 build/
