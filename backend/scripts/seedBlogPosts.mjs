@@ -564,6 +564,12 @@ async function seedBlogPosts() {
     await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');
     
+    // Safety check for production
+    if (process.env.NODE_ENV === 'production') {
+      console.log('WARNING: Running in production mode. This will delete all existing blog posts.');
+      console.log('Set NODE_ENV to something else to skip this warning.');
+    }
+    
     // Clear existing blog posts
     const deleteResult = await BlogPost.deleteMany({});
     console.log(`Deleted ${deleteResult.deletedCount} existing blog posts`);
