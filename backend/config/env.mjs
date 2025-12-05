@@ -250,22 +250,29 @@ export const getMaskedEnv = (name) => {
   return value;
 };
 
+// Cache for feature flags (populated on first call)
+let featureCache = null;
+
 /**
  * Check if a specific feature is enabled based on environment
+ * Results are cached after first evaluation since env vars don't change at runtime
  *
  * @param {string} feature - Feature name (e.g., 'ai', 'payment', 'analytics')
  * @returns {boolean} - Whether the feature is enabled
  */
 export const isFeatureEnabled = (feature) => {
-  const featureMap = {
-    ai: process.env.ENABLE_AI_FEATURES !== 'false' && !!process.env.OPENAI_API_KEY,
-    payment: process.env.ENABLE_PAYMENT !== 'false' && !!process.env.STRIPE_SECRET_KEY,
-    analytics: process.env.ENABLE_ANALYTICS !== 'false',
-    email: !!process.env.EMAIL_USER || !!process.env.SMTP_USER || !!process.env.MAILTRAP_USER,
-    sentry: !!process.env.SENTRY_DSN,
-  };
+  // Cache feature flags on first call
+  if (featureCache === null) {
+    featureCache = {
+      ai: process.env.ENABLE_AI_FEATURES !== 'false' && !!process.env.OPENAI_API_KEY,
+      payment: process.env.ENABLE_PAYMENT !== 'false' && !!process.env.STRIPE_SECRET_KEY,
+      analytics: process.env.ENABLE_ANALYTICS !== 'false',
+      email: !!process.env.EMAIL_USER || !!process.env.SMTP_USER || !!process.env.MAILTRAP_USER,
+      sentry: !!process.env.SENTRY_DSN,
+    };
+  }
 
-  return featureMap[feature] ?? false;
+  return featureCache[feature] ?? false;
 };
 
 /**
