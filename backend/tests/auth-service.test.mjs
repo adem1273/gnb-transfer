@@ -58,13 +58,39 @@ describe('Authentication Service - Refresh Tokens', () => {
       expect(token.split('.').length).toBe(3); // JWT has 3 parts
     });
 
-    it('should throw error if JWT_SECRET not configured', () => {
+    it('should throw error if JWT_SECRET not configured in production', () => {
       const originalSecret = process.env.JWT_SECRET;
+      const originalEnv = process.env.NODE_ENV;
+      
+      // Set production mode and remove JWT_SECRET
+      process.env.NODE_ENV = 'production';
       delete process.env.JWT_SECRET;
 
-      expect(() => generateAccessToken(testUser)).toThrow('JWT_SECRET is not configured');
+      // In production, should throw error
+      expect(() => generateAccessToken(testUser)).toThrow();
 
+      // Restore original values
       process.env.JWT_SECRET = originalSecret;
+      process.env.NODE_ENV = originalEnv;
+    });
+    
+    it('should auto-generate JWT_SECRET in development mode', () => {
+      const originalSecret = process.env.JWT_SECRET;
+      const originalEnv = process.env.NODE_ENV;
+      
+      // Set development mode and remove JWT_SECRET
+      process.env.NODE_ENV = 'development';
+      delete process.env.JWT_SECRET;
+
+      // In development, should auto-generate and work
+      const token = generateAccessToken(testUser);
+      expect(token).toBeDefined();
+      expect(typeof token).toBe('string');
+      expect(token.split('.').length).toBe(3);
+
+      // Restore original values
+      process.env.JWT_SECRET = originalSecret;
+      process.env.NODE_ENV = originalEnv;
     });
   });
 
