@@ -305,5 +305,33 @@
   "languageSwitcher": {
     "selectLanguage": "اختر اللغة",
     "currentLanguage": "اللغة الحالية"
+  },
+  "blog": {
+    "title": "مدونة GNB Transfer",
+    "subtitle": "خدمات النقل VIP، أدلة إسطنبول ونصائح السفر",
+    "pageTitle": "المدونة | GNB Transfer - خدمات النقل VIP",
+    "pageDescription": "أحدث المعلومات حول نقل VIP في إسطنبول، النقل من المطار، أدلة السياحة وتأجير السيارات مع سائق خاص.",
+    "allPosts": "جميع المقالات",
+    "readMore": "اقرأ المزيد",
+    "minRead": "دقيقة قراءة",
+    "views": "مشاهدات",
+    "share": "شارك",
+    "tags": "الوسوم",
+    "relatedPosts": "مقالات ذات صلة",
+    "backToBlog": "العودة إلى المدونة",
+    "notFound": "المقال غير موجود",
+    "loadError": "فشل تحميل المقالات",
+    "noPosts": "لا توجد مقالات بعد",
+    "noPostsDescription": "سنشارك قريبًا محتوى مفيد حول النقل VIP والسياحة.",
+    "bookNow": "احجز الآن",
+    "ctaTitle": "جرب خدمة النقل VIP لدينا",
+    "ctaDescription": "تأجير سيارة مع سائق ابتداءً من 75 دولار. خصم 15٪ على رحلات مطار إسطنبول وصبيحة كوكجن!",
+    "bookTransfer": "احجز الآن",
+    "ctaBoxTitle": "حجز النقل VIP",
+    "ctaBoxDescription": "خدمة نقل احترافية ابتداءً من 75 دولار!",
+    "discountCode": "كود الخصم",
+    "gallery": "معرض الصور",
+    "copyLink": "نسخ الرابط",
+    "linkCopied": "تم نسخ الرابط!"
   }
 }

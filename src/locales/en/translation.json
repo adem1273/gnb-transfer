@@ -355,145 +355,32 @@
     "extraServices": "Extra Services",
     "whatsapp": "WhatsApp"
   },
-  "images": {
-    "hero": {
-      "luxuryVanFamily": "International family enjoying luxury Mercedes van transfer service",
-      "airportPickup": "Professional airport pickup service with luxury vehicle",
-      "premiumTransfer": "Premium transfer service in modern Mercedes van",
-      "familyTravel": "Happy family traveling in comfortable luxury vehicle"
-    },
-    "fleet": {
-      "mercedesVitoExterior": "White Mercedes Vito luxury van exterior view",
-      "mercedesVitoBlack": "Black Mercedes Vito premium transfer vehicle",
-      "mercedesVianoSilver": "Silver Mercedes Viano comfortable passenger van",
-      "mercedesVianoWhite": "White Mercedes Viano luxury transport",
-      "mercedesSprinterWhite": "White Mercedes Sprinter spacious group transport",
-      "mercedesSprinterBlack": "Black Mercedes Sprinter premium vehicle",
-      "leatherInterior": "Luxurious leather interior of transfer vehicle",
-      "spaciousInterior": "Spacious and comfortable vehicle interior",
-      "premiumSeating": "Premium seating arrangement in luxury van",
-      "spaciousTrunk": "Spacious trunk for luggage storage",
-      "luggageHandling": "Professional luggage handling service",
-      "cargoSpace": "Ample cargo space for family luggage"
-    },
-    "services": {
-      "childSeat": "Safe child seat installed in vehicle",
-      "babySeat": "Baby seat for infant safety during transfer",
-      "meetAndGreet": "Meet and greet service at airport arrivals",
-      "vipLounge": "VIP airport lounge access for premium travelers",
-      "welcomeSign": "Welcome sign with guest name at airport"
-    },
-    "drivers": {
-      "professional1": "Professional driver in business attire ready to assist",
-      "professional2": "Experienced chauffeur providing premium service",
-      "professional3": "Friendly driver ensuring comfortable journey",
-      "professional4": "Uniformed driver offering VIP transfer service"
-    },
-    "airports": {
-      "istanbulAirport": "Istanbul Airport modern terminal building",
-      "airportTerminal": "Airport terminal arrivals area",
-      "sabihaGokcen": "Sabiha Gökçen International Airport",
-      "arrivalHall": "Airport arrival hall meeting point"
-    },
-    "reviews": {
-      "happyFamily1": "Happy family after excellent transfer experience",
-      "happyFamily2": "Satisfied customers enjoying tour service",
-      "happyFamily3": "International travelers with positive experience",
-      "happyFamily4": "Business travelers pleased with service",
-      "happyFamily5": "Family giving 5-star review for transfer"
-    },
-    "blog": {
-      "istanbulSkyline": "Beautiful Istanbul city skyline view",
-      "blueMosque": "Historic Blue Mosque in Istanbul",
-      "hagiaSophia": "Magnificent Hagia Sophia landmark",
-      "cappadociaBalloons": "Hot air balloons over Cappadocia",
-      "cappadociaLandscape": "Unique Cappadocia rock formations",
-      "pamukkaleTerraces": "White travertine terraces of Pamukkale",
-      "uludagMountain": "Snow-capped Uludağ mountain in Bursa",
-      "travelAdventure": "Exciting travel adventure scenery",
-      "scenicRoad": "Beautiful scenic road trip view",
-      "mountainView": "Stunning mountain landscape view"
-    },
-    "about": {
-      "ourTeam": "Our dedicated professional team",
-      "ourOffice": "Modern GNB Transfer office",
-      "ourMission": "Team working on customer satisfaction"
-    },
-    "servicesPage": {
-      "airportTransfer": "Airport transfer service in action",
-      "cityTours": "Istanbul city tour experience",
-      "privateCharter": "Private charter vehicle service",
-      "corporateTravel": "Corporate business travel solution"
-    }
-  },
-  "fleet": {
-    "title": "Our Premium Fleet",
-    "subtitle": "Luxury vehicles for every occasion",
-    "mercedesVito": "Mercedes Vito",
-    "mercedesViano": "Mercedes Viano",
-    "mercedesSprinter": "Mercedes Sprinter",
-    "passengers": "passengers",
-    "luggage": "luggage",
-    "features": {
-      "leather": "Leather seats",
-      "ac": "Climate control",
-      "wifi": "Free WiFi",
-      "usb": "USB charging",
-      "water": "Complimentary water"
-    },
-    "viewAll": "View All Vehicles",
-    "exteriorGallery": "Exterior Gallery",
-    "interiorGallery": "Interior Gallery"
-  },
-  "about": {
-    "title": "About GNB Transfer",
-    "subtitle": "Your trusted partner for premium transfers in Turkey",
-    "ourStory": "Our Story",
-    "ourStoryText": "Founded with a passion for excellence, GNB Transfer has been providing premium airport transfer and tour services across Turkey since 2018. We believe every journey should be comfortable, safe, and memorable.",
-    "ourMission": "Our Mission",
-    "ourMissionText": "To deliver world-class transfer services with professional drivers, luxury vehicles, and exceptional customer care. We strive to make every trip a premium experience.",
-    "ourValues": "Our Values",
-    "safety": "Safety First",
-    "safetyText": "Your safety is our top priority with fully insured vehicles and professional drivers.",
-    "comfort": "Comfort",
-    "comfortText": "Travel in style with our luxury fleet equipped with premium amenities.",
-    "reliability": "Reliability",
-    "reliabilityText": "24/7 service with real-time flight tracking and punctual pickups.",
-    "stats": {
-      "happyCustomers": "Happy Customers",
-      "completedTransfers": "Completed Transfers",
-      "professionalDrivers": "Professional Drivers",
-      "yearsExperience": "Years of Experience"
-    },
-    "meetTeam": "Meet Our Team",
-    "teamDescription": "Our dedicated team of professionals is committed to providing you with the best travel experience."
-  },
-  "services": {
-    "title": "Our Services",
-    "subtitle": "Comprehensive transfer and tour solutions",
-    "airportTransfer": {
-      "title": "Airport Transfer",
-      "description": "Comfortable and reliable airport pickup and drop-off services at Istanbul Airport and Sabiha Gökçen."
-    },
-    "cityTours": {
-      "title": "City Tours",
-      "description": "Explore Istanbul and Turkey's most beautiful destinations with our guided tour services."
-    },
-    "privateCharter": {
-      "title": "Private Charter",
-      "description": "Exclusive vehicle hire for special occasions, events, and customized itineraries."
-    },
-    "corporateTravel": {
-      "title": "Corporate Travel",
-      "description": "Professional transportation solutions for business travelers and corporate events."
-    },
-    "features": {
-      "flightTracking": "Real-time flight tracking",
-      "meetGreet": "Meet & greet service",
-      "childSeats": "Child & baby seats available",
-      "multilingual": "Multilingual drivers",
-      "support": "24/7 customer support",
-      "fixedPricing": "Fixed transparent pricing"
-    }
+  "blog": {
+    "title": "GNB Transfer Blog",
+    "subtitle": "VIP transfer services, Istanbul guides and travel tips",
+    "pageTitle": "Blog | GNB Transfer - VIP Transfer Services",
+    "pageDescription": "Latest information about Istanbul VIP transfer, airport transportation, tourist guides and private chauffeur car rental.",
+    "allPosts": "All Posts",
+    "readMore": "Read More",
+    "minRead": "min read",
+    "views": "views",
+    "share": "Share",
+    "tags": "Tags",
+    "relatedPosts": "Related Posts",
+    "backToBlog": "Back to Blog",
+    "notFound": "Post not found",
+    "loadError": "Failed to load blog posts",
+    "noPosts": "No blog posts yet",
+    "noPostsDescription": "Soon we will share useful content about VIP transfer and tourism.",
+    "bookNow": "Book Now",
+    "ctaTitle": "Try Our VIP Transfer Service",
+    "ctaDescription": "Professional chauffeured car rental starting from $75. 15% discount on Istanbul Airport and Sabiha Gokcen transfers!",
+    "bookTransfer": "Book Now",
+    "ctaBoxTitle": "VIP Transfer Booking",
+    "ctaBoxDescription": "Professional transfer service starting from $75!",
+    "discountCode": "Discount Code",
+    "gallery": "Gallery",
+    "copyLink": "Copy Link",
+    "linkCopied": "Link copied!"
   }
 }

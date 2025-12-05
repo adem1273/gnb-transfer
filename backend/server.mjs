@@ -50,8 +50,20 @@ import delayCompensationRoutes from './routes/delayCompensationRoutes.mjs';
 import revenueAnalyticsRoutes from './routes/revenueAnalyticsRoutes.mjs';
 import corporateRoutes from './routes/corporateRoutes.mjs';
 import docsRoutes from './routes/docsRoutes.mjs';
+import blogRoutes from './routes/blogRoutes.mjs';
 import { routeRouter } from './routes/routeRoutes.mjs';
 import { pricingRouter } from './routes/pricingRoutes.mjs';
+
+// New admin feature routes
+import settingsRoutes from './routes/settingsRoutes.mjs';
+import basePricingRoutes from './routes/basePricingRoutes.mjs';
+import extraServicesRoutes from './routes/extraServicesRoutes.mjs';
+import reviewRoutes from './routes/reviewRoutes.mjs';
+import blogRoutes from './routes/blogRoutes.mjs';
+import adTrackingRoutes from './routes/adTrackingRoutes.mjs';
+import loyaltyRoutes from './routes/loyaltyRoutes.mjs';
+import bulkMessagingRoutes from './routes/bulkMessagingRoutes.mjs';
+import invoiceRoutes from './routes/invoiceRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -218,8 +230,23 @@ app.use(`${API_V1}/admin/delay`, delayCompensationRoutes);
 app.use(`${API_V1}/admin/analytics`, revenueAnalyticsRoutes);
 app.use(`${API_V1}/admin/corporate`, corporateRoutes);
 
+// New admin feature routes (v1)
+app.use(`${API_V1}/admin/settings`, settingsRoutes);
+app.use(`${API_V1}/admin/base-pricing`, basePricingRoutes);
+app.use(`${API_V1}/admin/extra-services`, extraServicesRoutes);
+app.use(`${API_V1}/admin/messaging`, bulkMessagingRoutes);
+app.use(`${API_V1}/admin/tracking`, adTrackingRoutes);
+app.use(`${API_V1}/reviews`, reviewRoutes);
+app.use(`${API_V1}/blog`, blogRoutes);
+app.use(`${API_V1}/loyalty`, loyaltyRoutes);
+app.use(`${API_V1}/invoices`, invoiceRoutes);
+app.use(`${API_V1}/tracking`, adTrackingRoutes);
+
 // API documentation endpoint (v1)
 app.use(`${API_V1}/docs`, docsRoutes);
+
+// Blog routes (v1)
+app.use(`${API_V1}/blogs`, blogRoutes);
 
 // Legacy routes (for backward compatibility)
 // These will be deprecated in future versions
@@ -248,6 +275,19 @@ app.use('/api/admin/delay', delayCompensationRoutes);
 app.use('/api/admin/analytics', revenueAnalyticsRoutes);
 app.use('/api/admin/corporate', corporateRoutes);
 app.use('/api/docs', docsRoutes);
+app.use('/api/blogs', blogRoutes);
+
+// New admin feature routes (legacy)
+app.use('/api/admin/settings', settingsRoutes);
+app.use('/api/admin/base-pricing', basePricingRoutes);
+app.use('/api/admin/extra-services', extraServicesRoutes);
+app.use('/api/admin/messaging', bulkMessagingRoutes);
+app.use('/api/admin/tracking', adTrackingRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/blog', blogRoutes);
+app.use('/api/loyalty', loyaltyRoutes);
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/tracking', adTrackingRoutes);
 
 // Health check endpoint (registered before other routes)
 app.get('/api/health', async (req, res) => {

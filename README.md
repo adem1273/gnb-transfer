@@ -57,6 +57,68 @@ function MyComponent() {
 
 ---
 
+## 📝 Blog System - 40 Sales-Oriented Posts in 9 Languages
+
+GNB Transfer includes a fully multilingual, high-conversion, sales-oriented blog system with **40 ready-made posts** translated into all 9 supported languages (360 total articles).
+
+### Blog Features
+
+- **Full 9-Language Support**: Every post is available in TR, EN, AR (RTL), RU, DE, FR, ES, ZH, and FA (RTL)
+- **Rich Admin Panel**: Create, edit, and delete posts with multilingual editor
+- **SEO Optimized**: 
+  - JSON-LD Article structured data
+  - OpenGraph meta tags
+  - Twitter Cards
+  - Canonical URLs for each language
+  - Automatic reading time calculation
+- **Conversion-Focused**:
+  - Every post includes strong CTAs to booking page
+  - WhatsApp contact integration
+  - Pricing tables with discount codes
+  - 3+ internal links per post
+- **Modern Features**:
+  - Share buttons (WhatsApp, Twitter, Facebook, LinkedIn)
+  - Related posts suggestions
+  - Category filtering
+  - Pagination
+  - View tracking
+
+### Blog Post Categories
+
+| Category | Description |
+|----------|-------------|
+| transfer-prices | VIP transfer pricing guides |
+| destinations | Tourist destination guides |
+| services | Service features and options |
+| tips | Travel tips and advice |
+| news | Company news and updates |
+| promotions | Special offers and discounts |
+| seasonal | Seasonal content (holidays, festivals) |
+
+### Seeding Blog Posts
+
+To populate the database with 40 sample blog posts:
+
+```bash
+cd backend
+node scripts/seedBlogPosts.mjs
+```
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/blogs` | GET | List published posts with pagination |
+| `/api/blogs/slug/:slug` | GET | Get post by slug |
+| `/api/blogs/categories` | GET | List all categories |
+| `/api/blogs/feed/rss` | GET | RSS feed |
+| `/api/blogs/admin/all` | GET | Admin: all posts (auth required) |
+| `/api/blogs` | POST | Create post (auth required) |
+| `/api/blogs/:id` | PUT | Update post (auth required) |
+| `/api/blogs/:id` | DELETE | Delete post (auth required) |
+
+---
+
 ## 🚀 Özellikler
 - **Tam Yığın Geliştirme:** React (Vite + Tailwind) ön yüz ve Express.js arka yüz.
 - **Güvenlik:** JWT tabanlı kimlik doğrulama, bcrypt ile şifre hash'leme ve admin yetkisi kontrolü.
@@ -66,6 +128,84 @@ function MyComponent() {
 - **Ödeme Entegrasyonu:** Stripe için temel ödeme akışı.
 - **Sosyal Giriş:** Google ve Apple ile tek tıkla giriş desteği.
 - **📋 Bakanlık Uyumlu Yolcu Bilgileri:** Türkiye Ulaştırma Bakanlığı düzenlemelerine uygun yolcu adı toplama sistemi.
+- **📝 Blog Sistemi:** 9 dilde 40 satış odaklı blog yazısı ile SEO uyumlu blog sistemi.
+
+---
+
+## 🎯 Ultimate Admin Features (12 New Features)
+
+### 1. 💵 Dynamic Pricing & Services
+- **Full base price table** for airport ↔ district routes
+- **Extra services pricing** (child seat, meet & greet, VIP lounge, etc.)
+- **Seasonal multipliers** (e.g., summer ×1.2)
+- **Currency switcher** with manual exchange rates
+- **Night surcharge** configuration
+- **Tax rate** management
+
+### 2. 🚗 Drivers & Vehicles Management
+- Add/edit/delete drivers with full profiles
+- Vehicle assignment and availability toggle
+- Driver performance tracking
+- License and document management
+
+### 3. 📍 Live Booking Status Tracking
+- Statuses: Pending → Assigned → On Way → Picked Up → Completed / Cancelled
+- Admin manual status change
+- Real-time fleet tracking
+
+### 4. 📨 Bulk WhatsApp & Email Sender
+- Select multiple bookings
+- Template or custom message
+- WhatsApp link generation
+- Email bulk sending
+
+### 5. 📄 Invoice & PDF Generation
+- One-click PDF invoice
+- Company logo and passenger names
+- Turkish e-fatura fields
+- QR code support
+
+### 6. 📊 Income-Expense & Profit Dashboard
+- Monthly/yearly revenue tracking
+- Profit margin calculation
+- Payment method breakdown
+- Export to CSV/PDF
+
+### 7. 🏢 Corporate Client Panel
+- Company profiles with tax info
+- Discount percentages
+- Monthly invoicing
+- Booking statistics
+
+### 8. 🎁 Loyalty / Points System
+- Automatic points per transfer
+- 5th ride: 20% off
+- 10th ride: free (configurable)
+- Tier system (Bronze, Silver, Gold, Platinum)
+
+### 9. ⭐ Review & Rating System
+- Post-transfer auto email
+- Stars + comments
+- Homepage featured reviews
+- Admin response capability
+
+### 10. 🗺️ Live Vehicle Map Tracking
+- Real-time driver locations
+- Google Maps integration
+- Fleet overview dashboard
+
+### 11. 📝 Blog & SEO Content Manager
+- Add/edit/delete blog posts
+- Title, slug, content, featured image
+- SEO meta fields
+- Multi-language support
+- Category and tag management
+
+### 12. 📈 Ad Pixel & Conversion Tracking Dashboard
+- Google/Meta pixel integration
+- Campaign performance
+- Conversion tracking
+- Revenue attribution
 
 ---
 
@@ -221,6 +361,18 @@ This application implements comprehensive security measures for production deplo
 - `POST /api/v1/users/refresh` - Token refresh with rotation
 - `POST /api/v1/users/logout` - Token revocation and cleanup
 
+**New Admin API Endpoints:**
+- `GET/POST/PATCH/DELETE /api/v1/admin/base-pricing` - Route pricing management
+- `GET/POST/PATCH/DELETE /api/v1/admin/extra-services` - Extra services pricing
+- `GET/PATCH /api/v1/admin/settings` - Global settings (currency, pricing modifiers)
+- `GET/POST /api/v1/reviews` - Review management
+- `GET/POST/PATCH/DELETE /api/v1/blog` - Blog & SEO content
+- `GET/POST /api/v1/loyalty` - Loyalty points system
+- `GET/POST /api/v1/admin/messaging` - Bulk messaging
+- `GET /api/v1/invoices/:bookingId` - PDF invoice generation
+- `GET/POST /api/v1/tracking` - Ad pixel & conversion tracking
+- `GET /api/v1/admin/tracking/dashboard` - Ad tracking dashboard
+
 **Note:** All API endpoints are available with `/api/v1` prefix. Legacy `/api` endpoints are also supported for backward compatibility.
 
 For detailed security documentation, see `backend/SECURITY_API_DOCS.md`
@@ -274,6 +426,29 @@ The runbook covers:
 - Database operations
 - Security operations
 - Troubleshooting guide
+
+---
+
+## 🗄️ Database Collections
+
+The application uses the following MongoDB collections:
+
+### Core Collections
+- `users` - User accounts and authentication
+- `tours` - Tour/transfer listings
+- `bookings` - Customer bookings
+- `vehicles` - Fleet vehicles
+- `drivers` - Driver profiles
+
+### New Feature Collections
+- `basepricings` - Route pricing (airport ↔ district)
+- `extraservices` - Extra service pricing (child seat, VIP lounge, etc.)
+- `settings` - Global app settings (currency, pricing modifiers, seasonal multipliers)
+- `reviews` - Customer reviews and ratings
+- `blogposts` - Blog content for SEO
+- `loyaltypoints` - Customer loyalty points and rewards
+- `adtrackings` - Ad pixel and conversion tracking
+- `coupons` - Discount coupons
 
 ---
 

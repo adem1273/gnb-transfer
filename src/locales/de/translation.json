@@ -306,145 +306,32 @@
     "selectLanguage": "Sprache wählen",
     "currentLanguage": "Aktuelle Sprache"
   },
-  "images": {
-    "hero": {
-      "luxuryVanFamily": "Internationale Familie genießt luxuriösen Mercedes Van Transfer",
-      "airportPickup": "Professioneller Flughafen-Abholservice mit Luxusfahrzeug",
-      "premiumTransfer": "Premium-Transferservice im modernen Mercedes Van",
-      "familyTravel": "Glückliche Familie reist im komfortablen Luxusfahrzeug"
-    },
-    "fleet": {
-      "mercedesVitoExterior": "Weißer Mercedes Vito Luxus-Van Außenansicht",
-      "mercedesVitoBlack": "Schwarzer Mercedes Vito Premium-Transferfahrzeug",
-      "mercedesVianoSilver": "Silberner Mercedes Viano komfortabler Passagiervan",
-      "mercedesVianoWhite": "Weißer Mercedes Viano Luxustransport",
-      "mercedesSprinterWhite": "Weißer Mercedes Sprinter geräumiger Gruppentransport",
-      "mercedesSprinterBlack": "Schwarzer Mercedes Sprinter Premium-Fahrzeug",
-      "leatherInterior": "Luxuriöse Lederausstattung des Transferfahrzeugs",
-      "spaciousInterior": "Geräumiger und komfortabler Fahrzeuginnenraum",
-      "premiumSeating": "Premium-Sitzanordnung im Luxus-Van",
-      "spaciousTrunk": "Geräumiger Kofferraum für Gepäck",
-      "luggageHandling": "Professioneller Gepäckservice",
-      "cargoSpace": "Ausreichend Laderaum für Familiengepäck"
-    },
-    "services": {
-      "childSeat": "Sicherer Kindersitz im Fahrzeug installiert",
-      "babySeat": "Babysitz für Säuglingssicherheit während des Transfers",
-      "meetAndGreet": "Meet & Greet Service am Flughafen",
-      "vipLounge": "VIP-Lounge-Zugang für Premium-Reisende",
-      "welcomeSign": "Willkommensschild mit Gastname am Flughafen"
-    },
-    "drivers": {
-      "professional1": "Professioneller Fahrer in Geschäftskleidung bereit zu helfen",
-      "professional2": "Erfahrener Chauffeur bietet Premium-Service",
-      "professional3": "Freundlicher Fahrer sorgt für komfortable Reise",
-      "professional4": "Uniformierter Fahrer bietet VIP-Transferservice"
-    },
-    "airports": {
-      "istanbulAirport": "Istanbul Flughafen modernes Terminalgebäude",
-      "airportTerminal": "Flughafen-Terminal Ankunftsbereich",
-      "sabihaGokcen": "Sabiha Gökçen Internationaler Flughafen",
-      "arrivalHall": "Flughafen Ankunftshalle Treffpunkt"
-    },
-    "reviews": {
-      "happyFamily1": "Glückliche Familie nach exzellentem Transfer-Erlebnis",
-      "happyFamily2": "Zufriedene Kunden genießen Tourservice",
-      "happyFamily3": "Internationale Reisende mit positiver Erfahrung",
-      "happyFamily4": "Geschäftsreisende zufrieden mit Service",
-      "happyFamily5": "Familie gibt 5-Sterne-Bewertung für Transfer"
-    },
-    "blog": {
-      "istanbulSkyline": "Schöne Istanbul Stadtsilhouette",
-      "blueMosque": "Historische Blaue Moschee in Istanbul",
-      "hagiaSophia": "Prächtige Hagia Sophia Wahrzeichen",
-      "cappadociaBalloons": "Heißluftballons über Kappadokien",
-      "cappadociaLandscape": "Einzigartige Kappadokien Felsformationen",
-      "pamukkaleTerraces": "Weiße Travertin-Terrassen von Pamukkale",
-      "uludagMountain": "Schneebedeckter Uludağ Berg in Bursa",
-      "travelAdventure": "Aufregende Reiseabenteuer-Szenerie",
-      "scenicRoad": "Schöne malerische Straßenfahrt-Ansicht",
-      "mountainView": "Atemberaubende Berglandschaft-Ansicht"
-    },
-    "about": {
-      "ourTeam": "Unser engagiertes professionelles Team",
-      "ourOffice": "Modernes GNB Transfer Büro",
-      "ourMission": "Team arbeitet an Kundenzufriedenheit"
-    },
-    "servicesPage": {
-      "airportTransfer": "Flughafen-Transferservice in Aktion",
-      "cityTours": "Istanbul Stadtführung Erlebnis",
-      "privateCharter": "Privater Charter-Fahrzeugservice",
-      "corporateTravel": "Geschäftsreise-Lösung für Unternehmen"
-    }
-  },
-  "fleet": {
-    "title": "Unsere Premium-Flotte",
-    "subtitle": "Luxusfahrzeuge für jeden Anlass",
-    "mercedesVito": "Mercedes Vito",
-    "mercedesViano": "Mercedes Viano",
-    "mercedesSprinter": "Mercedes Sprinter",
-    "passengers": "Passagiere",
-    "luggage": "Gepäck",
-    "features": {
-      "leather": "Ledersitze",
-      "ac": "Klimaanlage",
-      "wifi": "Kostenloses WLAN",
-      "usb": "USB-Ladung",
-      "water": "Kostenloses Wasser"
-    },
-    "viewAll": "Alle Fahrzeuge anzeigen",
-    "exteriorGallery": "Außenansicht-Galerie",
-    "interiorGallery": "Innenraum-Galerie"
-  },
-  "about": {
-    "title": "Über GNB Transfer",
-    "subtitle": "Ihr vertrauenswürdiger Partner für Premium-Transfers in der Türkei",
-    "ourStory": "Unsere Geschichte",
-    "ourStoryText": "Mit Leidenschaft für Exzellenz gegründet, bietet GNB Transfer seit 2018 Premium-Flughafentransfer- und Tourservices in der gesamten Türkei. Wir glauben, dass jede Reise komfortabel, sicher und unvergesslich sein sollte.",
-    "ourMission": "Unsere Mission",
-    "ourMissionText": "Erstklassige Transferservices mit professionellen Fahrern, Luxusfahrzeugen und außergewöhnlicher Kundenbetreuung zu liefern. Wir streben danach, jede Reise zu einem Premium-Erlebnis zu machen.",
-    "ourValues": "Unsere Werte",
-    "safety": "Sicherheit zuerst",
-    "safetyText": "Ihre Sicherheit ist unsere oberste Priorität mit vollversicherten Fahrzeugen und professionellen Fahrern.",
-    "comfort": "Komfort",
-    "comfortText": "Reisen Sie stilvoll mit unserer Luxusflotte, ausgestattet mit Premium-Annehmlichkeiten.",
-    "reliability": "Zuverlässigkeit",
-    "reliabilityText": "24/7 Service mit Echtzeit-Flugverfolgung und pünktlichen Abholungen.",
-    "stats": {
-      "happyCustomers": "Zufriedene Kunden",
-      "completedTransfers": "Abgeschlossene Transfers",
-      "professionalDrivers": "Professionelle Fahrer",
-      "yearsExperience": "Jahre Erfahrung"
-    },
-    "meetTeam": "Lernen Sie unser Team kennen",
-    "teamDescription": "Unser engagiertes Team von Fachleuten ist bestrebt, Ihnen das beste Reiseerlebnis zu bieten."
-  },
-  "services": {
-    "title": "Unsere Dienstleistungen",
-    "subtitle": "Umfassende Transfer- und Tourlösungen",
-    "airportTransfer": {
-      "title": "Flughafen-Transfer",
-      "description": "Komfortable und zuverlässige Flughafen-Abhol- und Bringservices am Istanbul Airport und Sabiha Gökçen."
-    },
-    "cityTours": {
-      "title": "Stadtführungen",
-      "description": "Entdecken Sie Istanbul und die schönsten Reiseziele der Türkei mit unseren geführten Tourservices."
-    },
-    "privateCharter": {
-      "title": "Privatmiete",
-      "description": "Exklusive Fahrzeugmiete für besondere Anlässe, Veranstaltungen und individuelle Routen."
-    },
-    "corporateTravel": {
-      "title": "Geschäftsreisen",
-      "description": "Professionelle Transportlösungen für Geschäftsreisende und Firmenveranstaltungen."
-    },
-    "features": {
-      "flightTracking": "Echtzeit-Flugverfolgung",
-      "meetGreet": "Meet & Greet Service",
-      "childSeats": "Kinder- und Babysitze verfügbar",
-      "multilingual": "Mehrsprachige Fahrer",
-      "support": "24/7 Kundensupport",
-      "fixedPricing": "Feste transparente Preise"
-    }
+  "blog": {
+    "title": "GNB Transfer Blog",
+    "subtitle": "VIP-Transfer, Istanbul-Reiseführer und Reisetipps",
+    "pageTitle": "Blog | GNB Transfer - VIP-Transferdienste",
+    "pageDescription": "Aktuelle Informationen über VIP-Transfer in Istanbul, Flughafentransfer, Reiseführer und Mietwagen mit privatem Chauffeur.",
+    "allPosts": "Alle Beiträge",
+    "readMore": "Weiterlesen",
+    "minRead": "Min. Lesezeit",
+    "views": "Aufrufe",
+    "share": "Teilen",
+    "tags": "Tags",
+    "relatedPosts": "Ähnliche Beiträge",
+    "backToBlog": "Zurück zum Blog",
+    "notFound": "Beitrag nicht gefunden",
+    "loadError": "Blogbeiträge konnten nicht geladen werden",
+    "noPosts": "Noch keine Blogbeiträge",
+    "noPostsDescription": "Bald teilen wir nützliche Inhalte über VIP-Transfer und Tourismus.",
+    "bookNow": "Jetzt buchen",
+    "ctaTitle": "Probieren Sie unseren VIP-Transfer",
+    "ctaDescription": "Mietwagen mit Chauffeur ab 75$. 15% Rabatt auf Transfers vom Flughafen Istanbul und Sabiha Gökçen!",
+    "bookTransfer": "Jetzt buchen",
+    "ctaBoxTitle": "VIP-Transfer Buchung",
+    "ctaBoxDescription": "Professioneller Transfer ab 75$!",
+    "discountCode": "Rabattcode",
+    "gallery": "Galerie",
+    "copyLink": "Link kopieren",
+    "linkCopied": "Link kopiert!"
   }
 }

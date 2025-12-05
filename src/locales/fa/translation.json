@@ -305,5 +305,33 @@
   "languageSwitcher": {
     "selectLanguage": "انتخاب زبان",
     "currentLanguage": "زبان فعلی"
+  },
+  "blog": {
+    "title": "وبلاگ GNB Transfer",
+    "subtitle": "خدمات ترانسفر VIP، راهنمای استانبول و نکات سفر",
+    "pageTitle": "وبلاگ | GNB Transfer - خدمات ترانسفر VIP",
+    "pageDescription": "آخرین اطلاعات درباره ترانسفر VIP در استانبول، حمل و نقل فرودگاه، راهنمای گردشگری و اجاره خودرو با راننده.",
+    "allPosts": "همه مقالات",
+    "readMore": "ادامه مطلب",
+    "minRead": "دقیقه مطالعه",
+    "views": "بازدید",
+    "share": "اشتراک‌گذاری",
+    "tags": "برچسب‌ها",
+    "relatedPosts": "مقالات مرتبط",
+    "backToBlog": "بازگشت به وبلاگ",
+    "notFound": "مقاله یافت نشد",
+    "loadError": "بارگذاری مقالات ناموفق بود",
+    "noPosts": "هنوز مقاله‌ای وجود ندارد",
+    "noPostsDescription": "به زودی محتوای مفید درباره ترانسفر VIP و گردشگری به اشتراک خواهیم گذاشت.",
+    "bookNow": "همین الان رزرو کنید",
+    "ctaTitle": "سرویس ترانسفر VIP ما را امتحان کنید",
+    "ctaDescription": "اجاره خودرو با راننده از 75 دلار. 15% تخفیف برای ترانسفر فرودگاه استانبول و صبیحا گوکچن!",
+    "bookTransfer": "رزرو کنید",
+    "ctaBoxTitle": "رزرو ترانسفر VIP",
+    "ctaBoxDescription": "خدمات ترانسفر حرفه‌ای از 75 دلار!",
+    "discountCode": "کد تخفیف",
+    "gallery": "گالری",
+    "copyLink": "کپی لینک",
+    "linkCopied": "لینک کپی شد!"
   }
 }

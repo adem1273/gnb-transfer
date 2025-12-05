@@ -305,5 +305,33 @@
   "languageSwitcher": {
     "selectLanguage": "选择语言",
     "currentLanguage": "当前语言"
+  },
+  "blog": {
+    "title": "GNB Transfer 博客",
+    "subtitle": "VIP接送服务、伊斯坦布尔指南和旅行提示",
+    "pageTitle": "博客 | GNB Transfer - VIP接送服务",
+    "pageDescription": "关于伊斯坦布尔VIP接送、机场交通、旅游指南和私人司机租车的最新信息。",
+    "allPosts": "所有文章",
+    "readMore": "阅读更多",
+    "minRead": "分钟阅读",
+    "views": "浏览量",
+    "share": "分享",
+    "tags": "标签",
+    "relatedPosts": "相关文章",
+    "backToBlog": "返回博客",
+    "notFound": "文章未找到",
+    "loadError": "加载文章失败",
+    "noPosts": "暂无文章",
+    "noPostsDescription": "我们将很快分享关于VIP接送和旅游的有用内容。",
+    "bookNow": "立即预订",
+    "ctaTitle": "体验我们的VIP接送服务",
+    "ctaDescription": "专业司机租车服务低至75美元。伊斯坦布尔机场和萨比哈格克琴机场接送享15%折扣！",
+    "bookTransfer": "立即预订",
+    "ctaBoxTitle": "VIP接送预订",
+    "ctaBoxDescription": "专业接送服务低至75美元！",
+    "discountCode": "折扣码",
+    "gallery": "图库",
+    "copyLink": "复制链接",
+    "linkCopied": "链接已复制！"
   }
 }

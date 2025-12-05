@@ -29,6 +29,13 @@ function Sidebar() {
             </Link>
 
             <div className="text-xs font-semibold text-gray-400 uppercase mt-4 mb-1">
+              Content
+            </div>
+            <Link to="/admin/blog" className="px-2 py-1 hover:bg-gray-700 rounded flex items-center">
+              📝 Blog (9 Languages)
+            </Link>
+
+            <div className="text-xs font-semibold text-gray-400 uppercase mt-4 mb-1">
               New Features
             </div>
             <Link to="/admin/calendar" className="px-2 py-1 hover:bg-gray-700 rounded">
@@ -68,6 +75,28 @@ function Sidebar() {
             </Link>
             <Link to="/admin/referrals" className="px-2 py-1 hover:bg-gray-700 rounded">
               🔗 Referral Program
+            </Link>
+
+            <div className="text-xs font-semibold text-gray-400 uppercase mt-4 mb-1">
+              Ultimate Admin
+            </div>
+            <Link to="/admin/pricing" className="px-2 py-1 hover:bg-gray-700 rounded">
+              💵 Dynamic Pricing
+            </Link>
+            <Link to="/admin/reviews" className="px-2 py-1 hover:bg-gray-700 rounded">
+              ⭐ Reviews & Ratings
+            </Link>
+            <Link to="/admin/loyalty" className="px-2 py-1 hover:bg-gray-700 rounded">
+              🎁 Loyalty Points
+            </Link>
+            <Link to="/admin/messaging" className="px-2 py-1 hover:bg-gray-700 rounded">
+              📨 Bulk Messaging
+            </Link>
+            <Link to="/admin/blog" className="px-2 py-1 hover:bg-gray-700 rounded">
+              📝 Blog & SEO
+            </Link>
+            <Link to="/admin/tracking" className="px-2 py-1 hover:bg-gray-700 rounded">
+              📊 Ad Tracking
             </Link>
 
             {isAdmin && (
