@@ -545,9 +545,14 @@ router.post('/reset-password/:token', strictRateLimiter, async (req, res) => {
  * @returns {object} - Access token, refresh token, and user details
  *
  * Security:
- * - Verifies Google token against Google's public keys
+ * - Verifies Google token structure and basic claims
+ * - For full production security, configure VITE_GOOGLE_CLIENT_ID and verify with google-auth-library
  * - Creates user if not exists
  * - Returns JWT tokens for authentication
+ * 
+ * IMPORTANT: In production, install and use google-auth-library for proper token verification:
+ * npm install google-auth-library
+ * Then verify with OAuth2Client.verifyIdToken()
  */
 router.post('/google-auth', strictRateLimiter, async (req, res) => {
   try {
@@ -557,24 +562,55 @@ router.post('/google-auth', strictRateLimiter, async (req, res) => {
       return res.apiError('Google credential is required', 400);
     }
 
-    // Decode the Google ID token (in production, verify with Google's API)
-    // For now, we'll decode the JWT payload
+    // Parse JWT structure
     const parts = credential.split('.');
     if (parts.length !== 3) {
       return res.apiError('Invalid Google credential format', 400);
     }
 
     let payload;
+    let header;
     try {
+      header = JSON.parse(Buffer.from(parts[0], 'base64').toString());
       payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
     } catch (decodeError) {
       return res.apiError('Failed to decode Google credential', 400);
+    }
+
+    // Basic security checks (minimal verification)
+    // In production, use google-auth-library for full cryptographic verification
+    const googleClientId = process.env.GOOGLE_CLIENT_ID;
+    
+    // Verify issuer
+    if (!payload.iss || !['accounts.google.com', 'https://accounts.google.com'].includes(payload.iss)) {
+      return res.apiError('Invalid token issuer', 401);
+    }
+
+    // Verify audience matches our client ID (if configured)
+    if (googleClientId && payload.aud !== googleClientId) {
+      return res.apiError('Token audience mismatch', 401);
+    }
+
+    // Verify token is not expired
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < now) {
+      return res.apiError('Token has expired', 401);
+    }
+
+    // Verify token is not used before its valid time
+    if (payload.nbf && payload.nbf > now) {
+      return res.apiError('Token not yet valid', 401);
     }
 
     const { email, name, sub: googleId, picture } = payload;
 
     if (!email) {
       return res.apiError('Email not provided by Google', 400);
+    }
+
+    // Verify email is verified
+    if (payload.email_verified === false) {
+      return res.apiError('Google email not verified', 401);
     }
 
     // Find or create user
@@ -631,9 +667,14 @@ router.post('/google-auth', strictRateLimiter, async (req, res) => {
  * @returns {object} - Access token, refresh token, and user details
  *
  * Security:
- * - Verifies Apple token against Apple's public keys
+ * - Verifies Apple token structure and basic claims
+ * - For full production security, verify with Apple's public keys (apple-signin-auth library)
  * - Creates user if not exists
  * - Returns JWT tokens for authentication
+ * 
+ * IMPORTANT: In production, install and use apple-signin-auth for proper token verification:
+ * npm install apple-signin-auth
+ * Then verify with appleSignin.verifyIdToken()
  */
 router.post('/apple-auth', strictRateLimiter, async (req, res) => {
   try {
@@ -643,7 +684,7 @@ router.post('/apple-auth', strictRateLimiter, async (req, res) => {
       return res.apiError('Apple identity token is required', 400);
     }
 
-    // Decode the Apple ID token (in production, verify with Apple's API)
+    // Parse JWT structure
     const parts = identityToken.split('.');
     if (parts.length !== 3) {
       return res.apiError('Invalid Apple identity token format', 400);
@@ -656,10 +697,35 @@ router.post('/apple-auth', strictRateLimiter, async (req, res) => {
       return res.apiError('Failed to decode Apple identity token', 400);
     }
 
+    // Basic security checks (minimal verification)
+    // In production, use apple-signin-auth for full cryptographic verification
+    const appleClientId = process.env.APPLE_CLIENT_ID;
+
+    // Verify issuer
+    if (!payload.iss || payload.iss !== 'https://appleid.apple.com') {
+      return res.apiError('Invalid token issuer', 401);
+    }
+
+    // Verify audience matches our client ID (if configured)
+    if (appleClientId && payload.aud !== appleClientId) {
+      return res.apiError('Token audience mismatch', 401);
+    }
+
+    // Verify token is not expired
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < now) {
+      return res.apiError('Token has expired', 401);
+    }
+
     const { email, sub: appleId } = payload;
 
     if (!email) {
       return res.apiError('Email not provided by Apple', 400);
+    }
+
+    // Verify email is verified (Apple provides this for private relay emails)
+    if (payload.email_verified === 'false' || payload.email_verified === false) {
+      return res.apiError('Apple email not verified', 401);
     }
 
     // Find or create user
