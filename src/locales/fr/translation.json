@@ -333,5 +333,76 @@
     "gallery": "Galerie",
     "copyLink": "Copier le lien",
     "linkCopied": "Lien copié!"
+  },
+  "images": {
+    "hero": {
+      "luxuryVanFamily": "Mercedes Vito blanc de luxe avec famille internationale heureuse à l'aéroport",
+      "airportPickup": "Chauffeur professionnel avec panneau de bienvenue aux arrivées de l'aéroport d'Istanbul",
+      "premiumTransfer": "Transfert VIP Mercedes Sprinter au terminal de l'aéroport",
+      "familyTravel": "Famille internationale profitant d'un road trip pittoresque en Turquie"
+    },
+    "fleet": {
+      "mercedesVitoExterior": "Mercedes Vito blanc extérieur - véhicule de transfert VIP premium",
+      "mercedesVitoBlack": "Mercedes Vito noir - transfert aéroport exécutif",
+      "mercedesVianoSilver": "Mercedes Viano argent - transport familial de luxe",
+      "mercedesVianoWhite": "Mercedes Viano blanc - transfert de groupe confortable",
+      "mercedesSprinterWhite": "Mercedes Sprinter blanc - transport VIP grands groupes",
+      "mercedesSprinterBlack": "Mercedes Sprinter noir - service navette entreprise",
+      "leatherInterior": "Intérieur cuir premium avec climatisation",
+      "spaciousInterior": "Intérieur de véhicule spacieux avec espace pour les jambes",
+      "premiumSeating": "Sièges premium confortables pour longs trajets",
+      "spaciousTrunk": "Grand espace coffre pour bagages et valises",
+      "luggageHandling": "Service professionnel de manutention des bagages",
+      "cargoSpace": "Espace cargo généreux pour bagages familiaux"
+    },
+    "services": {
+      "childSeat": "Installation siège enfant sécurisé pour transferts familiaux",
+      "babySeat": "Siège bébé et cosy pour voyage en sécurité",
+      "meetAndGreet": "Service d'accueil professionnel aux arrivées",
+      "vipLounge": "Accès exclusif au salon VIP de l'aéroport",
+      "welcomeSign": "Chauffeur tenant panneau personnalisé Bienvenue M. Smith"
+    },
+    "reviews": {
+      "happyFamily1": "Famille européenne heureuse après transfert aéroport confortable",
+      "happyFamily2": "Famille asiatique satisfaite profitant de vacances en Turquie",
+      "happyFamily3": "Groupe international avec chauffeur GNB professionnel",
+      "happyFamily4": "Famille ravie à destination touristique d'Istanbul",
+      "happyFamily5": "Clients heureux après service de transfert VIP"
+    },
+    "drivers": {
+      "professional1": "Chauffeur GNB Transfer professionnel en uniforme",
+      "professional2": "Chauffeur expérimenté avec véhicule de luxe",
+      "professional3": "Chauffeur sympathique offrant un excellent service",
+      "professional4": "Chauffeur multilingue assistant les passagers"
+    },
+    "airports": {
+      "istanbulAirport": "Terminal moderne de l'aéroport d'Istanbul extérieur",
+      "airportTerminal": "Terminal des arrivées de l'aéroport avec passagers",
+      "sabihaGokcen": "Bâtiment terminal de l'aéroport Sabiha Gökçen",
+      "arrivalHall": "Hall des arrivées animé de l'aéroport avec voyageurs"
+    },
+    "blog": {
+      "istanbulSkyline": "Magnifique horizon d'Istanbul au coucher du soleil",
+      "blueMosque": "Magnifique Mosquée Bleue à Istanbul",
+      "hagiaSophia": "Musée et mosquée historique Sainte-Sophie",
+      "cappadociaBalloons": "Montgolfières au-dessus des cheminées de fées de Cappadoce",
+      "cappadociaLandscape": "Formations rocheuses uniques de Cappadoce",
+      "pamukkaleTerraces": "Terrasses de travertin blanc de Pamukkale",
+      "uludagMountain": "Mont Uludağ enneigé près de Bursa",
+      "travelAdventure": "Aventure de voyage passionnante en Turquie",
+      "scenicRoad": "Route côtière pittoresque le long de la Riviera turque",
+      "mountainView": "Vue montagne à couper le souffle en Anatolie"
+    },
+    "about": {
+      "ourTeam": "Membres de l'équipe professionnelle GNB Transfer",
+      "ourOffice": "Bureau principal GNB Transfer à Istanbul",
+      "ourMission": "Réunion d'équipe discutant du service client"
+    },
+    "servicesPage": {
+      "airportTransfer": "Service de transfert aéroport premium",
+      "cityTours": "Visites guidées de la ville à Istanbul",
+      "privateCharter": "Service de location de véhicule privé",
+      "corporateTravel": "Voyages d'affaires et transferts professionnels"
+    }
   }
 }

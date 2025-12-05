@@ -1,46 +1,86 @@
 /**
  * Central image configuration for GNB Transfer
- * All images are royalty-free from Unsplash/Pexels
- * WebP format recommended, <150KB, lazy load + srcset
+ * All images are royalty-free, WebP format, <150KB
+ * Local images in public/images/ with lazy load + srcset support
+ *
+ * Image naming convention:
+ * - hero: hero-{nn}-{description}.webp
+ * - fleet: fleet-{vehicle}-{variant}.webp
+ * - services: service-{name}.webp
+ * - trust: trust-{description}.webp
+ * - blog: blog/{category}/{topic}-{nn}.webp
+ *
+ * Alt texts are internationalized via i18n keys (images.{section}.{key})
  */
+
+// Configuration flag to toggle between local and external images
+// Set to true when local images are properly replaced with professional photos
+export const USE_LOCAL_IMAGES = false;
+
+// Local image base path
+const LOCAL_BASE = '/images';
 
 // Hero Slider Images - 4 luxury van photos with international families
 export const heroImages = [
   {
     id: 'hero-1',
-    src: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1920&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1920&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=640&q=80&auto=format 640w, https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1280&q=80&auto=format 1280w, https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1920&q=80&auto=format 1920w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/hero/hero-01-white-vito-family.webp`
+      : 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1920&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/hero/hero-01-white-vito-family.webp`
+      : 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1920&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/hero/hero-01-white-vito-family.webp 1920w`
+      : 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=640&q=80&auto=format 640w, https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1280&q=80&auto=format 1280w, https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1920&q=80&auto=format 1920w',
     altKey: 'images.hero.luxuryVanFamily',
     category: 'hero',
+    localPath: `${LOCAL_BASE}/hero/hero-01-white-vito-family.webp`,
   },
   {
     id: 'hero-2',
-    src: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=1920&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=1920&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=640&q=80&auto=format 640w, https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=1280&q=80&auto=format 1280w, https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=1920&q=80&auto=format 1920w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/hero/hero-02-black-vito-driver-sign.webp`
+      : 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=1920&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/hero/hero-02-black-vito-driver-sign.webp`
+      : 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=1920&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/hero/hero-02-black-vito-driver-sign.webp 1920w`
+      : 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=640&q=80&auto=format 640w, https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=1280&q=80&auto=format 1280w, https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=1920&q=80&auto=format 1920w',
     altKey: 'images.hero.airportPickup',
     category: 'hero',
+    localPath: `${LOCAL_BASE}/hero/hero-02-black-vito-driver-sign.webp`,
   },
   {
     id: 'hero-3',
-    src: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1920&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1920&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=640&q=80&auto=format 640w, https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1280&q=80&auto=format 1280w, https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1920&q=80&auto=format 1920w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/hero/hero-03-sprinter-airport.webp`
+      : 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1920&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/hero/hero-03-sprinter-airport.webp`
+      : 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1920&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/hero/hero-03-sprinter-airport.webp 1920w`
+      : 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=640&q=80&auto=format 640w, https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1280&q=80&auto=format 1280w, https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1920&q=80&auto=format 1920w',
     altKey: 'images.hero.premiumTransfer',
     category: 'hero',
+    localPath: `${LOCAL_BASE}/hero/hero-03-sprinter-airport.webp`,
   },
   {
     id: 'hero-4',
-    src: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=640&q=80&auto=format 640w, https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1280&q=80&auto=format 1280w, https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&q=80&auto=format 1920w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/hero/hero-04-family-travel.webp`
+      : 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/hero/hero-04-family-travel.webp`
+      : 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/hero/hero-04-family-travel.webp 1920w`
+      : 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=640&q=80&auto=format 640w, https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1280&q=80&auto=format 1280w, https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920&q=80&auto=format 1920w',
     altKey: 'images.hero.familyTravel',
     category: 'hero',
+    localPath: `${LOCAL_BASE}/hero/hero-04-family-travel.webp`,
   },
 ];
 
@@ -49,171 +89,273 @@ export const fleetImages = [
   // Mercedes Vito exterior
   {
     id: 'fleet-vito-ext-1',
-    src: 'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=800&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=800&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=800&q=80&auto=format 800w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-vito-white-exterior.webp`
+      : 'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=800&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-vito-white-exterior.webp`
+      : 'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=800&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-vito-white-exterior.webp 800w`
+      : 'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=800&q=80&auto=format 800w',
     altKey: 'images.fleet.mercedesVitoExterior',
     category: 'fleet',
     vehicleType: 'Mercedes Vito',
     color: 'white',
+    localPath: `${LOCAL_BASE}/fleet/fleet-mercedes-vito-white-exterior.webp`,
   },
   {
     id: 'fleet-vito-ext-2',
-    src: 'https://images.unsplash.com/photo-1609520505218-7421df70e1f5?w=800&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1609520505218-7421df70e1f5?w=800&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1609520505218-7421df70e1f5?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1609520505218-7421df70e1f5?w=800&q=80&auto=format 800w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-vito-black-exterior.webp`
+      : 'https://images.unsplash.com/photo-1609520505218-7421df70e1f5?w=800&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-vito-black-exterior.webp`
+      : 'https://images.unsplash.com/photo-1609520505218-7421df70e1f5?w=800&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-vito-black-exterior.webp 800w`
+      : 'https://images.unsplash.com/photo-1609520505218-7421df70e1f5?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1609520505218-7421df70e1f5?w=800&q=80&auto=format 800w',
     altKey: 'images.fleet.mercedesVitoBlack',
     category: 'fleet',
     vehicleType: 'Mercedes Vito',
     color: 'black',
+    localPath: `${LOCAL_BASE}/fleet/fleet-mercedes-vito-black-exterior.webp`,
   },
   // Mercedes Viano
   {
     id: 'fleet-viano-ext-1',
-    src: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&q=80&auto=format 800w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-viano-silver-exterior.webp`
+      : 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-viano-silver-exterior.webp`
+      : 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-viano-silver-exterior.webp 800w`
+      : 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&q=80&auto=format 800w',
     altKey: 'images.fleet.mercedesVianoSilver',
     category: 'fleet',
     vehicleType: 'Mercedes Viano',
     color: 'silver',
+    localPath: `${LOCAL_BASE}/fleet/fleet-mercedes-viano-silver-exterior.webp`,
   },
   {
     id: 'fleet-viano-ext-2',
-    src: 'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=800&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=800&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1550355291-bbee04a92027?w=800&q=80&auto=format 800w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-viano-white-exterior.webp`
+      : 'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=800&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-viano-white-exterior.webp`
+      : 'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=800&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-viano-white-exterior.webp 800w`
+      : 'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1550355291-bbee04a92027?w=800&q=80&auto=format 800w',
     altKey: 'images.fleet.mercedesVianoWhite',
     category: 'fleet',
     vehicleType: 'Mercedes Viano',
     color: 'white',
+    localPath: `${LOCAL_BASE}/fleet/fleet-mercedes-viano-white-exterior.webp`,
   },
   // Mercedes Sprinter
   {
     id: 'fleet-sprinter-ext-1',
-    src: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&q=80&auto=format 800w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-sprinter-white-exterior.webp`
+      : 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-sprinter-white-exterior.webp`
+      : 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-sprinter-white-exterior.webp 800w`
+      : 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&q=80&auto=format 800w',
     altKey: 'images.fleet.mercedesSprinterWhite',
     category: 'fleet',
     vehicleType: 'Mercedes Sprinter',
     color: 'white',
+    localPath: `${LOCAL_BASE}/fleet/fleet-mercedes-sprinter-white-exterior.webp`,
   },
   {
     id: 'fleet-sprinter-ext-2',
-    src: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80&auto=format 800w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-sprinter-black-exterior.webp`
+      : 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-sprinter-black-exterior.webp`
+      : 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-mercedes-sprinter-black-exterior.webp 800w`
+      : 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80&auto=format 800w',
     altKey: 'images.fleet.mercedesSprinterBlack',
     category: 'fleet',
     vehicleType: 'Mercedes Sprinter',
     color: 'black',
+    localPath: `${LOCAL_BASE}/fleet/fleet-mercedes-sprinter-black-exterior.webp`,
   },
   // Interior shots
   {
     id: 'fleet-interior-1',
-    src: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80&auto=format 800w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-interior-leather-seats.webp`
+      : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-interior-leather-seats.webp`
+      : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-interior-leather-seats.webp 800w`
+      : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80&auto=format 800w',
     altKey: 'images.fleet.leatherInterior',
     category: 'fleet-interior',
+    localPath: `${LOCAL_BASE}/fleet/fleet-interior-leather-seats.webp`,
   },
   {
     id: 'fleet-interior-2',
-    src: 'https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=800&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=800&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=800&q=80&auto=format 800w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-interior-spacious.webp`
+      : 'https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=800&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-interior-spacious.webp`
+      : 'https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=800&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-interior-spacious.webp 800w`
+      : 'https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=800&q=80&auto=format 800w',
     altKey: 'images.fleet.spaciousInterior',
     category: 'fleet-interior',
+    localPath: `${LOCAL_BASE}/fleet/fleet-interior-spacious.webp`,
   },
   {
     id: 'fleet-interior-3',
-    src: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80&auto=format 800w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-interior-premium.webp`
+      : 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-interior-premium.webp`
+      : 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-interior-premium.webp 800w`
+      : 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&q=80&auto=format 800w',
     altKey: 'images.fleet.premiumSeating',
     category: 'fleet-interior',
+    localPath: `${LOCAL_BASE}/fleet/fleet-interior-premium.webp`,
   },
   // Trunk/luggage space
   {
     id: 'fleet-trunk-1',
-    src: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&q=80&auto=format 800w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-trunk-luggage.webp`
+      : 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-trunk-luggage.webp`
+      : 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-trunk-luggage.webp 800w`
+      : 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&q=80&auto=format 800w',
     altKey: 'images.fleet.spaciousTrunk',
     category: 'fleet-trunk',
+    localPath: `${LOCAL_BASE}/fleet/fleet-trunk-luggage.webp`,
   },
   {
     id: 'fleet-trunk-2',
-    src: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format 800w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-trunk-spacious.webp`
+      : 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-trunk-spacious.webp`
+      : 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-trunk-spacious.webp 800w`
+      : 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80&auto=format 800w',
     altKey: 'images.fleet.luggageHandling',
     category: 'fleet-trunk',
+    localPath: `${LOCAL_BASE}/fleet/fleet-trunk-spacious.webp`,
   },
   {
     id: 'fleet-trunk-3',
-    src: 'https://images.unsplash.com/photo-1600661653561-629509216228?w=800&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1600661653561-629509216228?w=800&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1600661653561-629509216228?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1600661653561-629509216228?w=800&q=80&auto=format 800w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-trunk-cargo.webp`
+      : 'https://images.unsplash.com/photo-1600661653561-629509216228?w=800&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-trunk-cargo.webp`
+      : 'https://images.unsplash.com/photo-1600661653561-629509216228?w=800&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/fleet/fleet-trunk-cargo.webp 800w`
+      : 'https://images.unsplash.com/photo-1600661653561-629509216228?w=400&q=80&auto=format 400w, https://images.unsplash.com/photo-1600661653561-629509216228?w=800&q=80&auto=format 800w',
     altKey: 'images.fleet.cargoSpace',
     category: 'fleet-trunk',
+    localPath: `${LOCAL_BASE}/fleet/fleet-trunk-cargo.webp`,
   },
 ];
 
-// Extra Services Images
+// Extra Services Images - Child seat, baby seat, meet & greet, VIP lounge
 export const serviceImages = {
   childSeat: {
     id: 'service-child-seat',
-    src: 'https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=400&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=400&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=400&q=80&auto=format 400w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-child-seat.webp`
+      : 'https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=400&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-child-seat.webp`
+      : 'https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=400&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-child-seat.webp 400w`
+      : 'https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=400&q=80&auto=format 400w',
     altKey: 'images.services.childSeat',
+    localPath: `${LOCAL_BASE}/services/service-child-seat.webp`,
   },
   babySeat: {
     id: 'service-baby-seat',
-    src: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=400&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=400&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=400&q=80&auto=format 400w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-baby-seat.webp`
+      : 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=400&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-baby-seat.webp`
+      : 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=400&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-baby-seat.webp 400w`
+      : 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=400&q=80&auto=format 400w',
     altKey: 'images.services.babySeat',
+    localPath: `${LOCAL_BASE}/services/service-baby-seat.webp`,
   },
   meetAndGreet: {
     id: 'service-meet-greet',
-    src: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=80&auto=format 400w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-meet-greet-sign.webp`
+      : 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-meet-greet-sign.webp`
+      : 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-meet-greet-sign.webp 400w`
+      : 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=80&auto=format 400w',
     altKey: 'images.services.meetAndGreet',
+    localPath: `${LOCAL_BASE}/services/service-meet-greet-sign.webp`,
   },
   vipLounge: {
     id: 'service-vip-lounge',
-    src: 'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=80&auto=format 400w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-vip-lounge.webp`
+      : 'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-vip-lounge.webp`
+      : 'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-vip-lounge.webp 400w`
+      : 'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=80&auto=format 400w',
     altKey: 'images.services.vipLounge',
+    localPath: `${LOCAL_BASE}/services/service-vip-lounge.webp`,
   },
   nameSign: {
     id: 'service-name-sign',
-    src: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80&auto=format 400w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-meet-greet-sign.webp`
+      : 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-meet-greet-sign.webp`
+      : 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/services/service-meet-greet-sign.webp 400w`
+      : 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80&auto=format 400w',
     altKey: 'images.services.welcomeSign',
+    localPath: `${LOCAL_BASE}/services/service-meet-greet-sign.webp`,
   },
 };
 
@@ -293,47 +435,77 @@ export const airportImages = [
   },
 ];
 
-// Trust Badge / Review Images - Happy international families
+// Trust Badge / Review Images - Happy international families (mixed European/Asian/Turkish/Latin)
 export const reviewImages = [
   {
     id: 'review-family-1',
-    src: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&q=80&auto=format 400w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-european.webp`
+      : 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-european.webp`
+      : 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-european.webp 400w`
+      : 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&q=80&auto=format 400w',
     altKey: 'images.reviews.happyFamily1',
+    localPath: `${LOCAL_BASE}/trust/trust-happy-family-european.webp`,
   },
   {
     id: 'review-family-2',
-    src: 'https://images.unsplash.com/photo-1484981138541-3d074aa97716?w=400&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1484981138541-3d074aa97716?w=400&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1484981138541-3d074aa97716?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1484981138541-3d074aa97716?w=400&q=80&auto=format 400w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-asian.webp`
+      : 'https://images.unsplash.com/photo-1484981138541-3d074aa97716?w=400&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-asian.webp`
+      : 'https://images.unsplash.com/photo-1484981138541-3d074aa97716?w=400&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-asian.webp 400w`
+      : 'https://images.unsplash.com/photo-1484981138541-3d074aa97716?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1484981138541-3d074aa97716?w=400&q=80&auto=format 400w',
     altKey: 'images.reviews.happyFamily2',
+    localPath: `${LOCAL_BASE}/trust/trust-happy-family-asian.webp`,
   },
   {
     id: 'review-family-3',
-    src: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80&auto=format 400w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-international.webp`
+      : 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-international.webp`
+      : 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-international.webp 400w`
+      : 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80&auto=format 400w',
     altKey: 'images.reviews.happyFamily3',
+    localPath: `${LOCAL_BASE}/trust/trust-happy-family-international.webp`,
   },
   {
     id: 'review-family-4',
-    src: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=400&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=400&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=400&q=80&auto=format 400w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-european.webp`
+      : 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=400&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-european.webp`
+      : 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=400&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-european.webp 400w`
+      : 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=400&q=80&auto=format 400w',
     altKey: 'images.reviews.happyFamily4',
+    localPath: `${LOCAL_BASE}/trust/trust-happy-family-european.webp`,
   },
   {
     id: 'review-family-5',
-    src: 'https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=400&q=80&auto=format&fit=crop',
-    webp: 'https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=400&q=80&auto=format&fit=crop&fm=webp',
-    srcSet:
-      'https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=400&q=80&auto=format 400w',
+    src: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-asian.webp`
+      : 'https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=400&q=80&auto=format&fit=crop',
+    webp: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-asian.webp`
+      : 'https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=400&q=80&auto=format&fit=crop&fm=webp',
+    srcSet: USE_LOCAL_IMAGES
+      ? `${LOCAL_BASE}/trust/trust-happy-family-asian.webp 400w`
+      : 'https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=200&q=80&auto=format 200w, https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=400&q=80&auto=format 400w',
     altKey: 'images.reviews.happyFamily5',
+    localPath: `${LOCAL_BASE}/trust/trust-happy-family-asian.webp`,
   },
 ];
 

@@ -333,5 +333,76 @@
     "gallery": "Galerie",
     "copyLink": "Link kopieren",
     "linkCopied": "Link kopiert!"
+  },
+  "images": {
+    "hero": {
+      "luxuryVanFamily": "Luxuriöser weißer Mercedes Vito mit glücklicher internationaler Familie am Flughafen",
+      "airportPickup": "Professioneller Fahrer mit Willkommensschild am Flughafen Istanbul",
+      "premiumTransfer": "Mercedes Sprinter VIP-Transfer am Flughafenterminal",
+      "familyTravel": "Internationale Familie genießt malerische Türkei-Rundreise"
+    },
+    "fleet": {
+      "mercedesVitoExterior": "Weißer Mercedes Vito Außenansicht - Premium VIP-Transferfahrzeug",
+      "mercedesVitoBlack": "Schwarzer Mercedes Vito - Executive Flughafentransfer",
+      "mercedesVianoSilver": "Silberner Mercedes Viano - Luxus-Familientransport",
+      "mercedesVianoWhite": "Weißer Mercedes Viano - Komfortabler Gruppentransfer",
+      "mercedesSprinterWhite": "Weißer Mercedes Sprinter - Großgruppen VIP-Transport",
+      "mercedesSprinterBlack": "Schwarzer Mercedes Sprinter - Firmen-Shuttleservice",
+      "leatherInterior": "Premium-Lederinnenraum mit Klimaanlage",
+      "spaciousInterior": "Geräumiger Fahrzeuginnenraum mit viel Beinfreiheit",
+      "premiumSeating": "Bequeme Premium-Sitze für lange Reisen",
+      "spaciousTrunk": "Großer Kofferraum für Gepäck und Koffer",
+      "luggageHandling": "Professioneller Gepäckservice",
+      "cargoSpace": "Großzügiger Laderaum für Familiengepäck"
+    },
+    "services": {
+      "childSeat": "Sichere Kindersitzinstallation für Familientransfers",
+      "babySeat": "Babysitz und Babyschale für sicheres Reisen",
+      "meetAndGreet": "Professioneller Meet-and-Greet-Service bei der Ankunft",
+      "vipLounge": "Exklusiver VIP-Flughafen-Lounge-Zugang",
+      "welcomeSign": "Fahrer hält personalisiertes Willkommen Herr Smith Schild"
+    },
+    "reviews": {
+      "happyFamily1": "Glückliche europäische Familie nach komfortablem Flughafentransfer",
+      "happyFamily2": "Zufriedene asiatische Familie genießt Türkei-Urlaub",
+      "happyFamily3": "Internationale Gruppe mit professionellem GNB-Fahrer",
+      "happyFamily4": "Begeisterte Familie am Istanbul Touristenziel",
+      "happyFamily5": "Glückliche Kunden nach VIP-Transferservice"
+    },
+    "drivers": {
+      "professional1": "Professioneller uniformierter GNB Transfer Fahrer",
+      "professional2": "Erfahrener Chauffeur mit Luxusfahrzeug",
+      "professional3": "Freundlicher Fahrer mit exzellentem Service",
+      "professional4": "Mehrsprachiger Fahrer unterstützt Passagiere"
+    },
+    "airports": {
+      "istanbulAirport": "Flughafen Istanbul modernes Terminal außen",
+      "airportTerminal": "Flughafen Ankunftsterminal mit Passagieren",
+      "sabihaGokcen": "Flughafen Sabiha Gökcen Terminalgebäude",
+      "arrivalHall": "Geschäftige Flughafen-Ankunftshalle mit Reisenden"
+    },
+    "blog": {
+      "istanbulSkyline": "Atemberaubende Istanbul-Skyline bei Sonnenuntergang",
+      "blueMosque": "Prächtige Blaue Moschee in Istanbul",
+      "hagiaSophia": "Historische Hagia Sophia Museum und Moschee",
+      "cappadociaBalloons": "Heißluftballons über Kappadokien Feenkamine",
+      "cappadociaLandscape": "Einzigartige Kappadokien Felsformationen",
+      "pamukkaleTerraces": "Weiße Travertin-Terrassen von Pamukkale",
+      "uludagMountain": "Schneebedeckter Uludağ Berg bei Bursa",
+      "travelAdventure": "Aufregendes Reiseabenteuer in der Türkei",
+      "scenicRoad": "Malerische Küstenstraße entlang der Türkischen Riviera",
+      "mountainView": "Atemberaubende Bergaussicht in Anatolien"
+    },
+    "about": {
+      "ourTeam": "GNB Transfer professionelle Teammitglieder",
+      "ourOffice": "GNB Transfer Hauptbüro in Istanbul",
+      "ourMission": "Teammeeting zur Besprechung des Kundenservice"
+    },
+    "servicesPage": {
+      "airportTransfer": "Premium Flughafentransferservice",
+      "cityTours": "Geführte Stadttouren in Istanbul",
+      "privateCharter": "Privater Fahrzeugcharterservice",
+      "corporateTravel": "Geschäftsreisen und Businesstransfers"
+    }
   }
 }

@@ -333,5 +333,76 @@
     "gallery": "Galeri",
     "copyLink": "Linki Kopyala",
     "linkCopied": "Link kopyalandı!"
+  },
+  "images": {
+    "hero": {
+      "luxuryVanFamily": "Havalimanında mutlu uluslararası aile ile lüks beyaz Mercedes Vito",
+      "airportPickup": "İstanbul Havalimanı geliş katında karşılama tabelası tutan profesyonel şoför",
+      "premiumTransfer": "Havalimanı terminalinde Mercedes Sprinter VIP transfer",
+      "familyTravel": "Türkiye yol gezisinin tadını çıkaran uluslararası aile"
+    },
+    "fleet": {
+      "mercedesVitoExterior": "Beyaz Mercedes Vito dış görünüm - premium VIP transfer aracı",
+      "mercedesVitoBlack": "Siyah Mercedes Vito - üst düzey havalimanı transferi",
+      "mercedesVianoSilver": "Gümüş Mercedes Viano - lüks aile taşımacılığı",
+      "mercedesVianoWhite": "Beyaz Mercedes Viano - konforlu grup transferi",
+      "mercedesSprinterWhite": "Beyaz Mercedes Sprinter - büyük grup VIP taşımacılığı",
+      "mercedesSprinterBlack": "Siyah Mercedes Sprinter - kurumsal servis hizmeti",
+      "leatherInterior": "Klima kontrollü premium deri iç mekan",
+      "spaciousInterior": "Bol ayak mesafeli geniş araç içi",
+      "premiumSeating": "Uzun yolculuklar için konforlu premium koltuklar",
+      "spaciousTrunk": "Bavul ve valizler için geniş bagaj alanı",
+      "luggageHandling": "Profesyonel bagaj taşıma hizmeti",
+      "cargoSpace": "Aile bagajları için cömert kargo alanı"
+    },
+    "services": {
+      "childSeat": "Aile transferleri için güvenli çocuk koltuğu kurulumu",
+      "babySeat": "Güvenli seyahat için bebek koltuğu ve ana kucağı",
+      "meetAndGreet": "Geliş katında profesyonel karşılama hizmeti",
+      "vipLounge": "Özel VIP havalimanı lounge erişimi",
+      "welcomeSign": "Kişiselleştirilmiş Hoş geldiniz Bay Smith tabelası tutan şoför"
+    },
+    "reviews": {
+      "happyFamily1": "Konforlu havalimanı transferi sonrası mutlu Avrupalı aile",
+      "happyFamily2": "Türkiye tatilinin tadını çıkaran memnun Asyalı aile",
+      "happyFamily3": "Profesyonel GNB şoförü ile uluslararası grup",
+      "happyFamily4": "İstanbul turistik noktasında memnun aile",
+      "happyFamily5": "VIP transfer hizmeti sonrası mutlu müşteriler"
+    },
+    "drivers": {
+      "professional1": "Profesyonel üniformalı GNB Transfer şoförü",
+      "professional2": "Lüks araçlı deneyimli şoför",
+      "professional3": "Mükemmel hizmet sunan güler yüzlü şoför",
+      "professional4": "Yolculara yardım eden çok dilli şoför"
+    },
+    "airports": {
+      "istanbulAirport": "İstanbul Havalimanı modern terminal dışı",
+      "airportTerminal": "Yolcularla havalimanı geliş terminali",
+      "sabihaGokcen": "Sabiha Gökçen Havalimanı terminal binası",
+      "arrivalHall": "Gezginlerle dolu hareketli havalimanı geliş salonu"
+    },
+    "blog": {
+      "istanbulSkyline": "Gün batımında muhteşem İstanbul silüeti",
+      "blueMosque": "İstanbul'daki görkemli Sultan Ahmet Camii",
+      "hagiaSophia": "Tarihi Ayasofya müzesi ve camii",
+      "cappadociaBalloons": "Kapadokya peri bacaları üzerinde sıcak hava balonları",
+      "cappadociaLandscape": "Eşsiz Kapadokya kaya oluşumları",
+      "pamukkaleTerraces": "Pamukkale'nin beyaz traverten terasları",
+      "uludagMountain": "Bursa yakınlarında karlı Uludağ",
+      "travelAdventure": "Türkiye'de heyecan verici seyahat macerası",
+      "scenicRoad": "Türk Rivierası boyunca manzaralı sahil yolu",
+      "mountainView": "Anadolu'da nefes kesici dağ manzarası"
+    },
+    "about": {
+      "ourTeam": "GNB Transfer profesyonel ekip üyeleri",
+      "ourOffice": "GNB Transfer İstanbul ana ofisi",
+      "ourMission": "Müşteri hizmetini tartışan ekip toplantısı"
+    },
+    "servicesPage": {
+      "airportTransfer": "Premium havalimanı transfer hizmeti",
+      "cityTours": "İstanbul'da rehberli şehir turları",
+      "privateCharter": "Özel araç kiralama hizmeti",
+      "corporateTravel": "Kurumsal seyahat ve iş transferleri"
+    }
   }
 }
