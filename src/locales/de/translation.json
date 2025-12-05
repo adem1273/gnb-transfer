@@ -305,5 +305,33 @@
   "languageSwitcher": {
     "selectLanguage": "Sprache wählen",
     "currentLanguage": "Aktuelle Sprache"
+  },
+  "blog": {
+    "title": "GNB Transfer Blog",
+    "subtitle": "VIP-Transfer, Istanbul-Reiseführer und Reisetipps",
+    "pageTitle": "Blog | GNB Transfer - VIP-Transferdienste",
+    "pageDescription": "Aktuelle Informationen über VIP-Transfer in Istanbul, Flughafentransfer, Reiseführer und Mietwagen mit privatem Chauffeur.",
+    "allPosts": "Alle Beiträge",
+    "readMore": "Weiterlesen",
+    "minRead": "Min. Lesezeit",
+    "views": "Aufrufe",
+    "share": "Teilen",
+    "tags": "Tags",
+    "relatedPosts": "Ähnliche Beiträge",
+    "backToBlog": "Zurück zum Blog",
+    "notFound": "Beitrag nicht gefunden",
+    "loadError": "Blogbeiträge konnten nicht geladen werden",
+    "noPosts": "Noch keine Blogbeiträge",
+    "noPostsDescription": "Bald teilen wir nützliche Inhalte über VIP-Transfer und Tourismus.",
+    "bookNow": "Jetzt buchen",
+    "ctaTitle": "Probieren Sie unseren VIP-Transfer",
+    "ctaDescription": "Mietwagen mit Chauffeur ab 75$. 15% Rabatt auf Transfers vom Flughafen Istanbul und Sabiha Gökçen!",
+    "bookTransfer": "Jetzt buchen",
+    "ctaBoxTitle": "VIP-Transfer Buchung",
+    "ctaBoxDescription": "Professioneller Transfer ab 75$!",
+    "discountCode": "Rabattcode",
+    "gallery": "Galerie",
+    "copyLink": "Link kopieren",
+    "linkCopied": "Link kopiert!"
   }
 }

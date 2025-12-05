@@ -354,5 +354,33 @@
     "flightNumber": "Flight",
     "extraServices": "Extra Services",
     "whatsapp": "WhatsApp"
+  },
+  "blog": {
+    "title": "GNB Transfer Blog",
+    "subtitle": "VIP transfer services, Istanbul guides and travel tips",
+    "pageTitle": "Blog | GNB Transfer - VIP Transfer Services",
+    "pageDescription": "Latest information about Istanbul VIP transfer, airport transportation, tourist guides and private chauffeur car rental.",
+    "allPosts": "All Posts",
+    "readMore": "Read More",
+    "minRead": "min read",
+    "views": "views",
+    "share": "Share",
+    "tags": "Tags",
+    "relatedPosts": "Related Posts",
+    "backToBlog": "Back to Blog",
+    "notFound": "Post not found",
+    "loadError": "Failed to load blog posts",
+    "noPosts": "No blog posts yet",
+    "noPostsDescription": "Soon we will share useful content about VIP transfer and tourism.",
+    "bookNow": "Book Now",
+    "ctaTitle": "Try Our VIP Transfer Service",
+    "ctaDescription": "Professional chauffeured car rental starting from $75. 15% discount on Istanbul Airport and Sabiha Gokcen transfers!",
+    "bookTransfer": "Book Now",
+    "ctaBoxTitle": "VIP Transfer Booking",
+    "ctaBoxDescription": "Professional transfer service starting from $75!",
+    "discountCode": "Discount Code",
+    "gallery": "Gallery",
+    "copyLink": "Copy Link",
+    "linkCopied": "Link copied!"
   }
 }
