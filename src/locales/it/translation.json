@@ -116,5 +116,76 @@
   },
   "delay": {
     "slogan": "Se siamo in ritardo, paghiamo noi."
+  },
+  "images": {
+    "hero": {
+      "luxuryVanFamily": "Mercedes Vito bianco di lusso con famiglia internazionale felice all'aeroporto",
+      "airportPickup": "Autista professionista con cartello di benvenuto agli arrivi dell'aeroporto di Istanbul",
+      "premiumTransfer": "Transfer VIP Mercedes Sprinter al terminal aeroportuale",
+      "familyTravel": "Famiglia internazionale che gode di un viaggio panoramico in Turchia"
+    },
+    "fleet": {
+      "mercedesVitoExterior": "Mercedes Vito bianco esterno - veicolo transfer VIP premium",
+      "mercedesVitoBlack": "Mercedes Vito nero - transfer aeroportuale executive",
+      "mercedesVianoSilver": "Mercedes Viano argento - trasporto familiare di lusso",
+      "mercedesVianoWhite": "Mercedes Viano bianco - transfer di gruppo confortevole",
+      "mercedesSprinterWhite": "Mercedes Sprinter bianco - trasporto VIP grandi gruppi",
+      "mercedesSprinterBlack": "Mercedes Sprinter nero - servizio navetta aziendale",
+      "leatherInterior": "Interni in pelle premium con climatizzatore",
+      "spaciousInterior": "Interni veicolo spaziosi con ampio spazio per le gambe",
+      "premiumSeating": "Sedili premium confortevoli per viaggi lunghi",
+      "spaciousTrunk": "Ampio spazio bagagliaio per valigie",
+      "luggageHandling": "Servizio professionale gestione bagagli",
+      "cargoSpace": "Spazio cargo generoso per bagagli familiari"
+    },
+    "services": {
+      "childSeat": "Installazione sicura seggiolino bambino per transfer familiari",
+      "babySeat": "Seggiolino neonato e ovetto per viaggi sicuri",
+      "meetAndGreet": "Servizio professionale di accoglienza agli arrivi",
+      "vipLounge": "Accesso esclusivo alla lounge VIP aeroportuale",
+      "welcomeSign": "Autista con cartello personalizzato Benvenuto Sig. Smith"
+    },
+    "reviews": {
+      "happyFamily1": "Famiglia europea felice dopo un transfer aeroportuale confortevole",
+      "happyFamily2": "Famiglia asiatica soddisfatta che gode della vacanza in Turchia",
+      "happyFamily3": "Gruppo internazionale con autista GNB professionista",
+      "happyFamily4": "Famiglia entusiasta alla destinazione turistica di Istanbul",
+      "happyFamily5": "Clienti felici dopo il servizio di transfer VIP"
+    },
+    "drivers": {
+      "professional1": "Autista GNB Transfer professionista in uniforme",
+      "professional2": "Autista esperto con veicolo di lusso",
+      "professional3": "Autista cordiale che offre un servizio eccellente",
+      "professional4": "Autista multilingue che assiste i passeggeri"
+    },
+    "airports": {
+      "istanbulAirport": "Terminal moderno Aeroporto di Istanbul esterno",
+      "airportTerminal": "Terminal arrivi aeroporto con passeggeri",
+      "sabihaGokcen": "Edificio terminal Aeroporto Sabiha Gökçen",
+      "arrivalHall": "Sala arrivi aeroporto affollata con viaggiatori"
+    },
+    "blog": {
+      "istanbulSkyline": "Splendido skyline di Istanbul al tramonto",
+      "blueMosque": "Magnifica Moschea Blu a Istanbul",
+      "hagiaSophia": "Museo e moschea storica di Santa Sofia",
+      "cappadociaBalloons": "Mongolfiere sopra i camini delle fate della Cappadocia",
+      "cappadociaLandscape": "Formazioni rocciose uniche della Cappadocia",
+      "pamukkaleTerraces": "Terrazze di travertino bianco di Pamukkale",
+      "uludagMountain": "Monte Uludağ innevato vicino a Bursa",
+      "travelAdventure": "Emozionante avventura di viaggio in Turchia",
+      "scenicRoad": "Strada costiera panoramica lungo la Riviera Turca",
+      "mountainView": "Vista mozzafiato sulle montagne in Anatolia"
+    },
+    "about": {
+      "ourTeam": "Membri del team professionale GNB Transfer",
+      "ourOffice": "Ufficio principale GNB Transfer a Istanbul",
+      "ourMission": "Riunione del team per discutere il servizio clienti"
+    },
+    "servicesPage": {
+      "airportTransfer": "Servizio transfer aeroportuale premium",
+      "cityTours": "Tour guidati della città a Istanbul",
+      "privateCharter": "Servizio noleggio veicolo privato",
+      "corporateTravel": "Viaggi aziendali e transfer business"
+    }
   }
 }

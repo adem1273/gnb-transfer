@@ -333,5 +333,76 @@
     "gallery": "图库",
     "copyLink": "复制链接",
     "linkCopied": "链接已复制！"
+  },
+  "images": {
+    "hero": {
+      "luxuryVanFamily": "机场内快乐的国际家庭与豪华白色梅赛德斯维托",
+      "airportPickup": "伊斯坦布尔机场到达大厅专业司机手持欢迎牌",
+      "premiumTransfer": "机场航站楼梅赛德斯斯普林特VIP接送",
+      "familyTravel": "国际家庭享受土耳其风景优美的公路旅行"
+    },
+    "fleet": {
+      "mercedesVitoExterior": "白色梅赛德斯维托外观 - 高端VIP接送车辆",
+      "mercedesVitoBlack": "黑色梅赛德斯维托 - 行政机场接送",
+      "mercedesVianoSilver": "银色梅赛德斯唯雅诺 - 豪华家庭交通",
+      "mercedesVianoWhite": "白色梅赛德斯唯雅诺 - 舒适团体接送",
+      "mercedesSprinterWhite": "白色梅赛德斯斯普林特 - 大型团体VIP运输",
+      "mercedesSprinterBlack": "黑色梅赛德斯斯普林特 - 企业班车服务",
+      "leatherInterior": "带气候控制的高级皮革内饰",
+      "spaciousInterior": "宽敞的车内空间，腿部空间充足",
+      "premiumSeating": "长途旅行舒适的高级座椅",
+      "spaciousTrunk": "大型行李箱空间，可放置行李和箱子",
+      "luggageHandling": "专业行李搬运服务",
+      "cargoSpace": "家庭行李的充足货物空间"
+    },
+    "services": {
+      "childSeat": "家庭接送安全儿童座椅安装",
+      "babySeat": "安全旅行的婴儿座椅和提篮",
+      "meetAndGreet": "到达时专业迎接服务",
+      "vipLounge": "独家VIP机场贵宾室通道",
+      "welcomeSign": "司机手持个性化欢迎史密斯先生牌子"
+    },
+    "reviews": {
+      "happyFamily1": "舒适机场接送后快乐的欧洲家庭",
+      "happyFamily2": "满意的亚洲家庭享受土耳其度假",
+      "happyFamily3": "与专业GNB司机的国际团体",
+      "happyFamily4": "在伊斯坦布尔旅游景点高兴的家庭",
+      "happyFamily5": "VIP接送服务后满意的客户"
+    },
+    "drivers": {
+      "professional1": "穿制服的专业GNB Transfer司机",
+      "professional2": "驾驶豪华车辆的资深司机",
+      "professional3": "提供优质服务的友好司机",
+      "professional4": "协助乘客的多语言司机"
+    },
+    "airports": {
+      "istanbulAirport": "伊斯坦布尔机场现代航站楼外观",
+      "airportTerminal": "机场到达航站楼与乘客",
+      "sabihaGokcen": "萨比哈格克琴机场航站楼大楼",
+      "arrivalHall": "繁忙的机场到达大厅与旅客"
+    },
+    "blog": {
+      "istanbulSkyline": "日落时分令人惊叹的伊斯坦布尔天际线",
+      "blueMosque": "伊斯坦布尔宏伟的蓝色清真寺",
+      "hagiaSophia": "历史悠久的圣索菲亚大教堂博物馆和清真寺",
+      "cappadociaBalloons": "卡帕多西亚仙人烟囱上空的热气球",
+      "cappadociaLandscape": "独特的卡帕多西亚岩石地貌",
+      "pamukkaleTerraces": "棉花堡白色石灰华梯田",
+      "uludagMountain": "布尔萨附近白雪皑皑的乌鲁达山",
+      "travelAdventure": "土耳其令人兴奋的旅行冒险",
+      "scenicRoad": "土耳其里维埃拉沿线风景优美的海岸公路",
+      "mountainView": "安纳托利亚令人叹为观止的山景"
+    },
+    "about": {
+      "ourTeam": "GNB Transfer专业团队成员",
+      "ourOffice": "GNB Transfer伊斯坦布尔总部",
+      "ourMission": "团队会议讨论客户服务"
+    },
+    "servicesPage": {
+      "airportTransfer": "高端机场接送服务",
+      "cityTours": "伊斯坦布尔导游城市游览",
+      "privateCharter": "私人车辆包车服务",
+      "corporateTravel": "企业差旅和商务接送"
+    }
   }
 }

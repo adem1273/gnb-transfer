@@ -382,5 +382,76 @@
     "gallery": "Gallery",
     "copyLink": "Copy Link",
     "linkCopied": "Link copied!"
+  },
+  "images": {
+    "hero": {
+      "luxuryVanFamily": "Luxury white Mercedes Vito with happy international family at airport",
+      "airportPickup": "Professional driver with welcome sign at Istanbul Airport arrivals",
+      "premiumTransfer": "Mercedes Sprinter VIP transfer at airport terminal",
+      "familyTravel": "International family enjoying scenic Turkey road trip"
+    },
+    "fleet": {
+      "mercedesVitoExterior": "White Mercedes Vito exterior - premium VIP transfer vehicle",
+      "mercedesVitoBlack": "Black Mercedes Vito - executive airport transfer",
+      "mercedesVianoSilver": "Silver Mercedes Viano - luxury family transport",
+      "mercedesVianoWhite": "White Mercedes Viano - comfortable group transfer",
+      "mercedesSprinterWhite": "White Mercedes Sprinter - large group VIP transport",
+      "mercedesSprinterBlack": "Black Mercedes Sprinter - corporate shuttle service",
+      "leatherInterior": "Premium leather interior with climate control",
+      "spaciousInterior": "Spacious vehicle interior with ample legroom",
+      "premiumSeating": "Comfortable premium seating for long journeys",
+      "spaciousTrunk": "Large trunk space for luggage and suitcases",
+      "luggageHandling": "Professional luggage handling service",
+      "cargoSpace": "Generous cargo space for family luggage"
+    },
+    "services": {
+      "childSeat": "Safe child seat installation for family transfers",
+      "babySeat": "Baby seat and infant carrier for safe travel",
+      "meetAndGreet": "Professional meet and greet service at arrivals",
+      "vipLounge": "Exclusive VIP airport lounge access",
+      "welcomeSign": "Driver holding personalized Welcome Mr. Smith sign"
+    },
+    "reviews": {
+      "happyFamily1": "Happy European family after comfortable airport transfer",
+      "happyFamily2": "Satisfied Asian family enjoying Turkey vacation",
+      "happyFamily3": "International group with professional GNB driver",
+      "happyFamily4": "Delighted family at Istanbul tourist destination",
+      "happyFamily5": "Happy customers after VIP transfer service"
+    },
+    "drivers": {
+      "professional1": "Professional uniformed GNB Transfer driver",
+      "professional2": "Experienced chauffeur with luxury vehicle",
+      "professional3": "Friendly driver providing excellent service",
+      "professional4": "Multilingual driver assisting passengers"
+    },
+    "airports": {
+      "istanbulAirport": "Istanbul Airport modern terminal exterior",
+      "airportTerminal": "Airport arrivals terminal with passengers",
+      "sabihaGokcen": "Sabiha Gokcen Airport terminal building",
+      "arrivalHall": "Busy airport arrival hall with travelers"
+    },
+    "blog": {
+      "istanbulSkyline": "Stunning Istanbul skyline at sunset",
+      "blueMosque": "Magnificent Blue Mosque in Istanbul",
+      "hagiaSophia": "Historic Hagia Sophia museum and mosque",
+      "cappadociaBalloons": "Hot air balloons over Cappadocia fairy chimneys",
+      "cappadociaLandscape": "Unique Cappadocia rock formations",
+      "pamukkaleTerraces": "White travertine terraces of Pamukkale",
+      "uludagMountain": "Snow-capped Uludag Mountain near Bursa",
+      "travelAdventure": "Exciting travel adventure in Turkey",
+      "scenicRoad": "Scenic coastal road along Turkish Riviera",
+      "mountainView": "Breathtaking mountain view in Anatolia"
+    },
+    "about": {
+      "ourTeam": "GNB Transfer professional team members",
+      "ourOffice": "GNB Transfer main office in Istanbul",
+      "ourMission": "Team meeting discussing customer service"
+    },
+    "servicesPage": {
+      "airportTransfer": "Premium airport transfer service",
+      "cityTours": "Guided city tours in Istanbul",
+      "privateCharter": "Private vehicle charter service",
+      "corporateTravel": "Corporate travel and business transfers"
+    }
   }
 }
