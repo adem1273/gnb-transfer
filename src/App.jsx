@@ -57,8 +57,13 @@ const DelayCompensationPanel = lazy(() => import('./pages/DelayCompensationPanel
 const RevenueAnalytics = lazy(() => import('./pages/RevenueAnalytics'));
 const CorporateClients = lazy(() => import('./pages/CorporateClients'));
 
-// Lazy load blog management
-const BlogManagement = lazy(() => import('./pages/BlogManagement'));
+// New admin feature pages
+const PricingManagement = lazy(() => import('./pages/PricingManagement'));
+const ReviewManagement = lazy(() => import('./pages/ReviewManagement'));
+const BlogManager = lazy(() => import('./pages/BlogManager'));
+const LoyaltyPanel = lazy(() => import('./pages/LoyaltyPanel'));
+const BulkMessaging = lazy(() => import('./pages/BulkMessaging'));
+const AdTrackingDashboard = lazy(() => import('./pages/AdTrackingDashboard'));
 
 // Lazy load optional components (only load when needed)
 const LiveChat = lazy(() => import('./components/LiveChat'));
@@ -171,8 +176,13 @@ function App() {
                 <Route path="analytics" element={<RevenueAnalytics />} />
                 <Route path="corporate" element={<CorporateClients />} />
                 
-                {/* Blog Management */}
-                <Route path="blog" element={<BlogManagement />} />
+                {/* New Admin Features */}
+                <Route path="pricing" element={<PricingManagement />} />
+                <Route path="reviews" element={<ReviewManagement />} />
+                <Route path="blog" element={<BlogManager />} />
+                <Route path="loyalty" element={<LoyaltyPanel />} />
+                <Route path="messaging" element={<BulkMessaging />} />
+                <Route path="tracking" element={<AdTrackingDashboard />} />
               </Route>
               
               {/* Sürücü Paneli Rotası */}

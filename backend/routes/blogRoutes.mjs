@@ -2,110 +2,87 @@
  * Blog Routes
  *
  * @module routes/blogRoutes
- * @description API endpoints for blog post management
+ * @description Endpoints for managing blog posts and SEO content
  */
 
 import express from 'express';
-import BlogPost, { SUPPORTED_LANGUAGES } from '../models/BlogPost.mjs';
-import { requireAuth } from '../middlewares/auth.mjs';
+import BlogPost from '../models/BlogPost.mjs';
+import { requireAuth, optionalAuth } from '../middlewares/auth.mjs';
 import logger from '../config/logger.mjs';
 
 const router = express.Router();
 
 /**
- * @route GET /api/blogs
- * @description Get all published blog posts with pagination
- * @access Public
+ * @route   GET /api/blog
+ * @desc    Get all blog posts (published for public, all for admin)
+ * @access  Public / Private
  */
-router.get('/', async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   try {
-    const { page = 1, limit = 10, category, lang = 'tr' } = req.query;
-    const pageNum = Math.max(1, parseInt(page, 10));
-    const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10)));
-    const skip = (pageNum - 1) * limitNum;
+    const { page = 1, limit = 10, category, status, language = 'en', tag } = req.query;
+    const isAdmin = req.user && ['admin', 'manager'].includes(req.user.role);
 
-    const query = { status: 'published' };
-    if (category) query.category = category;
+    const filter = {};
 
-    const [posts, total] = await Promise.all([
-      BlogPost.find(query)
-        .sort({ priority: -1, publishedAt: -1 })
-        .skip(skip)
-        .limit(limitNum)
-        .select('-__v')
-        .lean(),
-      BlogPost.countDocuments(query),
-    ]);
+    // Non-admin users only see published posts
+    if (!isAdmin) {
+      filter.status = 'published';
+    } else if (status) {
+      filter.status = status;
+    }
 
-    // Transform posts to return only requested language translation
-    const transformedPosts = posts.map((post) => ({
-      _id: post._id,
-      title: post.translations?.[lang]?.title || post.translations?.tr?.title,
-      slug: post.translations?.[lang]?.slug || post.translations?.tr?.slug,
-      excerpt: post.translations?.[lang]?.excerpt || post.translations?.tr?.excerpt,
-      metaTitle: post.translations?.[lang]?.metaTitle || post.translations?.tr?.metaTitle,
-      metaDescription:
-        post.translations?.[lang]?.metaDescription || post.translations?.tr?.metaDescription,
-      readingTime: post.translations?.[lang]?.readingTime || post.translations?.tr?.readingTime,
-      featuredImage: post.featuredImage,
-      category: post.category,
-      tags: post.tags?.[lang] || post.tags?.tr || [],
-      author: post.author,
-      authorAvatar: post.authorAvatar,
-      publishedAt: post.publishedAt,
-      views: post.views,
-      createdAt: post.createdAt,
-    }));
+    if (category) {
+      filter.category = category;
+    }
+
+    if (language) {
+      filter.language = language;
+    }
+
+    if (tag) {
+      filter.tags = tag.toLowerCase();
+    }
+
+    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
+    const posts = await BlogPost.find(filter)
+      .populate('author', 'name')
+      .select('-content -translations.content')
+      .sort({ publishedAt: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit, 10));
+
+    const total = await BlogPost.countDocuments(filter);
 
     return res.apiSuccess({
-      posts: transformedPosts,
+      posts,
       pagination: {
-        page: pageNum,
-        limit: limitNum,
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10),
         total,
-        pages: Math.ceil(total / limitNum),
-        hasMore: pageNum * limitNum < total,
+        pages: Math.ceil(total / parseInt(limit, 10)),
       },
     });
   } catch (error) {
     logger.error('Error fetching blog posts:', { error: error.message });
-    return res.apiError('Failed to fetch blog posts', 500);
+    return res.apiError('Failed to fetch posts', 500);
   }
 });
 
 /**
- * @route GET /api/blogs/categories
- * @description Get all blog categories
- * @access Public
+ * @route   GET /api/blog/categories
+ * @desc    Get all blog categories with post counts
+ * @access  Public
  */
 router.get('/categories', async (req, res) => {
   try {
-    const categories = [
-      { id: 'transfer-prices', name: { tr: 'Transfer Fiyatları', en: 'Transfer Prices' } },
-      { id: 'destinations', name: { tr: 'Destinasyonlar', en: 'Destinations' } },
-      { id: 'services', name: { tr: 'Hizmetler', en: 'Services' } },
-      { id: 'tips', name: { tr: 'Seyahat İpuçları', en: 'Travel Tips' } },
-      { id: 'news', name: { tr: 'Haberler', en: 'News' } },
-      { id: 'promotions', name: { tr: 'Kampanyalar', en: 'Promotions' } },
-      { id: 'seasonal', name: { tr: 'Sezonluk', en: 'Seasonal' } },
-    ];
-
-    const categoryCounts = await BlogPost.aggregate([
+    const categories = await BlogPost.aggregate([
       { $match: { status: 'published' } },
       { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
     ]);
 
-    const countMap = categoryCounts.reduce((acc, item) => {
-      acc[item._id] = item.count;
-      return acc;
-    }, {});
-
-    const result = categories.map((cat) => ({
-      ...cat,
-      count: countMap[cat.id] || 0,
-    }));
-
-    return res.apiSuccess({ categories: result });
+    return res.apiSuccess({ categories });
   } catch (error) {
     logger.error('Error fetching categories:', { error: error.message });
     return res.apiError('Failed to fetch categories', 500);
@@ -113,286 +90,310 @@ router.get('/categories', async (req, res) => {
 });
 
 /**
- * @route GET /api/blogs/slug/:slug
- * @description Get a single blog post by slug
- * @access Public
+ * @route   GET /api/blog/tags
+ * @desc    Get all tags with post counts
+ * @access  Public
+ */
+router.get('/tags', async (req, res) => {
+  try {
+    const tags = await BlogPost.aggregate([
+      { $match: { status: 'published' } },
+      { $unwind: '$tags' },
+      { $group: { _id: '$tags', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 50 },
+    ]);
+
+    return res.apiSuccess({ tags });
+  } catch (error) {
+    logger.error('Error fetching tags:', { error: error.message });
+    return res.apiError('Failed to fetch tags', 500);
+  }
+});
+
+/**
+ * @route   GET /api/blog/slug/:slug
+ * @desc    Get blog post by slug
+ * @access  Public
  */
 router.get('/slug/:slug', async (req, res) => {
   try {
-    const { slug } = req.params;
-    const { lang = 'tr' } = req.query;
-
-    const post = await BlogPost.findBySlug(slug, lang);
+    const post = await BlogPost.getBySlug(req.params.slug);
 
     if (!post) {
-      return res.apiError('Blog post not found', 404);
+      return res.apiError('Post not found', 404);
     }
 
     // Increment view count
-    await BlogPost.findByIdAndUpdate(post._id, { $inc: { views: 1 } });
+    await BlogPost.incrementViews(post._id);
 
-    // Get related posts
-    const relatedPosts = await BlogPost.find({
-      _id: { $ne: post._id },
-      category: post.category,
-      status: 'published',
-    })
-      .limit(3)
-      .select('translations featuredImage publishedAt')
-      .lean();
-
-    const translation = post.translations?.[lang] || post.translations?.tr;
-
-    return res.apiSuccess({
-      post: {
-        _id: post._id,
-        title: translation?.title,
-        slug: translation?.slug,
-        content: translation?.content,
-        excerpt: translation?.excerpt,
-        metaTitle: translation?.metaTitle,
-        metaDescription: translation?.metaDescription,
-        readingTime: translation?.readingTime,
-        featuredImage: post.featuredImage,
-        images: post.images,
-        category: post.category,
-        tags: post.tags?.[lang] || post.tags?.tr || [],
-        author: post.author,
-        authorAvatar: post.authorAvatar,
-        ctas: post.ctas,
-        internalLinks: post.internalLinks,
-        pricingInfo: post.pricingInfo,
-        whatsappNumber: post.whatsappNumber,
-        publishedAt: post.publishedAt,
-        views: post.views + 1,
-        shares: post.shares,
-        createdAt: post.createdAt,
-        updatedAt: post.updatedAt,
-        // All translations for language switcher
-        availableLanguages: SUPPORTED_LANGUAGES.filter(
-          (l) => post.translations?.[l]?.title
-        ),
-        translations: post.translations,
-      },
-      relatedPosts: relatedPosts.map((p) => ({
-        _id: p._id,
-        title: p.translations?.[lang]?.title || p.translations?.tr?.title,
-        slug: p.translations?.[lang]?.slug || p.translations?.tr?.slug,
-        featuredImage: p.featuredImage,
-        publishedAt: p.publishedAt,
-      })),
-    });
+    return res.apiSuccess(post);
   } catch (error) {
-    logger.error('Error fetching blog post:', { error: error.message });
-    return res.apiError('Failed to fetch blog post', 500);
+    logger.error('Error fetching post by slug:', { error: error.message });
+    return res.apiError('Failed to fetch post', 500);
   }
 });
 
 /**
- * @route GET /api/blogs/:id
- * @description Get a single blog post by ID (admin use)
- * @access Public
+ * @route   GET /api/blog/:id
+ * @desc    Get blog post by ID
+ * @access  Private (admin)
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', requireAuth(['admin', 'manager']), async (req, res) => {
   try {
-    const { id } = req.params;
-    const post = await BlogPost.findById(id).lean();
+    const post = await BlogPost.findById(req.params.id).populate('author', 'name');
 
     if (!post) {
-      return res.apiError('Blog post not found', 404);
+      return res.apiError('Post not found', 404);
     }
 
-    return res.apiSuccess({ post });
+    return res.apiSuccess(post);
   } catch (error) {
-    logger.error('Error fetching blog post by ID:', { error: error.message });
-    return res.apiError('Failed to fetch blog post', 500);
+    logger.error('Error fetching post:', { error: error.message });
+    return res.apiError('Failed to fetch post', 500);
   }
 });
 
 /**
- * @route POST /api/blogs
- * @description Create a new blog post
- * @access Admin only
+ * @route   POST /api/blog
+ * @desc    Create new blog post
+ * @access  Private (admin only)
  */
-router.post('/', requireAuth(['admin', 'manager']), async (req, res) => {
+router.post('/', requireAuth(['admin']), async (req, res) => {
   try {
-    const postData = req.body;
+    const {
+      title,
+      slug,
+      excerpt,
+      content,
+      featuredImage,
+      images,
+      category,
+      tags,
+      status,
+      seo,
+      language,
+      relatedPosts,
+    } = req.body;
 
     // Validate required fields
-    if (!postData.translations?.tr?.title || !postData.translations?.tr?.content) {
-      return res.apiError('Turkish title and content are required', 400);
+    if (!title || !content) {
+      return res.apiError('Title and content are required', 400);
     }
 
-    if (!postData.featuredImage) {
-      return res.apiError('Featured image is required', 400);
+    // Generate slug if not provided
+    const postSlug =
+      slug ||
+      title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .substring(0, 100);
+
+    // Check if slug already exists
+    const existing = await BlogPost.findOne({ slug: postSlug });
+    if (existing) {
+      return res.apiError('A post with this slug already exists', 400);
     }
 
-    const newPost = new BlogPost(postData);
-    await newPost.save();
-
-    logger.info('Blog post created:', { postId: newPost._id, user: req.user?.email });
-    return res.apiSuccess({ post: newPost }, 'Blog post created successfully', 201);
-  } catch (error) {
-    logger.error('Error creating blog post:', { error: error.message });
-    return res.apiError('Failed to create blog post', 500);
-  }
-});
-
-/**
- * @route PUT /api/blogs/:id
- * @description Update a blog post
- * @access Admin only
- */
-router.put('/:id', requireAuth(['admin', 'manager']), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updateData = req.body;
-
-    const post = await BlogPost.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
+    const post = await BlogPost.create({
+      title,
+      slug: postSlug,
+      excerpt,
+      content,
+      featuredImage,
+      images,
+      category: category || 'general',
+      tags: tags?.map((t) => t.toLowerCase()) || [],
+      status: status || 'draft',
+      seo,
+      language: language || 'en',
+      author: req.user.id,
+      relatedPosts,
+      publishedAt: status === 'published' ? new Date() : null,
     });
 
-    if (!post) {
-      return res.apiError('Blog post not found', 404);
-    }
-
-    logger.info('Blog post updated:', { postId: id, user: req.user?.email });
-    return res.apiSuccess({ post }, 'Blog post updated successfully');
+    return res.apiSuccess(post, 'Blog post created successfully');
   } catch (error) {
-    logger.error('Error updating blog post:', { error: error.message });
-    return res.apiError('Failed to update blog post', 500);
+    logger.error('Error creating blog post:', { error: error.message });
+    return res.apiError(error.message || 'Failed to create post', 500);
   }
 });
 
 /**
- * @route DELETE /api/blogs/:id
- * @description Delete a blog post
- * @access Admin only
+ * @route   PATCH /api/blog/:id
+ * @desc    Update blog post
+ * @access  Private (admin only)
+ */
+router.patch('/:id', requireAuth(['admin']), async (req, res) => {
+  try {
+    const allowedFields = [
+      'title',
+      'slug',
+      'excerpt',
+      'content',
+      'featuredImage',
+      'images',
+      'category',
+      'tags',
+      'status',
+      'seo',
+      'language',
+      'relatedPosts',
+      'translations',
+    ];
+
+    const updates = {};
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    });
+
+    // Lowercase tags
+    if (updates.tags) {
+      updates.tags = updates.tags.map((t) => t.toLowerCase());
+    }
+
+    // Set publishedAt if status changed to published
+    if (updates.status === 'published') {
+      const post = await BlogPost.findById(req.params.id);
+      if (post && !post.publishedAt) {
+        updates.publishedAt = new Date();
+      }
+    }
+
+    updates.updatedBy = req.user.id;
+
+    const post = await BlogPost.findByIdAndUpdate(
+      req.params.id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).populate('author', 'name');
+
+    if (!post) {
+      return res.apiError('Post not found', 404);
+    }
+
+    return res.apiSuccess(post, 'Post updated successfully');
+  } catch (error) {
+    logger.error('Error updating blog post:', { error: error.message });
+    return res.apiError(error.message || 'Failed to update post', 500);
+  }
+});
+
+/**
+ * @route   DELETE /api/blog/:id
+ * @desc    Delete blog post
+ * @access  Private (admin only)
  */
 router.delete('/:id', requireAuth(['admin']), async (req, res) => {
   try {
-    const { id } = req.params;
-    const post = await BlogPost.findByIdAndDelete(id);
+    const post = await BlogPost.findByIdAndDelete(req.params.id);
 
     if (!post) {
-      return res.apiError('Blog post not found', 404);
+      return res.apiError('Post not found', 404);
     }
 
-    logger.info('Blog post deleted:', { postId: id, user: req.user?.email });
-    return res.apiSuccess(null, 'Blog post deleted successfully');
+    return res.apiSuccess(null, 'Post deleted successfully');
   } catch (error) {
     logger.error('Error deleting blog post:', { error: error.message });
-    return res.apiError('Failed to delete blog post', 500);
+    return res.apiError('Failed to delete post', 500);
   }
 });
 
 /**
- * @route GET /api/blogs/admin/all
- * @description Get all blog posts for admin (including drafts)
- * @access Admin only
+ * @route   PATCH /api/blog/:id/publish
+ * @desc    Publish or unpublish a blog post
+ * @access  Private (admin only)
  */
-router.get('/admin/all', requireAuth(['admin', 'manager']), async (req, res) => {
+router.patch('/:id/publish', requireAuth(['admin']), async (req, res) => {
   try {
-    const { page = 1, limit = 20, status, category } = req.query;
-    const pageNum = Math.max(1, parseInt(page, 10));
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)));
-    const skip = (pageNum - 1) * limitNum;
+    const { publish } = req.body;
 
-    const query = {};
-    if (status) query.status = status;
-    if (category) query.category = category;
+    const updates = {
+      status: publish ? 'published' : 'draft',
+      updatedBy: req.user.id,
+    };
 
-    const [posts, total] = await Promise.all([
-      BlogPost.find(query).sort({ createdAt: -1 }).skip(skip).limit(limitNum).lean(),
-      BlogPost.countDocuments(query),
-    ]);
+    if (publish) {
+      const post = await BlogPost.findById(req.params.id);
+      if (!post.publishedAt) {
+        updates.publishedAt = new Date();
+      }
+    }
 
-    return res.apiSuccess({
-      posts,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        pages: Math.ceil(total / limitNum),
-      },
-    });
+    const post = await BlogPost.findByIdAndUpdate(
+      req.params.id,
+      { $set: updates },
+      { new: true }
+    );
+
+    if (!post) {
+      return res.apiError('Post not found', 404);
+    }
+
+    return res.apiSuccess(post, publish ? 'Post published' : 'Post unpublished');
   } catch (error) {
-    logger.error('Error fetching admin blog posts:', { error: error.message });
-    return res.apiError('Failed to fetch blog posts', 500);
+    logger.error('Error publishing post:', { error: error.message });
+    return res.apiError('Failed to update post', 500);
   }
 });
 
 /**
- * @route POST /api/blogs/:id/share
- * @description Increment share count
- * @access Public
+ * @route   POST /api/blog/:id/translation
+ * @desc    Add or update translation for a blog post
+ * @access  Private (admin only)
  */
-router.post('/:id/share', async (req, res) => {
+router.post('/:id/translation', requireAuth(['admin']), async (req, res) => {
   try {
-    const { id } = req.params;
-    const { platform } = req.body;
+    const { language, title, slug, excerpt, content } = req.body;
 
-    await BlogPost.findByIdAndUpdate(id, { $inc: { shares: 1 } });
+    if (!language || !title || !content) {
+      return res.apiError('Language, title, and content are required', 400);
+    }
 
-    logger.info('Blog post shared:', { postId: id, platform });
-    return res.apiSuccess(null, 'Share recorded');
+    const post = await BlogPost.findById(req.params.id);
+    if (!post) {
+      return res.apiError('Post not found', 404);
+    }
+
+    // Check if translation exists
+    const existingIndex = post.translations.findIndex((t) => t.language === language);
+
+    if (existingIndex >= 0) {
+      // Update existing translation
+      post.translations[existingIndex] = { language, title, slug, excerpt, content };
+    } else {
+      // Add new translation
+      post.translations.push({ language, title, slug, excerpt, content });
+    }
+
+    await post.save();
+
+    return res.apiSuccess(post, 'Translation saved');
   } catch (error) {
-    return res.apiError('Failed to record share', 500);
+    logger.error('Error saving translation:', { error: error.message });
+    return res.apiError('Failed to save translation', 500);
   }
 });
 
 /**
- * @route GET /api/blogs/feed/rss
- * @description Get RSS feed for blog posts
- * @access Public
+ * @route   GET /api/blog/sitemap
+ * @desc    Get all published posts for sitemap generation
+ * @access  Public
  */
-router.get('/feed/rss', async (req, res) => {
+router.get('/sitemap/posts', async (req, res) => {
   try {
-    const { lang = 'tr' } = req.query;
-    const siteUrl = process.env.SITE_URL || 'https://gnbtransfer.com';
-
     const posts = await BlogPost.find({ status: 'published' })
-      .sort({ publishedAt: -1 })
-      .limit(50)
-      .lean();
+      .select('slug updatedAt language')
+      .sort({ publishedAt: -1 });
 
-    const items = posts
-      .map((post) => {
-        const translation = post.translations?.[lang] || post.translations?.tr;
-        if (!translation) return null;
-
-        return `
-    <item>
-      <title><![CDATA[${translation.title}]]></title>
-      <link>${siteUrl}/${lang}/blog/${translation.slug}</link>
-      <description><![CDATA[${translation.excerpt || translation.metaDescription || ''}]]></description>
-      <pubDate>${new Date(post.publishedAt).toUTCString()}</pubDate>
-      <guid>${siteUrl}/${lang}/blog/${translation.slug}</guid>
-      <category>${post.category}</category>
-    </item>`;
-      })
-      .filter(Boolean)
-      .join('');
-
-    const rss = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>GNB Transfer Blog</title>
-    <link>${siteUrl}/blog</link>
-    <description>VIP Transfer ve Turizm Haberleri - GNB Transfer</description>
-    <language>${lang}</language>
-    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
-    <atom:link href="${siteUrl}/api/blogs/feed/rss?lang=${lang}" rel="self" type="application/rss+xml"/>
-    ${items}
-  </channel>
-</rss>`;
-
-    res.set('Content-Type', 'application/rss+xml');
-    return res.send(rss);
+    return res.apiSuccess({ posts });
   } catch (error) {
-    logger.error('Error generating RSS feed:', { error: error.message });
-    return res.apiError('Failed to generate RSS feed', 500);
+    logger.error('Error fetching sitemap posts:', { error: error.message });
+    return res.apiError('Failed to fetch posts', 500);
   }
 });
 
