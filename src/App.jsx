@@ -14,6 +14,7 @@ import Footer from './components/Footer';
 import Sidebar from './components/Sidebar';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import PWAUpdatePrompt from './components/PWAUpdatePrompt';
+import FloatingLanguageButton from './components/FloatingLanguageButton';
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
@@ -61,7 +62,7 @@ const LiveChat = lazy(() => import('./components/LiveChat'));
 const Feedback = lazy(() => import('./components/Feedback'));
 const FAQBot = lazy(() => import('./components/FAQBot'));
  
-// Genel Kullanıcı Düzeni
+// Main User Layout
 const MainLayout = () => {
   const { t } = useTranslation();
   return (
@@ -87,6 +88,7 @@ const MainLayout = () => {
       <Footer />
       <PWAInstallPrompt />
       <PWAUpdatePrompt />
+      <FloatingLanguageButton />
       <Suspense fallback={null}>
         <LiveChat />
       </Suspense>
@@ -94,7 +96,7 @@ const MainLayout = () => {
   );
 };
  
-// Admin Paneli Düzeni
+// Admin Panel Layout
 const AdminLayout = () => {
   const { loading } = useAuth();
   if (loading) return <Loading />;
