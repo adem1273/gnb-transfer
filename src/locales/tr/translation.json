@@ -305,5 +305,33 @@
   "languageSwitcher": {
     "selectLanguage": "Dil Seçin",
     "currentLanguage": "Mevcut Dil"
+  },
+  "blog": {
+    "title": "GNB Transfer Blog",
+    "subtitle": "VIP transfer hizmetleri, İstanbul rehberleri ve seyahat ipuçları",
+    "pageTitle": "Blog | GNB Transfer - VIP Transfer Hizmetleri",
+    "pageDescription": "İstanbul VIP transfer, havalimanı ulaşımı, turistik tur rehberleri ve özel şoförlü araç kiralama hakkında en güncel bilgiler.",
+    "allPosts": "Tüm Yazılar",
+    "readMore": "Devamını Oku",
+    "minRead": "dk okuma",
+    "views": "görüntülenme",
+    "share": "Paylaş",
+    "tags": "Etiketler",
+    "relatedPosts": "İlgili Yazılar",
+    "backToBlog": "Blog'a Dön",
+    "notFound": "Yazı bulunamadı",
+    "loadError": "Blog yazıları yüklenemedi",
+    "noPosts": "Henüz blog yazısı yok",
+    "noPostsDescription": "Yakında VIP transfer ve turizm hakkında faydalı içerikler paylaşacağız.",
+    "bookNow": "Şimdi Rezervasyon Yap",
+    "ctaTitle": "VIP Transfer Hizmetimizi Deneyin",
+    "ctaDescription": "75$'dan başlayan fiyatlarla profesyonel şoförlü araç kiralama. İstanbul Havalimanı ve Sabiha Gökçen transferlerinde %15 indirim!",
+    "bookTransfer": "Hemen Rezervasyon Yap",
+    "ctaBoxTitle": "VIP Transfer Rezervasyonu",
+    "ctaBoxDescription": "75$'dan başlayan fiyatlarla profesyonel transfer hizmeti!",
+    "discountCode": "İndirim Kodu",
+    "gallery": "Galeri",
+    "copyLink": "Linki Kopyala",
+    "linkCopied": "Link kopyalandı!"
   }
 }

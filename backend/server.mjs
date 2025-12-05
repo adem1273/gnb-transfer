@@ -50,6 +50,7 @@ import delayCompensationRoutes from './routes/delayCompensationRoutes.mjs';
 import revenueAnalyticsRoutes from './routes/revenueAnalyticsRoutes.mjs';
 import corporateRoutes from './routes/corporateRoutes.mjs';
 import docsRoutes from './routes/docsRoutes.mjs';
+import blogRoutes from './routes/blogRoutes.mjs';
 import { routeRouter } from './routes/routeRoutes.mjs';
 import { pricingRouter } from './routes/pricingRoutes.mjs';
 
@@ -221,6 +222,9 @@ app.use(`${API_V1}/admin/corporate`, corporateRoutes);
 // API documentation endpoint (v1)
 app.use(`${API_V1}/docs`, docsRoutes);
 
+// Blog routes (v1)
+app.use(`${API_V1}/blogs`, blogRoutes);
+
 // Legacy routes (for backward compatibility)
 // These will be deprecated in future versions
 app.use('/api/auth', authRoutes);
@@ -248,6 +252,7 @@ app.use('/api/admin/delay', delayCompensationRoutes);
 app.use('/api/admin/analytics', revenueAnalyticsRoutes);
 app.use('/api/admin/corporate', corporateRoutes);
 app.use('/api/docs', docsRoutes);
+app.use('/api/blogs', blogRoutes);
 
 // Health check endpoint (registered before other routes)
 app.get('/api/health', async (req, res) => {

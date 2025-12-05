@@ -57,6 +57,9 @@ const DelayCompensationPanel = lazy(() => import('./pages/DelayCompensationPanel
 const RevenueAnalytics = lazy(() => import('./pages/RevenueAnalytics'));
 const CorporateClients = lazy(() => import('./pages/CorporateClients'));
 
+// Lazy load blog management
+const BlogManagement = lazy(() => import('./pages/BlogManagement'));
+
 // Lazy load optional components (only load when needed)
 const LiveChat = lazy(() => import('./components/LiveChat'));
 const Feedback = lazy(() => import('./components/Feedback'));
@@ -167,6 +170,9 @@ function App() {
                 <Route path="delay-compensation" element={<DelayCompensationPanel />} />
                 <Route path="analytics" element={<RevenueAnalytics />} />
                 <Route path="corporate" element={<CorporateClients />} />
+                
+                {/* Blog Management */}
+                <Route path="blog" element={<BlogManagement />} />
               </Route>
               
               {/* Sürücü Paneli Rotası */}

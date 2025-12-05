@@ -305,5 +305,33 @@
   "languageSwitcher": {
     "selectLanguage": "Seleccionar idioma",
     "currentLanguage": "Idioma actual"
+  },
+  "blog": {
+    "title": "Blog GNB Transfer",
+    "subtitle": "Traslado VIP, guías de Estambul y consejos de viaje",
+    "pageTitle": "Blog | GNB Transfer - Servicios de Traslado VIP",
+    "pageDescription": "Información actualizada sobre traslado VIP en Estambul, transporte al aeropuerto, guías turísticas y alquiler de coches con chófer.",
+    "allPosts": "Todos los artículos",
+    "readMore": "Leer más",
+    "minRead": "min de lectura",
+    "views": "vistas",
+    "share": "Compartir",
+    "tags": "Etiquetas",
+    "relatedPosts": "Artículos relacionados",
+    "backToBlog": "Volver al blog",
+    "notFound": "Artículo no encontrado",
+    "loadError": "Error al cargar los artículos",
+    "noPosts": "Aún no hay artículos",
+    "noPostsDescription": "Pronto compartiremos contenido útil sobre traslado VIP y turismo.",
+    "bookNow": "Reservar ahora",
+    "ctaTitle": "Prueba nuestro servicio de traslado VIP",
+    "ctaDescription": "Alquiler de coches con chófer desde 75$. ¡15% de descuento en traslados del aeropuerto de Estambul y Sabiha Gökçen!",
+    "bookTransfer": "Reservar ahora",
+    "ctaBoxTitle": "Reserva de traslado VIP",
+    "ctaBoxDescription": "¡Servicio de traslado profesional desde 75$!",
+    "discountCode": "Código de descuento",
+    "gallery": "Galería",
+    "copyLink": "Copiar enlace",
+    "linkCopied": "¡Enlace copiado!"
   }
 }
