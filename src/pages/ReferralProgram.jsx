@@ -21,7 +21,7 @@ function ReferralProgram() {
     try {
       setLoading(true);
       const promises = [API.get('/referrals/my')];
-      
+
       if (isAdmin) {
         promises.push(API.get('/referrals'));
         promises.push(API.get('/referrals/stats'));
@@ -29,12 +29,12 @@ function ReferralProgram() {
 
       const results = await Promise.all(promises);
       setMyReferral(results[0].data.data);
-      
+
       if (isAdmin) {
         setAllReferrals(results[1].data.data.referrals);
         setStats(results[2].data.data);
       }
-      
+
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -106,9 +106,15 @@ function ReferralProgram() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Registered</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  User
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Registered
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Status
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -121,11 +127,13 @@ function ReferralProgram() {
                     {new Date(ref.registeredAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      ref.firstBookingCompleted 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 text-xs rounded ${
+                        ref.firstBookingCompleted
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}
+                    >
                       {ref.firstBookingCompleted ? 'Completed Booking' : 'Pending'}
                     </span>
                   </td>
@@ -177,11 +185,21 @@ function ReferralProgram() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Referrals</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Successful</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rewards</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      User
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Code
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Total Referrals
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Successful
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Rewards
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -190,18 +208,12 @@ function ReferralProgram() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {referrer.referrer?.name || 'Unknown'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap font-mono">
-                        {referrer.code}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {referrer.totalReferrals}
-                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap font-mono">{referrer.code}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{referrer.totalReferrals}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {referrer.successfulReferrals}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {referrer.totalRewards}
-                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">{referrer.totalRewards}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -40,7 +40,7 @@ async function register() {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
           // New service worker installed, show update notification
           console.log('New content available, please refresh');
-          
+
           // Dispatch custom event for UI to handle
           window.dispatchEvent(new CustomEvent('swUpdated', { detail: registration }));
         }
@@ -119,7 +119,7 @@ export async function subscribeToPushNotifications(registration) {
     });
 
     console.log('Push notification subscription:', subscription);
-    
+
     // Send subscription to your server
     // await sendSubscriptionToServer(subscription);
 

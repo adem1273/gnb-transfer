@@ -22,7 +22,7 @@ function FeatureManagement() {
       const response = await axios.get(`${API_URL}/admin/features`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (response.data.success) {
         setFeatures(response.data.data);
       }
@@ -70,13 +70,13 @@ function FeatureManagement() {
     <div className="container mx-auto p-6">
       <div className="bg-white shadow-md rounded-lg p-6">
         <h1 className="text-3xl font-bold mb-6">Feature Management</h1>
-        
+
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
-        
+
         {success && (
           <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
             {success}
@@ -101,7 +101,7 @@ function FeatureManagement() {
                     <span>🌐 API: {feature.api}</span>
                   </div>
                 </div>
-                
+
                 <div className="ml-4">
                   <button
                     onClick={() => toggleFeature(feature.id, feature.enabled)}

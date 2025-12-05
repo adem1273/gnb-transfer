@@ -176,11 +176,7 @@ export function AnalyticsProvider({ children }) {
     }, []),
   };
 
-  return (
-    <AnalyticsContext.Provider value={analytics}>
-      {children}
-    </AnalyticsContext.Provider>
-  );
+  return <AnalyticsContext.Provider value={analytics}>{children}</AnalyticsContext.Provider>;
 }
 
 /**

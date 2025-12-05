@@ -22,16 +22,16 @@ function AIMarketingPanel() {
       <p className="text-gray-600 mb-4">
         Click the button below to generate AI-powered marketing suggestions.
       </p>
-      <button 
-        onClick={fetchSuggestions} 
+      <button
+        onClick={fetchSuggestions}
         className="bg-green-600 text-white p-2 rounded hover:bg-green-700 mb-2"
         disabled={loading}
       >
         {loading ? 'Generating...' : 'Generate Suggestions'}
       </button>
-      
+
       {loading && <p className="text-gray-500">Loading...</p>}
-      
+
       {suggestions.length > 0 && (
         <ul className="list-disc pl-5 mt-4">
           {suggestions.map((s, idx) => (

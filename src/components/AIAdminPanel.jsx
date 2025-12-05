@@ -14,7 +14,7 @@ function AIAdminPanel() {
     }
     setLoading(true);
     setError('');
-    
+
     try {
       const res = await API.post('/ai/admin-assistant', { command });
       setResult(res.data.result);
@@ -31,7 +31,7 @@ function AIAdminPanel() {
       <h2 className="text-xl font-bold mb-2">Admin AI Assistant</h2>
       <p className="text-gray-600 mb-4">
         Enter a command to get a quick response from the AI assistant.
-        <br/>
+        <br />
         Example Commands: "total users", "top 5 tours"
       </p>
       <textarea
@@ -41,14 +41,14 @@ function AIAdminPanel() {
         className="w-full p-2 border rounded mb-2"
         rows={4}
       />
-      <button 
-        onClick={handleRunCommand} 
+      <button
+        onClick={handleRunCommand}
         className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
         disabled={loading}
       >
         {loading ? 'Processing...' : 'Run Command'}
       </button>
-      
+
       {error && <p className="text-red-500 mt-2">{error}</p>}
       {result && (
         <div className="mt-4">

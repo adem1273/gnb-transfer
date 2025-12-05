@@ -274,9 +274,7 @@ function CorporateClients() {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-12 text-gray-500">
-                  No corporate clients found
-                </div>
+                <div className="text-center py-12 text-gray-500">No corporate clients found</div>
               )}
             </div>
           </>

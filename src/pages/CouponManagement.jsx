@@ -19,7 +19,7 @@ function CouponManagement() {
     usageLimit: '',
     validFrom: '',
     validUntil: '',
-    active: true
+    active: true,
   });
 
   useEffect(() => {
@@ -47,7 +47,7 @@ function CouponManagement() {
       } else {
         await API.post('/coupons', formData);
       }
-      
+
       setShowForm(false);
       setEditingCoupon(null);
       resetForm();
@@ -70,14 +70,14 @@ function CouponManagement() {
       usageLimit: coupon.usageLimit || '',
       validFrom: coupon.validFrom?.split('T')[0] || '',
       validUntil: coupon.validUntil?.split('T')[0] || '',
-      active: coupon.active
+      active: coupon.active,
     });
     setShowForm(true);
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this coupon?')) return;
-    
+
     try {
       await API.delete(`/coupons/${id}`);
       fetchCoupons();
@@ -98,7 +98,7 @@ function CouponManagement() {
       usageLimit: '',
       validFrom: '',
       validUntil: '',
-      active: true
+      active: true,
     });
   };
 
@@ -262,12 +262,24 @@ function CouponManagement() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Discount</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usage</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valid Until</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Code
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Discount
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Usage
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Valid Until
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Status
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -275,7 +287,9 @@ function CouponManagement() {
               <tr key={coupon._id}>
                 <td className="px-6 py-4 whitespace-nowrap font-semibold">{coupon.code}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {coupon.discountType === 'percentage' ? `${coupon.discountValue}%` : `$${coupon.discountValue}`}
+                  {coupon.discountType === 'percentage'
+                    ? `${coupon.discountValue}%`
+                    : `$${coupon.discountValue}`}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {coupon.usageCount} / {coupon.usageLimit || '∞'}
@@ -284,7 +298,9 @@ function CouponManagement() {
                   {new Date(coupon.validUntil).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs rounded ${coupon.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  <span
+                    className={`px-2 py-1 text-xs rounded ${coupon.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                  >
                     {coupon.active ? 'Active' : 'Inactive'}
                   </span>
                 </td>

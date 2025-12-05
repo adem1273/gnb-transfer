@@ -19,7 +19,7 @@ function PackageModal({ tourId, onClose }) {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Use smart package for authenticated users, generic for others
         let response;
         if (user) {
@@ -27,7 +27,7 @@ function PackageModal({ tourId, onClose }) {
         } else {
           response = await API.post('/packages/generic', { currentTourId: tourId });
         }
-        
+
         if (response.data && response.data.data) {
           setPackageData(response.data.data);
         }
@@ -59,12 +59,7 @@ function PackageModal({ tourId, onClose }) {
           <div className="flex justify-between items-start">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -82,12 +77,7 @@ function PackageModal({ tourId, onClose }) {
               onClick={onClose}
               className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -124,12 +114,8 @@ function PackageModal({ tourId, onClose }) {
             <div className="space-y-6">
               {/* Package Title & Description */}
               <div className="text-center">
-                <h3 className="text-3xl font-bold text-gray-900 mb-3">
-                  {packageData.title}
-                </h3>
-                <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                  {packageData.description}
-                </p>
+                <h3 className="text-3xl font-bold text-gray-900 mb-3">{packageData.title}</h3>
+                <p className="text-gray-600 text-lg max-w-2xl mx-auto">{packageData.description}</p>
               </div>
 
               {/* Highlights */}
@@ -171,13 +157,9 @@ function PackageModal({ tourId, onClose }) {
                         <h5 className="font-semibold text-gray-900 flex-1">
                           {index + 1}. {tour.title}
                         </h5>
-                        <span className="text-gray-600 font-medium">
-                          ${tour.price}
-                        </span>
+                        <span className="text-gray-600 font-medium">${tour.price}</span>
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {tour.description}
-                      </p>
+                      <p className="text-sm text-gray-600 line-clamp-2">{tour.description}</p>
                     </div>
                   ))}
                 </div>
@@ -201,7 +183,8 @@ function PackageModal({ tourId, onClose }) {
                           clipRule="evenodd"
                         />
                       </svg>
-                      {t('packageModal.packageDiscount')} ({packageData.pricing.discountPercentage}%):
+                      {t('packageModal.packageDiscount')} ({packageData.pricing.discountPercentage}
+                      %):
                     </span>
                     <span>-${packageData.pricing.discountAmount.toFixed(2)}</span>
                   </div>
@@ -215,8 +198,8 @@ function PackageModal({ tourId, onClose }) {
                   </div>
                   <div className="bg-white bg-opacity-70 rounded-lg p-3 text-center">
                     <p className="text-sm font-semibold text-green-700">
-                      {t('packageModal.saveAmount', { 
-                        amount: packageData.pricing.discountAmount.toFixed(2) 
+                      {t('packageModal.saveAmount', {
+                        amount: packageData.pricing.discountAmount.toFixed(2),
                       })}
                     </p>
                   </div>

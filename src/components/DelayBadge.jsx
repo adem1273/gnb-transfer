@@ -29,7 +29,9 @@ function DelayBadge({ delayRiskScore, estimatedDelay, discountCode }) {
         <h3 className="text-lg font-bold text-gray-800">
           {t('delay.guarantee', 'Delay Guarantee')}
         </h3>
-        <div className={`${getBadgeColor()} text-white px-3 py-1 rounded-full text-sm font-semibold`}>
+        <div
+          className={`${getBadgeColor()} text-white px-3 py-1 rounded-full text-sm font-semibold`}
+        >
           {getRiskLevel()}
         </div>
       </div>
@@ -43,7 +45,9 @@ function DelayBadge({ delayRiskScore, estimatedDelay, discountCode }) {
         {estimatedDelay > 0 && (
           <div className="flex justify-between items-center">
             <span className="text-gray-600">{t('delay.estimatedDelay', 'Estimated Delay')}:</span>
-            <span className="font-bold text-orange-600">{estimatedDelay} {t('delay.minutes', 'min')}</span>
+            <span className="font-bold text-orange-600">
+              {estimatedDelay} {t('delay.minutes', 'min')}
+            </span>
           </div>
         )}
 
@@ -64,14 +68,20 @@ function DelayBadge({ delayRiskScore, estimatedDelay, discountCode }) {
               </button>
             </div>
             <p className="text-xs text-gray-600 mt-2">
-              {t('delay.discountInfo', 'Use this code for your next booking due to potential delay')}
+              {t(
+                'delay.discountInfo',
+                'Use this code for your next booking due to potential delay'
+              )}
             </p>
           </div>
         )}
 
         <div className="mt-4 pt-3 border-t border-gray-200">
           <p className="text-xs text-gray-500">
-            {t('delay.guaranteeInfo', 'Our delay guarantee ensures you receive compensation if your transfer is delayed more than 15 minutes.')}
+            {t(
+              'delay.guaranteeInfo',
+              'Our delay guarantee ensures you receive compensation if your transfer is delayed more than 15 minutes.'
+            )}
           </p>
         </div>
       </div>

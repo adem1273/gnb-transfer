@@ -29,7 +29,7 @@ function Users() {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
       await API.delete(`/users/${id}`);
-      setUsers(users.filter(user => user._id !== id));
+      setUsers(users.filter((user) => user._id !== id));
     } catch (err) {
       console.error(err);
       alert('Failed to delete user.');
@@ -62,7 +62,7 @@ function Users() {
                 </tr>
               </thead>
               <tbody>
-                {users.map(user => (
+                {users.map((user) => (
                   <tr key={user._id}>
                     <td className="border p-2">{user.name}</td>
                     <td className="border p-2">{user.email}</td>

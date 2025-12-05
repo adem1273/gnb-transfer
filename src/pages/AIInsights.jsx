@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import API from '../utils/api';
 
 function AIInsights() {
@@ -124,9 +135,7 @@ function AIInsights() {
                   <p className="text-2xl font-semibold text-blue-600">
                     {insights.mostPopularTour.name}
                   </p>
-                  <p className="text-gray-600">
-                    {insights.mostPopularTour.bookings} bookings
-                  </p>
+                  <p className="text-gray-600">{insights.mostPopularTour.bookings} bookings</p>
                 </div>
                 <div className="text-5xl">🏆</div>
               </div>

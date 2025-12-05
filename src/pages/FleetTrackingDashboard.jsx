@@ -71,15 +71,11 @@ function FleetTrackingDashboard() {
             </div>
             <div className="bg-green-50 p-4 rounded-lg">
               <h3 className="text-sm font-semibold text-gray-600">In Progress</h3>
-              <p className="text-3xl font-bold text-green-600">
-                {fleetData.summary.inProgress}
-              </p>
+              <p className="text-3xl font-bold text-green-600">{fleetData.summary.inProgress}</p>
             </div>
             <div className="bg-yellow-50 p-4 rounded-lg">
               <h3 className="text-sm font-semibold text-gray-600">Confirmed</h3>
-              <p className="text-3xl font-bold text-yellow-600">
-                {fleetData.summary.confirmed}
-              </p>
+              <p className="text-3xl font-bold text-yellow-600">{fleetData.summary.confirmed}</p>
             </div>
           </div>
         )}
@@ -104,9 +100,7 @@ function FleetTrackingDashboard() {
                       Pickup: {vehicle.pickup.location} at{' '}
                       {new Date(vehicle.pickup.date).toLocaleString()}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      Dropoff: {vehicle.dropoff.location}
-                    </p>
+                    <p className="text-sm text-gray-500">Dropoff: {vehicle.dropoff.location}</p>
                   </div>
                   <div className="text-right">
                     <span
@@ -126,14 +120,13 @@ function FleetTrackingDashboard() {
               </div>
             ))
           ) : (
-            <div className="text-center py-12 text-gray-500">
-              No active vehicles at the moment
-            </div>
+            <div className="text-center py-12 text-gray-500">No active vehicles at the moment</div>
           )}
         </div>
 
         <div className="mt-4 text-xs text-gray-500 text-right">
-          Last updated: {fleetData?.timestamp ? new Date(fleetData.timestamp).toLocaleString() : 'N/A'}
+          Last updated:{' '}
+          {fleetData?.timestamp ? new Date(fleetData.timestamp).toLocaleString() : 'N/A'}
         </div>
       </div>
     </div>

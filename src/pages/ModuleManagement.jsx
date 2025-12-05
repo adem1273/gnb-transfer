@@ -72,7 +72,8 @@ function ModuleManagement() {
 
       <div className="bg-white rounded-lg shadow p-6">
         <p className="text-gray-600 mb-6">
-          Enable or disable major system modules. Disabled modules will return a 503 error when accessed.
+          Enable or disable major system modules. Disabled modules will return a 503 error when
+          accessed.
         </p>
 
         {error && (

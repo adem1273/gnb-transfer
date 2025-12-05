@@ -10,16 +10,16 @@ function PrivateRoute({ children, allowedRoles = ['admin', 'user'] }) {
   if (loading) {
     return <Loading />;
   }
-  
+
   // Eğer kullanıcı giriş yapmamışsa
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-  
+
   // Eğer kullanıcının rolü izin verilen roller arasında değilse
   if (!allowedRoles.includes(user.role)) {
     // 403 Forbidden sayfasına yönlendirebiliriz veya ana sayfaya
-    return <Navigate to="/" replace />; 
+    return <Navigate to="/" replace />;
   }
 
   // Her şey yolundaysa çocuk bileşeni göster

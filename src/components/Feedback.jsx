@@ -77,7 +77,9 @@ function Feedback() {
               className="p-2 border rounded"
             >
               {[1, 2, 3, 4, 5].map((rate) => (
-                <option key={rate} value={rate}>{rate}</option>
+                <option key={rate} value={rate}>
+                  {rate}
+                </option>
               ))}
             </select>
           </div>

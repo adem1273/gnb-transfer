@@ -1,5 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import DashboardCard from '../components/DashboardCard';
 import API from '../utils/api';
 import Loading from '../components/Loading';
@@ -43,18 +57,25 @@ function Dashboard() {
     return <ErrorMessage message="No analytics data available" />;
   }
 
-  const { summary, statusBreakdown, paymentMethodBreakdown, topTours, mostBookedTours, dailyRevenue } = analytics;
+  const {
+    summary,
+    statusBreakdown,
+    paymentMethodBreakdown,
+    topTours,
+    mostBookedTours,
+    dailyRevenue,
+  } = analytics;
 
   // Format status data for pie chart
   const statusData = Object.entries(statusBreakdown).map(([name, value]) => ({
     name: name.charAt(0).toUpperCase() + name.slice(1),
-    value
+    value,
   }));
 
   // Format payment method data for pie chart
   const paymentData = Object.entries(paymentMethodBreakdown).map(([name, value]) => ({
-    name: name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
-    value
+    name: name.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+    value,
   }));
 
   return (
@@ -62,8 +83,8 @@ function Dashboard() {
       {/* Period Selector */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
-        <select 
-          value={period} 
+        <select
+          value={period}
           onChange={(e) => setPeriod(e.target.value)}
           className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
         >
@@ -76,28 +97,25 @@ function Dashboard() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <DashboardCard 
-          title="Total Revenue" 
+        <DashboardCard
+          title="Total Revenue"
           value={`$${summary.totalRevenue.toLocaleString()}`}
           subtitle={`${summary.revenueGrowth >= 0 ? '+' : ''}${summary.revenueGrowth.toFixed(1)}% vs previous period`}
           trend={summary.revenueGrowth >= 0 ? 'up' : 'down'}
         />
-        <DashboardCard 
-          title="Total Bookings" 
+        <DashboardCard
+          title="Total Bookings"
           value={summary.totalBookings}
           subtitle={`${summary.bookingsGrowth >= 0 ? '+' : ''}${summary.bookingsGrowth.toFixed(1)}% vs previous period`}
           trend={summary.bookingsGrowth >= 0 ? 'up' : 'down'}
         />
-        <DashboardCard 
-          title="Total Users" 
+        <DashboardCard
+          title="Total Users"
           value={summary.totalUsers}
           subtitle={`${summary.userGrowth >= 0 ? '+' : ''}${summary.userGrowth.toFixed(1)}% vs previous period`}
           trend={summary.userGrowth >= 0 ? 'up' : 'down'}
         />
-        <DashboardCard 
-          title="Avg Booking Value" 
-          value={`$${summary.avgBookingValue.toFixed(2)}`}
-        />
+        <DashboardCard title="Avg Booking Value" value={`$${summary.avgBookingValue.toFixed(2)}`} />
       </div>
 
       {/* Revenue Trend Chart */}

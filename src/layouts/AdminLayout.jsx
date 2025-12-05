@@ -8,7 +8,7 @@ import Loading from '../components/Loading';
 const AdminLayout = () => {
   const { loading } = useAuth();
   if (loading) return <Loading />;
-  
+
   return (
     <div className="flex">
       <Sidebar />

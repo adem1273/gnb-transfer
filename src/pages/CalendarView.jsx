@@ -66,11 +66,7 @@ function CalendarView() {
     if (view === 'month') {
       const dayBookings = getBookingsForDate(date);
       if (dayBookings.length > 0) {
-        return (
-          <div className="text-xs mt-1 font-semibold">
-            {dayBookings.length}
-          </div>
-        );
+        return <div className="text-xs mt-1 font-semibold">{dayBookings.length}</div>;
       }
     }
     return null;
@@ -180,10 +176,7 @@ function CalendarView() {
                 <p className="text-center text-gray-500">No bookings for this date</p>
               ) : (
                 selectedBookings.map((booking) => (
-                  <div
-                    key={booking.id}
-                    className="border rounded p-4 hover:bg-gray-50"
-                  >
+                  <div key={booking.id} className="border rounded p-4 hover:bg-gray-50">
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-semibold text-lg">{booking.title}</h4>
                       <span
@@ -191,8 +184,8 @@ function CalendarView() {
                           booking.status === 'confirmed'
                             ? 'bg-green-100 text-green-800'
                             : booking.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
                         }`}
                       >
                         {booking.status}

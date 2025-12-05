@@ -57,11 +57,14 @@ function ActivityLogs() {
         Object.fromEntries(Object.entries(filters).filter(([_, v]) => v !== ''))
       );
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/logs/export?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/admin/logs/export?${params.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -226,7 +229,9 @@ function ActivityLogs() {
                         {new Date(log.createdAt).toLocaleString()}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded text-xs ${getActionBadgeColor(log.action)}`}>
+                        <span
+                          className={`px-2 py-1 rounded text-xs ${getActionBadgeColor(log.action)}`}
+                        >
                           {log.action}
                         </span>
                       </td>
@@ -245,9 +250,7 @@ function ActivityLogs() {
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {log.ipAddress || 'N/A'}
-                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{log.ipAddress || 'N/A'}</td>
                     </tr>
                   ))}
                 </tbody>
