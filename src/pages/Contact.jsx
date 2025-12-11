@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import SEO from '../components/SEO';
+import { getSEOTranslations, generateLocalBusinessSchema } from '../utils/seoHelpers';
 
 function Contact() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language;
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -43,15 +46,19 @@ function Contact() {
     transition: { duration: 0.5 },
   };
 
+  // SEO data
+  const seoData = getSEOTranslations('contact', currentLang);
+  const localBusinessSchema = generateLocalBusinessSchema(currentLang);
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Helmet>
-        <title>Contact Us - GNB Transfer</title>
-        <meta
-          name="description"
-          content="Get in touch with GNB Transfer for airport transfers, tours, and travel services in Turkey."
-        />
-      </Helmet>
+      <SEO
+        title={seoData.title}
+        description={seoData.description}
+        keywords={seoData.keywords}
+        type="website"
+        jsonLd={localBusinessSchema}
+      />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-16">

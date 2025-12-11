@@ -3,6 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import API from '../utils/api';
 import { useTranslation } from 'react-i18next';
+import SEO from './SEO';
+import BlogCTA from './BlogCTA';
+import { generateArticleSchema, generateBreadcrumbSchema } from '../utils/seoHelpers';
 
 function BlogPost() {
   const { id } = useParams(); // This is the slug
@@ -107,117 +110,41 @@ function BlogPost() {
   const pageTitle = post.metaTitle || post.title;
   const pageDescription = post.metaDescription || post.excerpt || post.title;
 
-  // JSON-LD Article structured data
-  const jsonLdArticle = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: post.title,
+  // Generate JSON-LD schemas
+  const articleSchema = generateArticleSchema({
+    title: post.title,
     description: pageDescription,
+    slug: post.slug,
+    author: post.author || 'GNB Transfer',
+    publishedTime: post.publishedAt,
+    modifiedTime: post.updatedAt || post.publishedAt,
     image: post.featuredImage,
-    author: {
-      '@type': 'Organization',
-      name: post.author || 'GNB Transfer',
-      logo: {
-        '@type': 'ImageObject',
-        url: `${siteUrl}/images/gnb-logo.png`,
-      },
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: 'GNB Transfer',
-      logo: {
-        '@type': 'ImageObject',
-        url: `${siteUrl}/images/gnb-logo.png`,
-      },
-    },
-    datePublished: post.publishedAt,
-    dateModified: post.updatedAt || post.publishedAt,
-    mainEntityOfPage: {
-      '@type': 'WebPage',
-      '@id': postUrl,
-    },
-    wordCount: post.content ? post.content.split(/\s+/).length : 0,
-    inLanguage: currentLang,
-  };
+    lang: currentLang,
+  });
 
-  // Breadcrumb JSON-LD
-  const jsonLdBreadcrumb = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: t('header.home') || 'Ana Sayfa',
-        item: siteUrl,
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'Blog',
-        item: `${siteUrl}/blog`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: post.title,
-        item: postUrl,
-      },
-    ],
-  };
+  const breadcrumbs = [
+    { name: t('header.home') || 'Home', path: '/' },
+    { name: 'Blog', path: '/blog' },
+    { name: post.title, path: `/blog/${post.slug}` },
+  ];
+  const breadcrumbSchema = generateBreadcrumbSchema(breadcrumbs);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Helmet>
-        <title>{pageTitle} | GNB Transfer Blog</title>
-        <meta name="description" content={pageDescription} />
-        <meta name="author" content={post.author || 'GNB Transfer'} />
-        
-        {/* Open Graph */}
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDescription} />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={postUrl} />
-        <meta property="og:image" content={post.featuredImage} />
-        <meta property="og:site_name" content="GNB Transfer" />
-        <meta property="og:locale" content={currentLang} />
-        <meta property="article:published_time" content={post.publishedAt} />
-        <meta property="article:modified_time" content={post.updatedAt || post.publishedAt} />
-        <meta property="article:author" content={post.author || 'GNB Transfer'} />
-        <meta property="article:section" content={post.category} />
-        {post.tags?.map((tag, index) => (
-          <meta key={index} property="article:tag" content={tag} />
-        ))}
-        
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={pageTitle} />
-        <meta name="twitter:description" content={pageDescription} />
-        <meta name="twitter:image" content={post.featuredImage} />
-        
-        {/* Canonical */}
-        <link rel="canonical" href={postUrl} />
-        
-        {/* Alternate languages */}
-        {post.availableLanguages?.map((lang) => {
-          const langSlug = post.translations?.[lang]?.slug;
-          if (langSlug) {
-            return (
-              <link
-                key={lang}
-                rel="alternate"
-                hrefLang={lang}
-                href={`${siteUrl}/${lang !== 'tr' ? lang + '/' : ''}blog/${langSlug}`}
-              />
-            );
-          }
-          return null;
-        })}
-        
-        {/* JSON-LD */}
-        <script type="application/ld+json">{JSON.stringify(jsonLdArticle)}</script>
-        <script type="application/ld+json">{JSON.stringify(jsonLdBreadcrumb)}</script>
-      </Helmet>
+      <SEO
+        title={`${pageTitle} | GNB Transfer Blog`}
+        description={pageDescription}
+        image={post.featuredImage}
+        url={postUrl}
+        type="article"
+        article={{
+          publishedTime: post.publishedAt,
+          modifiedTime: post.updatedAt || post.publishedAt,
+          author: post.author || 'GNB Transfer',
+          tags: post.tags,
+        }}
+        jsonLd={[articleSchema, breadcrumbSchema]}
+      />
 
       {/* Hero Image */}
       <div className="relative h-64 md:h-96 bg-gray-900">
@@ -336,6 +263,9 @@ function BlogPost() {
             className="prose prose-lg max-w-none mt-8"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
+
+          {/* CTA Component - Booking Encouragement */}
+          <BlogCTA variant="default" />
 
           {/* Tags */}
           {post.tags && post.tags.length > 0 && (

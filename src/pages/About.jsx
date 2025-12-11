@@ -1,6 +1,8 @@
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import SEO from '../components/SEO';
+import { getSEOTranslations, generateLocalBusinessSchema } from '../utils/seoHelpers';
 import { aboutImages, driverImages, airportImages } from '../config/images';
 
 /**
@@ -8,7 +10,8 @@ import { aboutImages, driverImages, airportImages } from '../config/images';
  * Displays company information with professional images
  */
 function About() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language;
 
   const fadeInUp = {
     initial: { opacity: 0, y: 30 },
@@ -55,15 +58,18 @@ function About() {
     },
   ];
 
+  // SEO data
+  const localBusinessSchema = generateLocalBusinessSchema(currentLang);
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Helmet>
-        <title>About Us - GNB Transfer</title>
-        <meta
-          name="description"
-          content="Learn about GNB Transfer - Your trusted partner for premium airport transfers and tours in Turkey."
-        />
-      </Helmet>
+      <SEO
+        title="About Us | GNB Transfer"
+        description="Learn about GNB Transfer - Your trusted partner for premium airport transfers and tours in Turkey."
+        keywords="about GNB transfer, professional drivers, luxury transfers, Turkey tours"
+        type="website"
+        jsonLd={localBusinessSchema}
+      />
 
       {/* Hero Section */}
       <section className="relative h-[400px] md:h-[500px] overflow-hidden">

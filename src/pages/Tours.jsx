@@ -5,6 +5,8 @@ import API from '../utils/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
 import TourCard from '../components/TourCard';
+import SEO from '../components/SEO';
+import { getSEOTranslations, generateServiceSchema } from '../utils/seoHelpers';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
@@ -101,15 +103,25 @@ function Tours() {
     transition: { duration: 0.5 },
   };
 
+  // SEO data
+  const { i18n } = useTranslation();
+  const currentLang = i18n.language;
+  const seoData = getSEOTranslations('tours', currentLang);
+  const serviceSchema = generateServiceSchema({
+    name: seoData.title || 'Tours & Transfer Services',
+    description: seoData.description,
+    lang: currentLang,
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Helmet>
-        <title>Tours - GNB Transfer</title>
-        <meta
-          name="description"
-          content="Explore our wide range of tours and transfer services in Turkey"
-        />
-      </Helmet>
+      <SEO
+        title={seoData.title}
+        description={seoData.description}
+        keywords={seoData.keywords}
+        type="website"
+        jsonLd={serviceSchema}
+      />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-16">

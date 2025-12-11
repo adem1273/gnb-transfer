@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import SEO from '../components/SEO';
+import { getSEOTranslations } from '../utils/seoHelpers';
 import API from '../utils/api';
 
 const CATEGORIES = {
@@ -98,18 +100,18 @@ function Blog() {
   };
 
   // SEO metadata
+  const seoData = getSEOTranslations('blog', currentLang);
   const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://gnbtransfer.com';
   const pageTitle = selectedCategory 
-    ? `${getCategoryName(selectedCategory)} | GNB Transfer Blog`
-    : t('blog.pageTitle') || 'Blog | GNB Transfer - VIP Transfer Hizmetleri';
-  const pageDescription = t('blog.pageDescription') || 'İstanbul VIP transfer, havalimanı ulaşımı, turistik tur rehberleri ve özel şoförlü araç kiralama hakkında en güncel bilgiler.';
+    ? `${getCategoryName(selectedCategory)} | ${seoData.title}`
+    : seoData.title;
 
   // JSON-LD structured data
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Blog',
     name: 'GNB Transfer Blog',
-    description: pageDescription,
+    description: seoData.description,
     url: `${siteUrl}/blog`,
     publisher: {
       '@type': 'Organization',
@@ -134,47 +136,13 @@ function Blog() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDescription} />
-        <meta name="keywords" content="İstanbul transfer, VIP transfer, havalimanı transfer, turist rehberi, Sabiha Gökçen, İstanbul Havalimanı" />
-        
-        {/* Open Graph */}
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDescription} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${siteUrl}/blog`} />
-        <meta property="og:image" content={`${siteUrl}/images/blog-og.jpg`} />
-        <meta property="og:site_name" content="GNB Transfer" />
-        <meta property="og:locale" content={currentLang} />
-        
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={pageTitle} />
-        <meta name="twitter:description" content={pageDescription} />
-        <meta name="twitter:image" content={`${siteUrl}/images/blog-og.jpg`} />
-        
-        {/* Canonical */}
-        <link rel="canonical" href={`${siteUrl}/${currentLang !== 'tr' ? currentLang + '/' : ''}blog`} />
-        
-        {/* Alternate languages */}
-        <link rel="alternate" hrefLang="tr" href={`${siteUrl}/blog`} />
-        <link rel="alternate" hrefLang="en" href={`${siteUrl}/en/blog`} />
-        <link rel="alternate" hrefLang="ar" href={`${siteUrl}/ar/blog`} />
-        <link rel="alternate" hrefLang="ru" href={`${siteUrl}/ru/blog`} />
-        <link rel="alternate" hrefLang="de" href={`${siteUrl}/de/blog`} />
-        <link rel="alternate" hrefLang="fr" href={`${siteUrl}/fr/blog`} />
-        <link rel="alternate" hrefLang="es" href={`${siteUrl}/es/blog`} />
-        <link rel="alternate" hrefLang="zh" href={`${siteUrl}/zh/blog`} />
-        <link rel="alternate" hrefLang="fa" href={`${siteUrl}/fa/blog`} />
-        <link rel="alternate" hrefLang="x-default" href={`${siteUrl}/blog`} />
-        
-        {/* RSS Feed */}
-        <link rel="alternate" type="application/rss+xml" title="GNB Transfer Blog RSS" href={`${siteUrl}/api/blogs/feed/rss?lang=${currentLang}`} />
-        
-        {/* JSON-LD */}
-        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-      </Helmet>
+      <SEO
+        title={pageTitle}
+        description={seoData.description}
+        keywords={seoData.keywords}
+        type="website"
+        jsonLd={jsonLd}
+      />
 
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
