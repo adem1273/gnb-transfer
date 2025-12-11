@@ -2,6 +2,8 @@ import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import SEO from '../components/SEO';
+import { getSEOTranslations, generateServiceSchema } from '../utils/seoHelpers';
 import { servicesPageImages, airportImages, fleetImages } from '../config/images';
 
 /**
@@ -9,7 +11,8 @@ import { servicesPageImages, airportImages, fleetImages } from '../config/images
  * Displays all services with professional images
  */
 function Services() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language;
 
   const fadeInUp = {
     initial: { opacity: 0, y: 30 },
@@ -109,15 +112,23 @@ function Services() {
     },
   ];
 
+  // SEO data
+  const seoData = getSEOTranslations('home', currentLang); // Using home as fallback
+  const serviceSchema = generateServiceSchema({
+    name: 'GNB Transfer Services',
+    description: 'Professional airport transfers, city tours, VIP transfers, and corporate travel solutions in Turkey',
+    lang: currentLang,
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Helmet>
-        <title>Our Services - GNB Transfer</title>
-        <meta
-          name="description"
-          content="Explore GNB Transfer services - Airport transfers, city tours, private charter, and corporate travel solutions in Turkey."
-        />
-      </Helmet>
+      <SEO
+        title="Our Services | GNB Transfer"
+        description="Explore GNB Transfer services - Airport transfers, city tours, private charter, and corporate travel solutions in Turkey."
+        keywords="airport transfer, city tours, VIP transfer, corporate travel, private charter"
+        type="website"
+        jsonLd={serviceSchema}
+      />
 
       {/* Hero Section */}
       <section className="relative h-[400px] overflow-hidden">
