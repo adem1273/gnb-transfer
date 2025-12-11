@@ -103,7 +103,13 @@
     "none": "None",
     "select": "Select",
     "noData": "No data found",
-    "actions": "Actions"
+    "actions": "Actions",
+    "category": "Category",
+    "page": "Page",
+    "csv": "CSV",
+    "pdf": "PDF",
+    "question": "Question",
+    "booking": "Booking"
   },
   "messages": {
     "allFieldsRequired": "All fields are required.",
@@ -147,9 +153,9 @@
     "description": "Professional tourism and transfer services with excellent customer satisfaction."
   },
   "tourCard": {
-    "noHiddenFees": "No hidden fees.",
-    "onSale": "On Sale",
-    "createPackage": "Create Your Package"
+    "featured": "Featured",
+    "bookNow": "Book Now",
+    "noHiddenFees": "No hidden fees."
   },
   "userTable": {
     "name": "Name",
@@ -194,16 +200,44 @@
     "ratingLabel": "Rating",
     "loading": "Loading reviews...",
     "noReviews": "No reviews yet. Be the first to leave one!",
-    "submitReview": "Submit Review"
+    "submitReview": "Submit Review",
+    "averageRating": "Average Rating",
+    "basedOn": "based on",
+    "verifiedReviews": "verified reviews",
+    "verified": "Verified",
+    "happyCustomers": "Happy Customers",
+    "onTimePickup": "On-Time Pickup",
+    "support": "24/7 Support"
   },
   "tours": {
-    "managementTitle": "Tours Management",
-    "title": "Title",
-    "price": "Price",
-    "duration": "Duration",
-    "discount": "Discount",
-    "isCampaign": "Campaign",
-    "actions": "Actions"
+    "subtitle": "Discover amazing destinations with our tour packages",
+    "categories": {
+      "all": "All Tours",
+      "featured": "Featured",
+      "airport": "Airport Transfer",
+      "city": "City Tours",
+      "nature": "Nature Tours",
+      "campaigns": "Campaign Tours"
+    },
+    "filter": {
+      "sortBy": "Sort By",
+      "category": "Category",
+      "price": "Price Range",
+      "popular": "Most Popular",
+      "priceHigh": "Price: High to Low",
+      "priceLow": "Price: Low to High",
+      "name": "Name: A-Z",
+      "allPrices": "All Prices",
+      "budget": "Budget (< $50)",
+      "mid": "Mid-Range ($50-$100)",
+      "luxury": "Luxury (> $100)"
+    },
+    "showing": "Showing",
+    "results": "results",
+    "noResults": "No tours found",
+    "tryDifferentFilters": "Try different filters or search terms",
+    "resetFilters": "Reset Filters",
+    "title": "Tours & Experiences"
   },
   "delay": {
     "guarantee": "Delay Guarantee",
@@ -248,6 +282,7 @@
     "newBooking": "Make Another Booking",
     "step1": "Contact",
     "step2": "Details",
+    "step3": "Passengers",
     "step3Passengers": "Passengers",
     "step4": "Review",
     "personalInfo": "Contact Information",
@@ -304,6 +339,9 @@
     "previous": "Previous",
     "next": "Next",
     "confirmBooking": "Confirm Booking",
+    "guests": "Guests",
+    "nameSign": "Name Sign",
+    "free": "Free",
     "errors": {
       "nameRequired": "Name is required",
       "emailRequired": "Email is required",
@@ -453,5 +491,146 @@
       "privateCharter": "Private vehicle charter service",
       "corporateTravel": "Corporate travel and business transfers"
     }
+  },
+  "about": {
+    "title": "About GNB Transfer",
+    "subtitle": "Your trusted partner for VIP transfer services in Turkey",
+    "ourStory": "Our Story",
+    "ourStoryText": "GNB Transfer has been providing premium transfer services since 2010, ensuring safe and comfortable journeys for thousands of satisfied customers.",
+    "ourMission": "Our Mission",
+    "ourMissionText": "To provide world-class transfer services with professional drivers, modern vehicles, and exceptional customer care.",
+    "safety": "Safety First",
+    "safetyText": "All our vehicles are regularly maintained and meet the highest safety standards.",
+    "reliability": "Reliability",
+    "reliabilityText": "24/7 customer support and on-time service guarantee.",
+    "comfort": "Comfort",
+    "comfortText": "Luxury vehicles with spacious interiors and premium amenities.",
+    "meetTeam": "Meet Our Team",
+    "teamDescription": "Our professional team is dedicated to making your journey comfortable and memorable.",
+    "stats": {
+      "yearsExperience": "Years of Experience",
+      "happyCustomers": "Happy Customers",
+      "professionalDrivers": "Professional Drivers",
+      "completedTransfers": "Completed Transfers"
+    }
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Get in touch with us",
+    "getInTouch": "Get in Touch",
+    "name": "Your Name",
+    "namePlaceholder": "Enter your name",
+    "email": "Email Address",
+    "subject": "Subject",
+    "subjectPlaceholder": "What is this about?",
+    "message": "Message",
+    "messagePlaceholder": "How can we help you?",
+    "sendMessage": "Send Message",
+    "sendButton": "Send",
+    "sending": "Sending...",
+    "successMessage": "Message sent successfully! We'll get back to you soon.",
+    "phone": "Phone",
+    "address": "Address",
+    "businessHours": "Business Hours",
+    "mondayFriday": "Monday - Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "availableTime": "9:00 AM - 6:00 PM",
+    "visitByAppointment": "Visit by Appointment",
+    "emergencyService": "24/7 Emergency Service Available",
+    "whatsappAvailable": "WhatsApp Support Available"
+  },
+  "services": {
+    "title": "Our Services",
+    "subtitle": "Premium transfer and tour services tailored to your needs",
+    "airportTransfer": {
+      "title": "Airport Transfer",
+      "description": "Professional airport pickup and drop-off services with flight tracking"
+    },
+    "cityTours": {
+      "title": "City Tours",
+      "description": "Explore Istanbul and other cities with our guided tour packages"
+    },
+    "privateCharter": {
+      "title": "Private Charter",
+      "description": "Exclusive vehicle rental for your special events and trips"
+    },
+    "corporateTravel": {
+      "title": "Corporate Travel",
+      "description": "Reliable transportation solutions for business travelers and companies"
+    },
+    "features": {
+      "support": "24/7 Customer Support",
+      "flightTracking": "Real-time Flight Tracking",
+      "fixedPricing": "Fixed Pricing - No Surprises",
+      "meetGreet": "Meet & Greet Service",
+      "childSeats": "Free Child Seats",
+      "multilingual": "Multilingual Drivers"
+    }
+  },
+  "fleet": {
+    "title": "Our Fleet",
+    "subtitle": "Modern and luxurious vehicles for your comfort",
+    "mercedesVito": "Mercedes Vito",
+    "mercedesViano": "Mercedes Viano",
+    "mercedesSprinter": "Mercedes Sprinter",
+    "passengers": "Passengers",
+    "luggage": "Luggage",
+    "exteriorGallery": "Exterior Gallery",
+    "interiorGallery": "Interior & Comfort"
+  },
+  "vehicles": {
+    "title": "Vehicle Management",
+    "loading": "Loading vehicles...",
+    "fetchError": "Failed to fetch vehicles",
+    "noVehicles": "No vehicles found",
+    "total": "Total Vehicles",
+    "active": "Active",
+    "maintenance": "In Maintenance",
+    "inactive": "Inactive",
+    "type": "Type",
+    "capacity": "Capacity",
+    "passengers": "passengers",
+    "year": "Year",
+    "edit": "Edit",
+    "delete": "Delete",
+    "refresh": "Refresh"
+  },
+  "drivers": {
+    "panelTitle": "Driver Management",
+    "loading": "Loading drivers...",
+    "fetchError": "Failed to fetch drivers",
+    "noDrivers": "No drivers found",
+    "totalDrivers": "Total Drivers",
+    "activeDrivers": "Active Drivers",
+    "onTrip": "On Trip",
+    "offline": "Offline",
+    "currentTrip": "Current Trip",
+    "driverList": "Driver List"
+  },
+  "packageModal": {
+    "title": "Create Your Custom Package",
+    "generating": "Generating package...",
+    "personalizedDesc": "Personalized package based on your preferences",
+    "genericDesc": "Custom tour package with exclusive benefits",
+    "highlights": "Package Highlights",
+    "includedTours": "Included Tours",
+    "originalPrice": "Original Price",
+    "packageDiscount": "Package Discount",
+    "saveAmount": "You Save",
+    "totalPrice": "Total Package Price",
+    "bookPackage": "Book This Package",
+    "bookingComingSoon": "Booking Coming Soon"
+  },
+  "languageSwitcher": {
+    "selectLanguage": "Select Language"
+  },
+  "form": {
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password"
   }
 }
