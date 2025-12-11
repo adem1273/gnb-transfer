@@ -67,6 +67,8 @@ import adTrackingRoutes from './routes/adTrackingRoutes.mjs';
 import loyaltyRoutes from './routes/loyaltyRoutes.mjs';
 import bulkMessagingRoutes from './routes/bulkMessagingRoutes.mjs';
 import invoiceRoutes from './routes/invoiceRoutes.mjs';
+import sitemapRoutes from './routes/sitemapRoutes.mjs';
+import campaignRoutes from './routes/campaignRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -250,6 +252,8 @@ app.use(`${API_V1}/blog`, blogRoutes);
 app.use(`${API_V1}/loyalty`, loyaltyRoutes);
 app.use(`${API_V1}/invoices`, invoiceRoutes);
 app.use(`${API_V1}/tracking`, adTrackingRoutes);
+app.use(`${API_V1}/sitemap`, sitemapRoutes);
+app.use(`${API_V1}/campaigns`, campaignRoutes);
 
 // API documentation endpoint (v1)
 app.use(`${API_V1}/docs`, docsRoutes);
@@ -277,6 +281,7 @@ app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/routes', routeRouter);
 app.use('/api/pricing', pricingRouter);
+app.use('/api/sitemap', sitemapRoutes);
 app.use('/api/admin/features', featureToggleRoutes);
 app.use('/api/admin/fleet', fleetRoutes);
 app.use('/api/admin/drivers', driverStatsRoutes);
@@ -297,6 +302,7 @@ app.use('/api/blog', blogRoutes);
 app.use('/api/loyalty', loyaltyRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/tracking', adTrackingRoutes);
+app.use('/api/campaigns', campaignRoutes);
 
 // Health check endpoint (registered before other routes)
 app.get('/api/health', async (req, res) => {

@@ -12,12 +12,12 @@ export const pricingRouter = express.Router();
 
 /**
  * @route   POST /api/pricing/calc
- * @desc    Calculate transfer price based on distance, vehicle type, and time
+ * @desc    Calculate transfer price based on distance, vehicle type, time, and campaigns
  * @access  Public
  */
-pricingRouter.post('/calc', (req, res) => {
+pricingRouter.post('/calc', async (req, res) => {
   try {
-    const { distanceMeters, vehicleType, date } = req.body;
+    const { distanceMeters, vehicleType, date, origin, destination, tourId, includeCampaigns } = req.body;
 
     // Validate distanceMeters
     if (distanceMeters === undefined || distanceMeters === null) {
@@ -43,8 +43,20 @@ pricingRouter.post('/calc', (req, res) => {
       });
     }
 
-    const out = calculatePrice({ distanceMeters: distance, vehicleType, pickupDate: date });
-    res.json(out);
+    const out = await calculatePrice({
+      distanceMeters: distance,
+      vehicleType,
+      pickupDate: date,
+      origin,
+      destination,
+      tourId,
+      includeCampaigns: includeCampaigns !== false, // Default to true
+    });
+    
+    res.json({
+      success: true,
+      ...out,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
