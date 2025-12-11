@@ -8,6 +8,8 @@ import TourCard from '../components/TourCard';
 import HeroSlider from '../components/HeroSlider';
 import FleetSection from '../components/FleetSection';
 import TrustBadgesSection from '../components/TrustBadgesSection';
+import SEO from '../components/SEO';
+import { generateLocalBusinessSchema, generateWebSiteSchema, getSEOTranslations } from '../utils/seoHelpers';
 import API from '../utils/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
@@ -78,16 +80,20 @@ function Home() {
     },
   };
 
+  // Get SEO data for current language
+  const seoData = getSEOTranslations('home', currentLang);
+  const localBusinessSchema = generateLocalBusinessSchema(currentLang);
+  const webSiteSchema = generateWebSiteSchema(currentLang);
+
   return (
     <div className="min-h-screen">
-      <Helmet>
-        <title>GNB Transfer | {t('header.home')}</title>
-        <meta name="description" content={t('home.slogan')} />
-        <meta property="og:title" content="GNB Transfer - Premium Tourism & Transfer Services" />
-        <meta property="og:description" content={t('home.slogan')} />
-        <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary_large_image" />
-      </Helmet>
+      <SEO
+        title={seoData.title}
+        description={seoData.description}
+        keywords={seoData.keywords}
+        type="website"
+        jsonLd={[localBusinessSchema, webSiteSchema]}
+      />
 
       {/* Hero Slider with Luxury Van Images */}
       <HeroSlider />
