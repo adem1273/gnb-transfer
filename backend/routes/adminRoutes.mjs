@@ -5,6 +5,8 @@ import AdminLog from '../models/AdminLog.mjs';
 import Booking from '../models/Booking.mjs';
 import Tour from '../models/Tour.mjs';
 import User from '../models/User.mjs';
+import Driver from '../models/Driver.mjs';
+import Vehicle from '../models/Vehicle.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { requirePermission, requireAnyPermission } from '../config/permissions.mjs';
 import { logAdminAction } from '../middlewares/adminLogger.mjs';
@@ -685,5 +687,163 @@ router.get('/analytics', requireAuth(['admin', 'manager']), async (req, res) => 
     return res.apiError('Failed to fetch analytics', 500);
   }
 });
+
+/**
+ * @route   GET /api/admin/drivers
+ * @desc    Get all drivers with filtering and pagination
+ * @access  Private (admin, manager)
+ */
+router.get('/drivers', requireAuth(['admin', 'manager']), async (req, res) => {
+  try {
+    const { status, page = 1, limit = 20 } = req.query;
+
+    const filter = {};
+    const validStatuses = ['active', 'inactive', 'on-duty', 'off-duty'];
+    if (status && validStatuses.includes(status)) {
+      filter.status = status;
+    }
+
+    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
+    const drivers = await Driver.find(filter)
+      .populate('user', 'name email')
+      .populate('vehicleAssigned', 'model brand plateNumber')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit, 10));
+
+    const total = await Driver.countDocuments(filter);
+
+    return res.apiSuccess(
+      {
+        drivers,
+        pagination: {
+          page: parseInt(page, 10),
+          limit: parseInt(limit, 10),
+          total,
+          pages: Math.ceil(total / parseInt(limit, 10)),
+        },
+      },
+      'Drivers retrieved successfully'
+    );
+  } catch (error) {
+    logger.error('Error fetching drivers:', { error: error.message, stack: error.stack });
+    return res.apiError('Failed to fetch drivers', 500);
+  }
+});
+
+/**
+ * @route   GET /api/admin/vehicles
+ * @desc    Get all vehicles with filtering and pagination
+ * @access  Private (admin, manager)
+ */
+router.get('/vehicles', requireAuth(['admin', 'manager']), async (req, res) => {
+  try {
+    const { status, type, page = 1, limit = 20 } = req.query;
+
+    const filter = {};
+    const validStatuses = ['available', 'in-use', 'maintenance', 'retired'];
+    if (status && validStatuses.includes(status)) {
+      filter.status = status;
+    }
+
+    const validTypes = ['sedan', 'suv', 'van', 'minibus', 'luxury', 'economy'];
+    if (type && validTypes.includes(type)) {
+      filter.type = type;
+    }
+
+    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
+    const vehicles = await Vehicle.find(filter)
+      .populate('currentDriver', 'name email licenseNumber')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit, 10));
+
+    const total = await Vehicle.countDocuments(filter);
+
+    return res.apiSuccess(
+      {
+        vehicles,
+        pagination: {
+          page: parseInt(page, 10),
+          limit: parseInt(limit, 10),
+          total,
+          pages: Math.ceil(total / parseInt(limit, 10)),
+        },
+      },
+      'Vehicles retrieved successfully'
+    );
+  } catch (error) {
+    logger.error('Error fetching vehicles:', { error: error.message, stack: error.stack });
+    return res.apiError('Failed to fetch vehicles', 500);
+  }
+});
+
+/**
+ * @route   PATCH /api/admin/bookings/:id/assign
+ * @desc    Assign driver and vehicle to a booking
+ * @access  Private (admin only)
+ */
+router.patch(
+  '/bookings/:id/assign',
+  requireAuth(['admin']),
+  logAdminAction('BOOKING_ASSIGN', (req) => ({ type: 'Booking', id: req.params.id })),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { driverId, vehicleId } = req.body;
+
+      // Validate ObjectId formats
+      if (driverId && !/^[0-9a-fA-F]{24}$/.test(driverId)) {
+        return res.apiError('Invalid driver ID format', 400);
+      }
+      if (vehicleId && !/^[0-9a-fA-F]{24}$/.test(vehicleId)) {
+        return res.apiError('Invalid vehicle ID format', 400);
+      }
+
+      // Verify booking exists
+      const booking = await Booking.findById(id);
+      if (!booking) {
+        return res.apiError('Booking not found', 404);
+      }
+
+      // Verify driver exists if provided
+      if (driverId) {
+        const driver = await Driver.findById(driverId);
+        if (!driver) {
+          return res.apiError('Driver not found', 404);
+        }
+      }
+
+      // Verify vehicle exists if provided
+      if (vehicleId) {
+        const vehicle = await Vehicle.findById(vehicleId);
+        if (!vehicle) {
+          return res.apiError('Vehicle not found', 404);
+        }
+      }
+
+      // Update booking
+      const updates = {};
+      if (driverId) updates.driver = driverId;
+      if (vehicleId) updates.vehicle = vehicleId;
+
+      const updatedBooking = await Booking.findByIdAndUpdate(
+        id,
+        { $set: updates },
+        { new: true, runValidators: true }
+      )
+        .populate('driver', 'name email phone')
+        .populate('vehicle', 'model brand plateNumber')
+        .populate('tour', 'title price');
+
+      return res.apiSuccess(updatedBooking, 'Booking assignment updated successfully');
+    } catch (error) {
+      logger.error('Error assigning booking:', { error: error.message, stack: error.stack });
+      return res.apiError('Failed to assign booking', 500);
+    }
+  }
+);
 
 export default router;
