@@ -52,3 +52,8 @@ coverage/
 dist/
 package-lock.json
 node_modules/
+test-results/
+playwright-report/
+playwright/.cache/
+*.mp4
+*.webm
