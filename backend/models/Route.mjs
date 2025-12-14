@@ -235,6 +235,7 @@ routeSchema.methods.calculateDynamicPrice = async function (vehicleType = 'sedan
   // Apply rules in priority order
   let finalPrice = basePrice;
   const appliedRules = [];
+  const ruleIdsToUpdate = [];
 
   for (const rule of applicableRules) {
     // Check if rule applies to this vehicle type
@@ -253,9 +254,16 @@ routeSchema.methods.calculateDynamicPrice = async function (vehicleType = 'sedan
       adjustmentType: rule.adjustmentType,
     });
 
-    // Update rule application count
-    rule.metadata.appliedCount += 1;
-    await rule.save();
+    // Collect rule IDs for bulk update
+    ruleIdsToUpdate.push(rule._id);
+  }
+
+  // Bulk update rule application counts
+  if (ruleIdsToUpdate.length > 0) {
+    await PriceRule.updateMany(
+      { _id: { $in: ruleIdsToUpdate } },
+      { $inc: { 'metadata.appliedCount': 1 } }
+    );
   }
 
   return {

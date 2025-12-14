@@ -67,6 +67,8 @@ const bookingSchema = new mongoose.Schema(
       ref: 'Tour',
       required: [true, 'Tour reference is required'],
     },
+    // Kept for backward compatibility with existing code that uses tourId
+    // Virtual property handles mapping between tour and tourId
     tourId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Tour',

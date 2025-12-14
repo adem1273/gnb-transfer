@@ -342,10 +342,6 @@ router.get('/profile', requireAuth(), async (req, res) => {
  */
 router.get('/bookings', requireAuth(), async (req, res) => {
   try {
-    if (!req.user) {
-      return res.apiError('Not authenticated', 401);
-    }
-
     const { page = 1, limit = 10, status } = req.query;
 
     // Validate and sanitize pagination parameters

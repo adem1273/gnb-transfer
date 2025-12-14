@@ -163,5 +163,5 @@ try {
 } catch (error) {
   console.error('❌ Test failed:', error.message);
   console.error(error.stack);
-  process.exit(1);
+  throw error; // Re-throw for test runners to handle
 }

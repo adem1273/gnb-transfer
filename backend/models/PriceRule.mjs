@@ -241,28 +241,68 @@ priceRuleSchema.statics.findApplicableRules = async function (routeId, condition
     ];
   }
 
+  // Add distance-based filtering at database level
+  if (conditions.distance !== undefined) {
+    query.$and = query.$and || [];
+    query.$and.push({
+      $or: [
+        { ruleType: { $ne: 'distance_based' } },
+        {
+          $and: [
+            { ruleType: 'distance_based' },
+            {
+              $or: [
+                { 'distanceConditions.minDistance': { $exists: false } },
+                { 'distanceConditions.minDistance': { $lte: conditions.distance } },
+              ],
+            },
+            {
+              $or: [
+                { 'distanceConditions.maxDistance': { $exists: false } },
+                { 'distanceConditions.maxDistance': { $gte: conditions.distance } },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  }
+
+  // Add demand-based filtering at database level
+  if (conditions.occupancyRate !== undefined) {
+    query.$and = query.$and || [];
+    query.$and.push({
+      $or: [
+        { ruleType: { $ne: 'demand_based' } },
+        {
+          $and: [
+            { ruleType: 'demand_based' },
+            {
+              $or: [
+                { 'demandConditions.minOccupancyRate': { $exists: false } },
+                { 'demandConditions.minOccupancyRate': { $lte: conditions.occupancyRate } },
+              ],
+            },
+            {
+              $or: [
+                { 'demandConditions.maxOccupancyRate': { $exists: false } },
+                { 'demandConditions.maxOccupancyRate': { $gte: conditions.occupancyRate } },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  }
+
   // Fetch rules sorted by priority
   const rules = await this.find(query).sort({ priority: -1 });
 
-  // Filter by additional conditions
+  // Filter time-based rules in memory (requires current time evaluation)
   return rules.filter((rule) => {
-    // Check time-based conditions
+    // Check time-based conditions (must be done in-memory due to dynamic time)
     if (rule.ruleType === 'time_based' && !rule.isCurrentlyApplicable) {
       return false;
-    }
-
-    // Check demand-based conditions
-    if (rule.ruleType === 'demand_based' && conditions.occupancyRate !== undefined) {
-      const { minOccupancyRate, maxOccupancyRate } = rule.demandConditions || {};
-      if (minOccupancyRate && conditions.occupancyRate < minOccupancyRate) return false;
-      if (maxOccupancyRate && conditions.occupancyRate > maxOccupancyRate) return false;
-    }
-
-    // Check distance-based conditions
-    if (rule.ruleType === 'distance_based' && conditions.distance !== undefined) {
-      const { minDistance, maxDistance } = rule.distanceConditions || {};
-      if (minDistance && conditions.distance < minDistance) return false;
-      if (maxDistance && conditions.distance > maxDistance) return false;
     }
 
     return true;
