@@ -66,6 +66,7 @@ const BlogManager = lazy(() => import('./pages/BlogManager'));
 const LoyaltyPanel = lazy(() => import('./pages/LoyaltyPanel'));
 const BulkMessaging = lazy(() => import('./pages/BulkMessaging'));
 const AdTrackingDashboard = lazy(() => import('./pages/AdTrackingDashboard'));
+const CampaignManagement = lazy(() => import('./pages/CampaignManagement'));
 
 // Lazy load optional components (only load when needed)
 const LiveChat = lazy(() => import('./components/LiveChat'));
@@ -166,6 +167,7 @@ function App() {
                 <Route path="logs" element={<ActivityLogs />} />
                 <Route path="finance" element={<FinancePanel />} />
                 <Route path="coupons" element={<CouponManagement />} />
+                <Route path="campaigns" element={<CampaignManagement />} />
                 <Route path="referrals" element={<ReferralProgram />} />
                 
                 {/* Feature Toggle Management */}

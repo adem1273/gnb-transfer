@@ -5,6 +5,8 @@ import API from '../utils/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
 import { useTranslation } from 'react-i18next';
+import SEO from '../components/SEO';
+import { getSEOTranslations, generateFAQSchema } from '../utils/seoHelpers';
 import TourCard from '../components/TourCard';
 import DelayBadge from '../components/DelayBadge';
 import { useAuth } from '../context/AuthContext';
@@ -162,13 +164,37 @@ function Booking() {
     return <Loading message={t('messages.loadingTours')} />;
   }
 
+  // SEO data for booking page with FAQ schema
+  const { i18n } = useTranslation();
+  const currentLang = i18n.language;
+  const seoData = getSEOTranslations('booking', currentLang);
+  
+  const bookingFAQs = [
+    {
+      question: t('faq.booking.howToBook.q') || 'How do I make a booking?',
+      answer: t('faq.booking.howToBook.a') || 'Select your tour, fill in your details, and confirm your booking. You can pay online or on arrival.',
+    },
+    {
+      question: t('faq.booking.cancellation.q') || 'What is the cancellation policy?',
+      answer: t('faq.booking.cancellation.a') || 'Free cancellation up to 24 hours before your scheduled tour. Contact us for more details.',
+    },
+    {
+      question: t('faq.booking.payment.q') || 'What payment methods do you accept?',
+      answer: t('faq.booking.payment.a') || 'We accept credit cards, debit cards, and cash payments. Online payment is secure and instant.',
+    },
+  ];
+  
+  const faqSchema = generateFAQSchema(bookingFAQs);
+
   return (
     <div className="flex flex-col md:flex-row p-4 max-w-6xl mx-auto space-y-4 md:space-y-0 md:space-x-8">
-      <Helmet>
-        <title>GNB Transfer | {t('header.booking')}</title>
-        <meta name="description" content={t('messages.bookingDescription')} />
-        <meta name="keywords" content={t('messages.bookingKeywords')} />
-      </Helmet>
+      <SEO
+        title={seoData.title}
+        description={seoData.description}
+        keywords={seoData.keywords}
+        type="website"
+        jsonLd={faqSchema}
+      />
 
       <div className="flex-1 max-w-lg mx-auto md:mx-0">
         <h2 className="text-2xl font-bold mb-4">{t('header.booking')}</h2>
