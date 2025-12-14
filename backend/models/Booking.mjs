@@ -71,6 +71,14 @@ const bookingSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Tour',
     },
+    driver: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Driver',
+    },
+    vehicle: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Vehicle',
+    },
     date: {
       type: Date,
       default: Date.now,
@@ -218,6 +226,8 @@ bookingSchema.index({ date: 1 }); // Date-based queries
 bookingSchema.index({ createdAt: -1 }); // Recent bookings
 bookingSchema.index({ tour: 1, date: 1 }); // Tour availability queries
 bookingSchema.index({ user: 1, createdAt: -1 }); // User booking history
+bookingSchema.index({ driver: 1 }); // Driver assignment queries
+bookingSchema.index({ vehicle: 1 }); // Vehicle assignment queries
 
 // Pre-save hook to generate WhatsApp link
 bookingSchema.pre('save', function(next) {

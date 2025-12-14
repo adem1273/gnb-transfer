@@ -5,6 +5,7 @@
 import express from 'express';
 import crypto from 'crypto';
 import User from '../models/User.mjs';
+import Booking from '../models/Booking.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
 import { sendEmail } from '../services/emailService.mjs';
@@ -321,6 +322,73 @@ router.get('/profile', requireAuth(), async (req, res) => {
     );
   } catch (error) {
     return res.apiError(`Failed to retrieve profile: ${error.message}`, 500);
+  }
+});
+
+/**
+ * @route   GET /api/users/bookings
+ * @desc    Get current user's booking history
+ * @access  Private (requires valid JWT token)
+ * @headers Authorization: Bearer <token>
+ * @query   {number} [page=1] - Page number for pagination
+ * @query   {number} [limit=10] - Results per page (max 50)
+ * @query   {string} [status] - Filter by booking status (pending, confirmed, cancelled, completed, paid)
+ * @returns {object} - Paginated list of user's bookings with tour details
+ *
+ * Security:
+ * - Requires valid JWT token in Authorization header
+ * - Only returns bookings for the authenticated user
+ * - Validates status parameter against whitelist
+ */
+router.get('/bookings', requireAuth(), async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.apiError('Not authenticated', 401);
+    }
+
+    const { page = 1, limit = 10, status } = req.query;
+
+    // Validate and sanitize pagination parameters
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
+
+    // Build filter
+    const filter = { user: req.user.id };
+
+    // Validate status parameter
+    const validStatuses = ['pending', 'confirmed', 'cancelled', 'completed', 'paid'];
+    if (status && validStatuses.includes(status)) {
+      filter.status = status;
+    }
+
+    const skip = (pageNum - 1) * limitNum;
+
+    // Fetch bookings with tour details
+    const bookings = await Booking.find(filter)
+      .populate('tour', 'title description price duration')
+      .populate('driver', 'name phone email')
+      .populate('vehicle', 'model brand plateNumber')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    const total = await Booking.countDocuments(filter);
+
+    return res.apiSuccess(
+      {
+        bookings,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum),
+        },
+      },
+      'Bookings retrieved successfully'
+    );
+  } catch (error) {
+    return res.apiError(`Failed to retrieve bookings: ${error.message}`, 500);
   }
 });
 
