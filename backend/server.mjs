@@ -11,11 +11,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
 
 import logger from './config/logger.mjs';
 import { validateEnv, getJwtSecret, env } from './config/env.mjs';
 import { initSentry } from './config/sentry.mjs';
 import { getCorsOptions, validateCorsConfig } from './config/cors.mjs';
+import swaggerSpec from './config/swagger.mjs';
 import { responseMiddleware } from './middlewares/response.mjs';
 import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
 import { errorHandler } from './middlewares/errorHandler.mjs';
@@ -257,6 +259,16 @@ app.use(`${API_V1}/campaigns`, campaignRoutes);
 
 // API documentation endpoint (v1)
 app.use(`${API_V1}/docs`, docsRoutes);
+
+// Swagger UI documentation (v1)
+const swaggerOptions = {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'GNB Transfer API Documentation',
+};
+app.use(`${API_V1}/api-docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions));
+
+// Legacy Swagger UI (for backward compatibility)
+app.use('/api/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions));
 
 // Blog routes (v1)
 app.use(`${API_V1}/blogs`, blogRoutes);
