@@ -21,6 +21,22 @@ export default defineConfig({
       deleteOriginFile: false,
     }),
   ],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    css: true,
+    include: ['src/**/*.{test,spec}.{js,jsx}'],
+    exclude: ['node_modules', 'backend/**/*', 'dist'],
+    coverage: {
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/test/',
+        'backend/',
+      ],
+    },
+  },
   server: {
     port: 5173,
     // Enable HMR for faster development
