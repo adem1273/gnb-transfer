@@ -133,7 +133,7 @@ export const validateCloudinaryMiddleware = (req, res, next) => {
 export const validateSingleFileUpload = (req, res, next) => {
   // Check Content-Type header to ensure it's multipart/form-data
   const contentType = req.headers['content-type'] || '';
-  if (!contentType.includes('multipart/form-data')) {
+  if (!contentType.startsWith('multipart/form-data')) {
     return res.apiError('Invalid request. Expected multipart/form-data.', 400);
   }
   next();
