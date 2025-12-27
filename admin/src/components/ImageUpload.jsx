@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import API from '../utils/api';
+import axios from 'axios';
 
 function ImageUpload({ onImageUploaded, currentImage, label = "Upload Image" }) {
   const [uploading, setUploading] = useState(false);
@@ -34,9 +34,14 @@ function ImageUpload({ onImageUploaded, currentImage, label = "Upload Image" }) 
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await API.post('/v1/upload/image', formData, {
+      // Get token from localStorage
+      const token = localStorage.getItem('adminToken');
+      
+      // Make direct request to correct endpoint bypassing baseURL
+      const response = await axios.post('/api/v1/upload/image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'Authorization': token ? `Bearer ${token}` : '',
         },
       });
 
