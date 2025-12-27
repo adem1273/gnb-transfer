@@ -29,6 +29,7 @@ const BlogPost = lazy(() => import('./components/BlogPost'));
 const Contact = lazy(() => import('./pages/Contact'));
 const About = lazy(() => import('./pages/About'));
 const Services = lazy(() => import('./pages/Services'));
+const DynamicPage = lazy(() => import('./pages/DynamicPage'));
 
 // Lazy load payment and admin components (heavy)
 const StripePayment = lazy(() => import('./components/StripePayment'));
@@ -149,6 +150,7 @@ function App() {
                 <Route path="reviews" element={<Suspense fallback={<Loading />}><Feedback /></Suspense>} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="faq" element={<Suspense fallback={<Loading />}><FAQBot /></Suspense>} />
+                <Route path="pages/:slug" element={<DynamicPage />} />
               </Route>
  
               {/* Admin Paneli Rotaları (Korunmuş) */}
