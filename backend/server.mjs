@@ -76,6 +76,8 @@ import uploadRoutes from './routes/uploadRoutes.mjs';
 import mediaRoutes from './routes/mediaRoutes.mjs';
 import pageRoutes from './routes/pageRoutes.mjs';
 import publicPageRoutes from './routes/publicPageRoutes.mjs';
+import menuRoutes from './routes/menuRoutes.mjs';
+import publicMenuRoutes from './routes/publicMenuRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -328,7 +330,9 @@ app.use('/api/admin/extra-services', extraServicesRoutes);
 app.use('/api/admin/messaging', bulkMessagingRoutes);
 app.use('/api/admin/tracking', adTrackingRoutes);
 app.use('/api/admin/pages', pageRoutes);
+app.use('/api/admin/menus', menuRoutes);
 app.use('/api/pages', publicPageRoutes);
+app.use('/api/menus', publicMenuRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/loyalty', loyaltyRoutes);
