@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Helmet } from 'react-helmet';
 import ReactMarkdown from 'react-markdown';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
@@ -47,22 +48,6 @@ const DynamicPage = () => {
         }
 
         setPage(data.data);
-        
-        // Set SEO meta tags if available
-        if (data.data.seo) {
-          if (data.data.seo.title) {
-            document.title = `${data.data.seo.title} | GNB Transfer`;
-          }
-          if (data.data.seo.description) {
-            const metaDescription = document.querySelector('meta[name="description"]');
-            if (metaDescription) {
-              metaDescription.setAttribute('content', data.data.seo.description);
-            }
-          }
-        } else if (data.data.title) {
-          document.title = `${data.data.title} | GNB Transfer`;
-        }
-
         setLoading(false);
       } catch (err) {
         console.error('Error fetching page:', err);
@@ -75,6 +60,30 @@ const DynamicPage = () => {
       fetchPage();
     }
   }, [slug]);
+
+  // Validate image URL to ensure it's from trusted sources
+  const isValidImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return false;
+    
+    try {
+      const urlObj = new URL(url);
+      // Allow Media Manager URLs (Cloudinary), relative paths, and data URLs
+      const trustedDomains = [
+        'res.cloudinary.com',
+        'cloudinary.com',
+        window.location.hostname,
+      ];
+      
+      // Allow data URLs for embedded images
+      if (url.startsWith('data:image/')) return true;
+      
+      // Check if domain is trusted
+      return trustedDomains.some(domain => urlObj.hostname.includes(domain));
+    } catch {
+      // Invalid URL
+      return false;
+    }
+  };
 
   // Render section based on type
   const renderSection = (section, index) => {
@@ -96,11 +105,17 @@ const DynamicPage = () => {
         );
 
       case 'image':
+        // Validate image URL before rendering
+        if (!isValidImageUrl(section.content)) {
+          console.warn('Invalid or untrusted image URL:', section.content);
+          return null;
+        }
+        
         return (
           <div key={index} className="mb-6">
             <img
               src={section.content}
-              alt={`Content image ${index + 1}`}
+              alt={section.alt || page?.title || 'Page content image'}
               className="w-full h-auto rounded-lg shadow-md"
               loading="lazy"
             />
@@ -181,8 +196,21 @@ const DynamicPage = () => {
     return null;
   }
 
+  // Prepare SEO data
+  const pageTitle = page.seo?.title || page.title || 'Page';
+  const pageDescription = page.seo?.description || '';
+
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* SEO Meta Tags */}
+      <Helmet>
+        <title>{pageTitle} | GNB Transfer</title>
+        {pageDescription && <meta name="description" content={pageDescription} />}
+        <meta property="og:title" content={pageTitle} />
+        {pageDescription && <meta property="og:description" content={pageDescription} />}
+        <meta property="og:type" content="article" />
+      </Helmet>
+
       <article className="max-w-4xl mx-auto">
         {/* Page Title */}
         <header className="mb-8">
