@@ -1,6 +1,7 @@
 import express from 'express';
 import Page from '../models/Page.mjs';
 import logger from '../config/logger.mjs';
+import { generatePageSchemas } from '../services/structuredDataService.mjs';
 
 const router = express.Router();
 
@@ -23,13 +24,20 @@ router.get('/:slug', async (req, res) => {
     // Set basic caching headers (cache for 5 minutes)
     res.set('Cache-Control', 'public, max-age=300');
     
-    // Return page with all fields including SEO
+    // Generate structured data schemas if enabled
+    const structuredData = generatePageSchemas(page, {
+      language: req.query.lang || 'en',
+      includeMenuItems: true,
+    });
+    
+    // Return page with all fields including SEO and structured data
     return res.apiSuccess(
       {
         slug: page.slug,
         title: page.title,
         sections: page.sections,
         seo: page.seo,
+        structuredData: structuredData.length > 0 ? structuredData : undefined,
         createdAt: page.createdAt,
         updatedAt: page.updatedAt,
       },

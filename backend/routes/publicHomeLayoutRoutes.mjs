@@ -1,6 +1,8 @@
 import express from 'express';
 import HomeLayout from '../models/HomeLayout.mjs';
+import GlobalSettings from '../models/GlobalSettings.mjs';
 import logger from '../config/logger.mjs';
+import { generateHomepageSchemas } from '../services/structuredDataService.mjs';
 
 const router = express.Router();
 
@@ -22,11 +24,25 @@ router.get('/', async (req, res) => {
       .filter((section) => section.isActive !== false)
       .sort((a, b) => a.order - b.order);
 
-    // Build public response with SEO and cache headers
+    // Fetch global settings for organization schema
+    let globalSettings = null;
+    try {
+      globalSettings = await GlobalSettings.findOne({ key: 'global' });
+    } catch (error) {
+      logger.warn('Could not fetch global settings for structured data:', {
+        error: error.message,
+      });
+    }
+
+    // Generate structured data schemas for homepage
+    const structuredData = generateHomepageSchemas(layout, globalSettings);
+
+    // Build public response with SEO, structured data, and cache headers
     const publicData = {
       name: layout.name,
       sections: activeSections,
       seo: layout.seo || {},
+      structuredData: structuredData.length > 0 ? structuredData : undefined,
       updatedAt: layout.updatedAt,
     };
 
