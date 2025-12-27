@@ -908,4 +908,170 @@ router.patch(
   }
 );
 
+/**
+ * @route   PATCH /api/admin/bookings/:id/approve
+ * @desc    Approve a booking (change status from pending to confirmed)
+ * @access  Private (admin, manager)
+ */
+router.patch(
+  '/bookings/:id/approve',
+  requireAuth(['admin', 'manager']),
+  logAdminAction('BOOKING_APPROVE', (req) => ({ type: 'Booking', id: req.params.id })),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Validate ObjectId format
+      if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+        return res.apiError('Invalid booking ID format', 400);
+      }
+
+      // Verify booking exists
+      const booking = await Booking.findById(id);
+      if (!booking) {
+        return res.apiError('Booking not found', 404);
+      }
+
+      // Validate state transition - only pending bookings can be approved
+      if (booking.status !== 'pending') {
+        return res.apiError(
+          `Cannot approve booking with status '${booking.status}'. Only pending bookings can be approved.`,
+          400
+        );
+      }
+
+      // Update booking status to confirmed
+      const updatedBooking = await Booking.findByIdAndUpdate(
+        id,
+        { status: 'confirmed' },
+        { new: true, runValidators: true }
+      )
+        .populate('tour', 'title price')
+        .populate('driver', 'name email')
+        .populate('vehicle', 'model brand plateNumber');
+
+      return res.apiSuccess(updatedBooking, 'Booking approved successfully');
+    } catch (error) {
+      logger.error('Error approving booking:', { error: error.message, stack: error.stack });
+      return res.apiError('Failed to approve booking', 500);
+    }
+  }
+);
+
+/**
+ * @route   PATCH /api/admin/bookings/:id/cancel
+ * @desc    Cancel a booking
+ * @access  Private (admin, manager)
+ */
+router.patch(
+  '/bookings/:id/cancel',
+  requireAuth(['admin', 'manager']),
+  logAdminAction('BOOKING_CANCEL', (req) => ({ type: 'Booking', id: req.params.id })),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Validate ObjectId format
+      if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+        return res.apiError('Invalid booking ID format', 400);
+      }
+
+      // Verify booking exists
+      const booking = await Booking.findById(id);
+      if (!booking) {
+        return res.apiError('Booking not found', 404);
+      }
+
+      // Validate state transition - cannot cancel already completed bookings
+      if (booking.status === 'completed') {
+        return res.apiError(
+          'Cannot cancel a completed booking.',
+          400
+        );
+      }
+
+      // Validate state transition - cannot cancel already cancelled bookings
+      if (booking.status === 'cancelled') {
+        return res.apiError(
+          'Booking is already cancelled.',
+          400
+        );
+      }
+
+      // Update booking status to cancelled
+      const updatedBooking = await Booking.findByIdAndUpdate(
+        id,
+        { status: 'cancelled' },
+        { new: true, runValidators: true }
+      )
+        .populate('tour', 'title price')
+        .populate('driver', 'name email')
+        .populate('vehicle', 'model brand plateNumber');
+
+      return res.apiSuccess(updatedBooking, 'Booking cancelled successfully');
+    } catch (error) {
+      logger.error('Error cancelling booking:', { error: error.message, stack: error.stack });
+      return res.apiError('Failed to cancel booking', 500);
+    }
+  }
+);
+
+/**
+ * @route   PATCH /api/admin/bookings/:id/complete
+ * @desc    Mark a booking as completed
+ * @access  Private (admin, manager)
+ */
+router.patch(
+  '/bookings/:id/complete',
+  requireAuth(['admin', 'manager']),
+  logAdminAction('BOOKING_COMPLETE', (req) => ({ type: 'Booking', id: req.params.id })),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Validate ObjectId format
+      if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+        return res.apiError('Invalid booking ID format', 400);
+      }
+
+      // Verify booking exists
+      const booking = await Booking.findById(id);
+      if (!booking) {
+        return res.apiError('Booking not found', 404);
+      }
+
+      // Validate state transition - cannot complete a cancelled booking
+      if (booking.status === 'cancelled') {
+        return res.apiError(
+          'Cannot complete a cancelled booking.',
+          400
+        );
+      }
+
+      // Validate state transition - cannot complete an already completed booking
+      if (booking.status === 'completed') {
+        return res.apiError(
+          'Booking is already completed.',
+          400
+        );
+      }
+
+      // Update booking status to completed
+      const updatedBooking = await Booking.findByIdAndUpdate(
+        id,
+        { status: 'completed' },
+        { new: true, runValidators: true }
+      )
+        .populate('tour', 'title price')
+        .populate('driver', 'name email')
+        .populate('vehicle', 'model brand plateNumber');
+
+      return res.apiSuccess(updatedBooking, 'Booking completed successfully');
+    } catch (error) {
+      logger.error('Error completing booking:', { error: error.message, stack: error.stack });
+      return res.apiError('Failed to complete booking', 500);
+    }
+  }
+);
+
 export default router;
