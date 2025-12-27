@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet';
@@ -11,6 +11,7 @@ import ErrorMessage from '../components/ErrorMessage';
  * 
  * Renders CMS pages dynamically based on slug
  * Supports multiple section types: text, markdown, image
+ * Optimized to prevent duplicate fetches
  */
 const DynamicPage = () => {
   const { slug } = useParams();
@@ -19,12 +20,19 @@ const DynamicPage = () => {
   const [page, setPage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const fetchedSlugsRef = useRef(new Set());
 
   useEffect(() => {
     const fetchPage = async () => {
+      // Prevent duplicate fetches for the same slug
+      if (fetchedSlugsRef.current.has(slug)) {
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
+        fetchedSlugsRef.current.add(slug);
 
         const apiUrl = import.meta.env.VITE_API_URL || '/api';
         const response = await fetch(`${apiUrl}/pages/${slug}`);
@@ -53,12 +61,20 @@ const DynamicPage = () => {
         console.error('Error fetching page:', err);
         setError('networkError');
         setLoading(false);
+        fetchedSlugsRef.current.delete(slug); // Allow retry on error
       }
     };
 
     if (slug) {
       fetchPage();
     }
+    
+    // Reset fetched slugs when slug changes
+    return () => {
+      if (!fetchedSlugsRef.current.has(slug)) {
+        fetchedSlugsRef.current.clear();
+      }
+    };
   }, [slug]);
 
   // Validate image URL to ensure it's from trusted sources

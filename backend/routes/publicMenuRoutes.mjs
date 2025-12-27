@@ -2,8 +2,14 @@ import express from 'express';
 import Menu from '../models/Menu.mjs';
 import Page from '../models/Page.mjs';
 import logger from '../config/logger.mjs';
+import { publicCacheMiddleware } from '../middlewares/publicCacheMiddleware.mjs';
+import { publicRateLimiter } from '../middlewares/publicRateLimiter.mjs';
 
 const router = express.Router();
+
+// Apply public rate limiter and cache middleware to all routes
+router.use(publicRateLimiter);
+router.use(publicCacheMiddleware(300)); // Cache for 5 minutes
 
 /**
  * @route   GET /api/menus/:location
@@ -62,9 +68,6 @@ router.get('/:location', async (req, res) => {
         validatedItems.push(menuItem);
       }
     }
-
-    // Set caching headers (cache for 5 minutes)
-    res.set('Cache-Control', 'public, max-age=300');
 
     return res.apiSuccess(
       {
@@ -154,9 +157,6 @@ router.get('/', async (req, res) => {
       }
       result.footer.items = validatedFooterItems;
     }
-
-    // Set caching headers (cache for 5 minutes)
-    res.set('Cache-Control', 'public, max-age=300');
 
     return res.apiSuccess(result, 'Menus retrieved successfully');
   } catch (error) {

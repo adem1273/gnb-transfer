@@ -13,6 +13,8 @@ import BlogPost from '../models/BlogPost.mjs';
 import Page from '../models/Page.mjs';
 import RobotsConfig from '../models/RobotsConfig.mjs';
 import logger from '../config/logger.mjs';
+import { publicCacheMiddleware } from '../middlewares/publicCacheMiddleware.mjs';
+import { publicRateLimiter } from '../middlewares/publicRateLimiter.mjs';
 
 const router = express.Router();
 
@@ -24,7 +26,9 @@ const SUPPORTED_LANGUAGES = ['tr', 'en', 'ar', 'ru', 'de', 'fr', 'es', 'zh', 'fa
  * @desc    Generate dynamic sitemap.xml with all pages, tours, and blog posts in all languages
  * @access  Public
  */
-router.get('/', async (req, res) => {
+// Apply public rate limiter and cache middleware
+// Sitemap cached for 1 hour, robots.txt for 24 hours
+router.get('/', publicRateLimiter, publicCacheMiddleware(3600), async (req, res) => {
   try {
     logger.info('Generating dynamic sitemap');
 
@@ -134,7 +138,6 @@ router.get('/', async (req, res) => {
 
     // Set headers
     res.header('Content-Type', 'application/xml');
-    res.header('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
 
     return res.send(xml);
   } catch (error) {
@@ -151,14 +154,13 @@ router.get('/', async (req, res) => {
  * @desc    Generate dynamic robots.txt from database configuration
  * @access  Public
  */
-router.get('/robots.txt', async (req, res) => {
+router.get('/robots.txt', publicRateLimiter, publicCacheMiddleware(86400), async (req, res) => {
   try {
     // Get robots.txt configuration from database
     const config = await RobotsConfig.getConfig();
     const robotsTxt = config.generateRobotsTxt(SITE_URL);
 
     res.header('Content-Type', 'text/plain');
-    res.header('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
     return res.send(robotsTxt);
   } catch (error) {
     logger.error('Error generating robots.txt:', { error: error.message, stack: error.stack });
@@ -190,7 +192,6 @@ Allow: /about
 Crawl-delay: 1`;
 
     res.header('Content-Type', 'text/plain');
-    res.header('Cache-Control', 'public, max-age=86400');
     return res.send(defaultRobotsTxt);
   }
 });
