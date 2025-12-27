@@ -18,6 +18,7 @@ import FloatingLanguageButton from './components/FloatingLanguageButton';
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
+const DynamicHomepage = lazy(() => import('./pages/DynamicHomepage'));
 const Tours = lazy(() => import('./pages/Tours'));
 const Booking = lazy(() => import('./pages/Booking'));
 const Login = lazy(() => import('./pages/Login'));
@@ -70,6 +71,7 @@ const AdTrackingDashboard = lazy(() => import('./pages/AdTrackingDashboard'));
 const CampaignManagement = lazy(() => import('./pages/CampaignManagement'));
 const MediaManager = lazy(() => import('./pages/MediaManager'));
 const MenuManager = lazy(() => import('./pages/MenuManager'));
+const HomeLayoutBuilder = lazy(() => import('./pages/HomeLayoutBuilder'));
 
 // Lazy load optional components (only load when needed)
 const LiveChat = lazy(() => import('./components/LiveChat'));
@@ -193,6 +195,7 @@ function App() {
                 <Route path="tracking" element={<AdTrackingDashboard />} />
                 <Route path="media" element={<MediaManager />} />
                 <Route path="menus" element={<MenuManager />} />
+                <Route path="homepage-builder" element={<HomeLayoutBuilder />} />
               </Route>
               
               {/* Sürücü Paneli Rotası */}
