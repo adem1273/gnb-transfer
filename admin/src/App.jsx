@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import Tours from './pages/Tours';
 import Bookings from './pages/Bookings';
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
               <Route path="/users" element={<Users />} />
               <Route path="/tours" element={<Tours />} />
               <Route path="/bookings" element={<Bookings />} />
+              <Route path="/settings" element={<Settings />} />
             </Routes>
           </main>
         </div>

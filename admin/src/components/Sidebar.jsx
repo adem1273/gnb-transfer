@@ -7,7 +7,8 @@ function Sidebar() {
     { name: 'Dashboard', path: '/admin/dashboard' },
     { name: 'Users', path: '/admin/users' },
     { name: 'Tours', path: '/admin/tours' },
-    { name: 'Bookings', path: '/admin/bookings' }
+    { name: 'Bookings', path: '/admin/bookings' },
+    { name: 'Settings', path: '/admin/settings' }
   ];
 
   return (

@@ -62,6 +62,7 @@ import { pricingRouter } from './routes/pricingRoutes.mjs';
 
 // New admin feature routes
 import settingsRoutes from './routes/settingsRoutes.mjs';
+import globalSettingsRoutes from './routes/globalSettingsRoutes.mjs';
 import basePricingRoutes from './routes/basePricingRoutes.mjs';
 import extraServicesRoutes from './routes/extraServicesRoutes.mjs';
 import reviewRoutes from './routes/reviewRoutes.mjs';
@@ -246,6 +247,7 @@ app.use(`${API_V1}/admin/corporate`, corporateRoutes);
 
 // New admin feature routes (v1)
 app.use(`${API_V1}/admin/settings`, settingsRoutes);
+app.use(`${API_V1}/admin/global-settings`, globalSettingsRoutes);
 app.use(`${API_V1}/admin/base-pricing`, basePricingRoutes);
 app.use(`${API_V1}/admin/extra-services`, extraServicesRoutes);
 app.use(`${API_V1}/admin/messaging`, bulkMessagingRoutes);
