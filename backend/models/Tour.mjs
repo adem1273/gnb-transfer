@@ -58,6 +58,11 @@ const tourSchema = new mongoose.Schema(
       min: [0, 'Available seats cannot be negative'],
       // Optional field - if not set, booking system should check availability
     },
+    image: {
+      type: String,
+      trim: true,
+      // Cloudinary URL for tour image
+    },
   },
   {
     timestamps: true,
