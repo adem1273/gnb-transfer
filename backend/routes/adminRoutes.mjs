@@ -18,6 +18,68 @@ import { PAGINATION } from '../constants/limits.mjs';
 const router = express.Router();
 
 /**
+ * @route   GET /api/admin/stats
+ * @desc    Get admin dashboard statistics
+ * @access  Private (admin, manager)
+ */
+router.get('/stats', requireAuth(['admin', 'manager']), async (req, res) => {
+  try {
+    // Get start of today for todayBookings calculation
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    // Use aggregation for efficient statistics gathering
+    const [statsResult] = await Booking.aggregate([
+      {
+        $facet: {
+          // Total bookings
+          totalBookings: [{ $count: 'count' }],
+          // Today's bookings
+          todayBookings: [
+            { $match: { createdAt: { $gte: startOfToday } } },
+            { $count: 'count' }
+          ],
+          // Pending bookings
+          pendingBookings: [
+            { $match: { status: 'pending' } },
+            { $count: 'count' }
+          ],
+          // Total revenue from completed bookings
+          totalRevenue: [
+            { $match: { status: { $in: ['completed', 'paid'] } } },
+            { $group: { _id: null, revenue: { $sum: '$amount' } } }
+          ]
+        }
+      }
+    ]);
+
+    // Get user and tour counts using countDocuments for efficiency
+    const [totalUsers, totalTours] = await Promise.all([
+      User.countDocuments(),
+      Tour.countDocuments()
+    ]);
+
+    // Extract values from aggregation results with proper fallbacks
+    const totalBookings = statsResult.totalBookings[0]?.count || 0;
+    const todayBookings = statsResult.todayBookings[0]?.count || 0;
+    const pendingBookings = statsResult.pendingBookings[0]?.count || 0;
+    const totalRevenue = statsResult.totalRevenue[0]?.revenue || 0;
+
+    return res.apiSuccess({
+      totalUsers,
+      totalTours,
+      totalBookings,
+      todayBookings,
+      pendingBookings,
+      totalRevenue: Math.round(totalRevenue * 100) / 100 // Round to 2 decimal places
+    }, 'Statistics retrieved successfully');
+  } catch (error) {
+    logger.error('Error fetching admin stats:', { error: error.message, stack: error.stack });
+    return res.apiError('Failed to fetch statistics', 500);
+  }
+});
+
+/**
  * @route   GET /api/admin/settings
  * @desc    Get admin settings
  * @access  Private (requires settings.view permission)
