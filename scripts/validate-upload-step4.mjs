@@ -197,9 +197,14 @@ function findFiles(dir, extensions, excludePaths = []) {
     
     // Skip excluded paths using normalized path comparison
     const shouldExclude = excludePaths.some(excluded => {
-      return normalizedPath.includes(path.sep + excluded + path.sep) || 
-             normalizedPath.endsWith(path.sep + excluded) ||
-             file.includes(excluded);
+      // Check if path contains excluded directory
+      const hasExcludedDir = normalizedPath.includes(path.sep + excluded + path.sep) || 
+                            normalizedPath.endsWith(path.sep + excluded);
+      // Check if filename starts with excluded pattern (for test files)
+      const hasExcludedPrefix = excluded === 'test' && 
+                               (file.toLowerCase().startsWith('test') || 
+                                file.toLowerCase().includes('.test.'));
+      return hasExcludedDir || hasExcludedPrefix;
     });
     
     if (shouldExclude) {
