@@ -31,16 +31,22 @@ router.get('/:slug', async (req, res) => {
     });
     
     // Return page with all fields including SEO and structured data
+    const responseData = {
+      slug: page.slug,
+      title: page.title,
+      sections: page.sections,
+      seo: page.seo,
+      createdAt: page.createdAt,
+      updatedAt: page.updatedAt,
+    };
+    
+    // Only include structuredData if schemas were generated
+    if (structuredData.length > 0) {
+      responseData.structuredData = structuredData;
+    }
+    
     return res.apiSuccess(
-      {
-        slug: page.slug,
-        title: page.title,
-        sections: page.sections,
-        seo: page.seo,
-        structuredData: structuredData.length > 0 ? structuredData : undefined,
-        createdAt: page.createdAt,
-        updatedAt: page.updatedAt,
-      },
+      responseData,
       'Page retrieved successfully'
     );
   } catch (error) {

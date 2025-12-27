@@ -56,8 +56,12 @@ export const generateWebPageSchema = (page, options = {}) => {
       url: pageUrl,
       name: title,
       headline: title,
-      datePublished: page.createdAt ? new Date(page.createdAt).toISOString() : undefined,
-      dateModified: page.updatedAt ? new Date(page.updatedAt).toISOString() : undefined,
+      datePublished: page.createdAt && !isNaN(new Date(page.createdAt).getTime()) 
+        ? new Date(page.createdAt).toISOString() 
+        : undefined,
+      dateModified: page.updatedAt && !isNaN(new Date(page.updatedAt).getTime()) 
+        ? new Date(page.updatedAt).toISOString() 
+        : undefined,
       inLanguage: options.language || 'en',
       isPartOf: {
         '@type': 'WebSite',

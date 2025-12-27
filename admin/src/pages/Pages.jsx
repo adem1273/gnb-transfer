@@ -340,25 +340,28 @@ function Pages() {
                         <div className="mt-2 p-3 bg-gray-50 rounded border text-xs font-mono overflow-x-auto max-h-96 overflow-y-auto">
                           <pre className="whitespace-pre-wrap">
                             {JSON.stringify(
-                              {
-                                // WebPage schema preview
-                                '@context': 'https://schema.org',
-                                '@type': 'WebPage',
-                                '@id': `https://gnbtransfer.com/${formData.slug || 'page-slug'}`,
-                                url: `https://gnbtransfer.com/${formData.slug || 'page-slug'}`,
-                                name: formData.seo?.title || formData.title || 'Page Title',
-                                headline: formData.seo?.title || formData.title || 'Page Title',
-                                description: formData.seo?.description || undefined,
-                                inLanguage: 'en',
-                                isPartOf: {
-                                  '@type': 'WebSite',
-                                  '@id': 'https://gnbtransfer.com/#website',
-                                  url: 'https://gnbtransfer.com',
-                                },
-                              },
+                              // Filter out undefined values before stringifying
+                              Object.fromEntries(
+                                Object.entries({
+                                  // WebPage schema preview
+                                  '@context': 'https://schema.org',
+                                  '@type': 'WebPage',
+                                  '@id': `https://gnbtransfer.com/${formData.slug || 'page-slug'}`,
+                                  url: `https://gnbtransfer.com/${formData.slug || 'page-slug'}`,
+                                  name: formData.seo?.title || formData.title || 'Page Title',
+                                  headline: formData.seo?.title || formData.title || 'Page Title',
+                                  description: formData.seo?.description || undefined,
+                                  inLanguage: 'en',
+                                  isPartOf: {
+                                    '@type': 'WebSite',
+                                    '@id': 'https://gnbtransfer.com/#website',
+                                    url: 'https://gnbtransfer.com',
+                                  },
+                                }).filter(([_, v]) => v !== undefined)
+                              ),
                               null,
                               2
-                            ).replace(/"undefined"/g, '')}
+                            )}}
                           </pre>
                           <p className="text-gray-600 mt-2 text-xs">
                             Note: This is a preview. Actual schema will include additional fields when published.

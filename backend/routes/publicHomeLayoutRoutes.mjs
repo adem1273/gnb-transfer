@@ -42,9 +42,13 @@ router.get('/', async (req, res) => {
       name: layout.name,
       sections: activeSections,
       seo: layout.seo || {},
-      structuredData: structuredData.length > 0 ? structuredData : undefined,
       updatedAt: layout.updatedAt,
     };
+
+    // Only include structuredData if schemas were generated
+    if (structuredData.length > 0) {
+      publicData.structuredData = structuredData;
+    }
 
     // Set cache headers (cache for 5 minutes)
     res.set('Cache-Control', 'public, max-age=300');
