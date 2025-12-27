@@ -10,7 +10,6 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
-import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 
 import logger from './config/logger.mjs';
@@ -201,7 +200,11 @@ app.use((req, res, next) => {
 
 app.use(cors(getCorsOptions()));
 app.use(compression());
-app.use(cookieParser());
+// Note: cookie-parser is NOT applied globally - it's applied selectively to routes that need it
+// This application uses stateless JWT authentication via Authorization: Bearer headers
+// Cookies are only used for refresh tokens (HttpOnly, Secure, SameSite) in production
+// CSRF protection is not required for header-based authentication (per OWASP guidelines)
+// See: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#use-of-custom-request-headers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

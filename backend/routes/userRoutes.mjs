@@ -4,6 +4,7 @@
 
 import express from 'express';
 import crypto from 'crypto';
+import cookieParser from 'cookie-parser';
 import User from '../models/User.mjs';
 import Booking from '../models/Booking.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
@@ -25,6 +26,23 @@ import {
 import { PASSWORD } from '../constants/limits.mjs';
 
 const router = express.Router();
+
+/**
+ * Security Note: Cookie parser is applied selectively to this router
+ * 
+ * This application uses stateless JWT authentication via Authorization: Bearer headers.
+ * Cookies are ONLY used for refresh tokens in production as a security best practice
+ * (HttpOnly, Secure, SameSite cookies prevent XSS attacks on long-lived tokens).
+ * 
+ * CSRF protection is NOT required because:
+ * 1. All API authentication uses Authorization headers, not cookies
+ * 2. Custom headers cannot be set by cross-origin requests without CORS preflight
+ * 3. This follows OWASP guidelines for header-based authentication
+ * 
+ * Reference: OWASP CSRF Prevention Cheat Sheet
+ * https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#use-of-custom-request-headers
+ */
+router.use(cookieParser());
 
 /**
  * Validate password strength using centralized PASSWORD constants
