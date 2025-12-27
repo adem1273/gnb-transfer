@@ -66,19 +66,26 @@ const DynamicPage = () => {
     if (!url || typeof url !== 'string') return false;
     
     try {
-      const urlObj = new URL(url);
-      // Allow Media Manager URLs (Cloudinary), relative paths, and data URLs
-      const trustedDomains = [
-        'res.cloudinary.com',
-        'cloudinary.com',
-        window.location.hostname,
-      ];
-      
       // Allow data URLs for embedded images
       if (url.startsWith('data:image/')) return true;
       
-      // Check if domain is trusted
-      return trustedDomains.some(domain => urlObj.hostname.includes(domain));
+      const urlObj = new URL(url);
+      
+      // Trusted domains with exact matching to prevent subdomain attacks
+      const trustedDomains = [
+        'res.cloudinary.com',
+        'cloudinary.com',
+      ];
+      
+      // For same-origin images, check exact hostname match
+      if (urlObj.hostname === window.location.hostname) {
+        return true;
+      }
+      
+      // Check if hostname exactly matches or is a direct subdomain of trusted domains
+      return trustedDomains.some(domain => {
+        return urlObj.hostname === domain || urlObj.hostname.endsWith('.' + domain);
+      });
     } catch {
       // Invalid URL
       return false;
