@@ -116,12 +116,14 @@ async function createTestFiles() {
   fs.writeFileSync(path.join(tmpDir, 'test.png'), pngBuffer);
   
   // Create small valid WebP (< 2MB)
+  // Note: This is a minimal WebP file structure with proper magic bytes
+  // RIFF header (4 bytes) + file size (4 bytes) + WEBP signature (4 bytes) + VP8 chunk
   const webpBuffer = Buffer.from('RIFF', 'ascii');
   const webpData = Buffer.concat([
     webpBuffer,
-    Buffer.from([0x24, 0x00, 0x00, 0x00]),
-    Buffer.from('WEBP', 'ascii'),
-    Buffer.from('VP8 ', 'ascii'),
+    Buffer.from([0x24, 0x00, 0x00, 0x00]), // File size (36 bytes)
+    Buffer.from('WEBP', 'ascii'),           // WebP signature
+    Buffer.from('VP8 ', 'ascii'),           // VP8 chunk
     Buffer.from([0x18, 0x00, 0x00, 0x00, 0x30, 0x01, 0x00, 0x9d, 0x01, 0x2a,
                  0x10, 0x00, 0x10, 0x00, 0x00, 0x49, 0xa4, 0x00, 0x03, 0x70,
                  0x00, 0xfe, 0xfb, 0x94, 0x00, 0x00, 0x00])
@@ -133,6 +135,9 @@ async function createTestFiles() {
   fs.writeFileSync(path.join(tmpDir, 'test.pdf'), pdfContent);
   
   // Create large file (> 2MB - should be rejected)
+  // Note: This creates a 3MB buffer of zeros. While not a valid image,
+  // it's sufficient to test the file size limit validation which occurs
+  // before any image format validation in the upload middleware.
   const largeBuffer = Buffer.alloc(3 * 1024 * 1024); // 3MB
   fs.writeFileSync(path.join(tmpDir, 'large-image.jpg'), largeBuffer);
   
@@ -188,9 +193,16 @@ function findFiles(dir, extensions, excludePaths = []) {
   
   for (const file of files) {
     const filePath = path.join(dir, file);
+    const normalizedPath = path.normalize(filePath);
     
-    // Skip excluded paths
-    if (excludePaths.some(excluded => filePath.includes(excluded))) {
+    // Skip excluded paths using normalized path comparison
+    const shouldExclude = excludePaths.some(excluded => {
+      return normalizedPath.includes(path.sep + excluded + path.sep) || 
+             normalizedPath.endsWith(path.sep + excluded) ||
+             file.includes(excluded);
+    });
+    
+    if (shouldExclude) {
       continue;
     }
     
@@ -278,13 +290,20 @@ async function getTestTokens(providedAdminToken, providedUserToken) {
 function validateCloudinaryUrl(url) {
   if (!url) return false;
   
-  // Cloudinary URLs contain 'cloudinary' in the domain
-  const isCloudinary = url.includes('cloudinary.com') || url.includes('res.cloudinary.com');
-  
-  // Should be HTTPS
-  const isHttps = url.startsWith('https://');
-  
-  return isCloudinary && isHttps;
+  try {
+    const parsedUrl = new URL(url);
+    
+    // Cloudinary URLs use specific hostnames
+    const isCloudinary = parsedUrl.hostname.includes('cloudinary.com');
+    
+    // Should be HTTPS for security
+    const isHttps = parsedUrl.protocol === 'https:';
+    
+    return isCloudinary && isHttps;
+  } catch (error) {
+    // Invalid URL
+    return false;
+  }
 }
 
 /**
