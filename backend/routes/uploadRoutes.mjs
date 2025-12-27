@@ -15,9 +15,14 @@
  */
 
 import express from 'express';
+import { randomUUID } from 'crypto';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { requireAdmin } from '../middlewares/adminGuard.mjs';
-import { uploadImage, handleUploadError } from '../middlewares/upload.mjs';
+import {
+  uploadImage,
+  handleUploadError,
+  validateCloudinaryMiddleware,
+} from '../middlewares/upload.mjs';
 import { createAdminLog } from '../middlewares/adminLogger.mjs';
 import logger from '../config/logger.mjs';
 
@@ -48,6 +53,7 @@ router.post(
   '/image',
   requireAuth(),
   requireAdmin,
+  validateCloudinaryMiddleware,
   uploadImage.single('image'),
   handleUploadError,
   async (req, res) => {
@@ -60,13 +66,16 @@ router.post(
       // Cloudinary URL is available in req.file.path
       const imageUrl = req.file.path;
 
+      // Generate a meaningful ID for audit trail
+      const imageId = req.file.filename || req.file.public_id || `upload-${randomUUID()}`;
+
       // Log admin action with file details
       await createAdminLog({
         action: 'IMAGE_UPLOAD',
         user: req.user,
         target: {
           type: 'Image',
-          id: req.file.filename || req.file.public_id || 'unknown',
+          id: imageId,
           name: req.file.originalname,
         },
         metadata: {

@@ -36,12 +36,7 @@ const validateCloudinaryConfig = () => {
   ) {
     const error = 'Cloudinary configuration is incomplete. Set CLOUDINARY_* env variables.';
     logger.error('⚠️  ' + error);
-    
-    // In production, we should fail fast
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error(error);
-    }
-    return false;
+    throw new Error(error);
   }
   logger.info('✅ Cloudinary configuration validated');
   return true;
@@ -116,7 +111,15 @@ export const handleUploadError = (err, req, res, next) => {
   next();
 };
 
-// Validate Cloudinary config on module load
-validateCloudinaryConfig();
+// Middleware to validate Cloudinary config before processing upload
+export const validateCloudinaryMiddleware = (req, res, next) => {
+  try {
+    validateCloudinaryConfig();
+    next();
+  } catch (error) {
+    logger.error('Cloudinary configuration error:', error.message);
+    return res.apiError('Image upload service is not configured', 500);
+  }
+};
 
 export default uploadImage;
