@@ -73,6 +73,7 @@ import invoiceRoutes from './routes/invoiceRoutes.mjs';
 import sitemapRoutes from './routes/sitemapRoutes.mjs';
 import campaignRoutes from './routes/campaignRoutes.mjs';
 import uploadRoutes from './routes/uploadRoutes.mjs';
+import mediaRoutes from './routes/mediaRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -263,6 +264,9 @@ app.use(`${API_V1}/campaigns`, campaignRoutes);
 // Upload routes (v1 - admin only)
 app.use(`${API_V1}/upload`, uploadRoutes);
 
+// Media routes (v1 - admin only)
+app.use(`${API_V1}/admin/media`, mediaRoutes);
+
 // API documentation endpoint (v1)
 app.use(`${API_V1}/docs`, docsRoutes);
 
@@ -415,6 +419,10 @@ app.get('/metrics', async (req, res) => {
     res.status(500).end(error.message);
   }
 });
+
+// Serve uploaded media files statically
+const uploadsPath = path.join(__dirname, '..', 'uploads');
+app.use('/uploads', express.static(uploadsPath));
 
 // Serve static files from React build
 // This must come after API routes to avoid conflicts
