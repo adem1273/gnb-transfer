@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 
@@ -252,9 +252,17 @@ const DynamicHomepage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [useFallback, setUseFallback] = useState(false);
+  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
     const fetchLayout = async () => {
+      // Prevent duplicate fetches
+      if (hasFetchedRef.current) {
+        return;
+      }
+      
+      hasFetchedRef.current = true;
+
       try {
         const response = await fetch(
           `${import.meta.env.VITE_API_URL || '/api'}/home-layout`
@@ -279,6 +287,7 @@ const DynamicHomepage = () => {
         console.error('Error fetching homepage layout:', err);
         setError(err.message);
         setUseFallback(true);
+        hasFetchedRef.current = false; // Allow retry on error
       } finally {
         setLoading(false);
       }

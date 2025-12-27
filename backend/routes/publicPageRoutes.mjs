@@ -2,8 +2,14 @@ import express from 'express';
 import Page from '../models/Page.mjs';
 import logger from '../config/logger.mjs';
 import { generatePageSchemas } from '../services/structuredDataService.mjs';
+import { publicCacheMiddleware } from '../middlewares/publicCacheMiddleware.mjs';
+import { publicRateLimiter } from '../middlewares/publicRateLimiter.mjs';
 
 const router = express.Router();
+
+// Apply public rate limiter and cache middleware to all routes
+router.use(publicRateLimiter);
+router.use(publicCacheMiddleware(300)); // Cache for 5 minutes
 
 /**
  * @route   GET /api/pages/:slug
@@ -20,9 +26,6 @@ router.get('/:slug', async (req, res) => {
     if (!page || !page.published) {
       return res.apiError('Page not found', 404);
     }
-
-    // Set basic caching headers (cache for 5 minutes)
-    res.set('Cache-Control', 'public, max-age=300');
     
     // Generate structured data schemas if enabled
     const structuredData = generatePageSchemas(page, {
