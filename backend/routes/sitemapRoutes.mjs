@@ -10,6 +10,8 @@ import { SitemapStream, streamToPromise } from 'sitemap';
 import { Readable } from 'stream';
 import Tour from '../models/Tour.mjs';
 import BlogPost from '../models/BlogPost.mjs';
+import Page from '../models/Page.mjs';
+import RobotsConfig from '../models/RobotsConfig.mjs';
 import logger from '../config/logger.mjs';
 
 const router = express.Router();
@@ -74,6 +76,22 @@ router.get('/', async (req, res) => {
       });
     }
 
+    // Get all published CMS pages
+    const cmsPages = await Page.find({ published: true })
+      .select('slug title updatedAt')
+      .lean()
+      .exec();
+
+    // Add CMS pages to sitemap
+    for (const cmsPage of cmsPages) {
+      pages.push({
+        url: `/${cmsPage.slug}`,
+        changefreq: 'weekly',
+        priority: 0.8,
+        lastmod: cmsPage.updatedAt ? cmsPage.updatedAt.toISOString() : new Date().toISOString(),
+      });
+    }
+
     // Get all published blog posts
     const blogPosts = await BlogPost.find({ status: 'published' })
       .select('translations updatedAt')
@@ -130,11 +148,23 @@ router.get('/', async (req, res) => {
 
 /**
  * @route   GET /api/sitemap/robots.txt
- * @desc    Generate dynamic robots.txt
+ * @desc    Generate dynamic robots.txt from database configuration
  * @access  Public
  */
-router.get('/robots.txt', (req, res) => {
-  const robotsTxt = `User-agent: *
+router.get('/robots.txt', async (req, res) => {
+  try {
+    // Get robots.txt configuration from database
+    const config = await RobotsConfig.getConfig();
+    const robotsTxt = config.generateRobotsTxt(SITE_URL);
+
+    res.header('Content-Type', 'text/plain');
+    res.header('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    return res.send(robotsTxt);
+  } catch (error) {
+    logger.error('Error generating robots.txt:', { error: error.message, stack: error.stack });
+    
+    // Fallback to default safe configuration on error
+    const defaultRobotsTxt = `User-agent: *
 Allow: /
 
 # Sitemap
@@ -159,9 +189,10 @@ Allow: /about
 # Crawl delay (be nice to servers)
 Crawl-delay: 1`;
 
-  res.header('Content-Type', 'text/plain');
-  res.header('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
-  return res.send(robotsTxt);
+    res.header('Content-Type', 'text/plain');
+    res.header('Cache-Control', 'public, max-age=86400');
+    return res.send(defaultRobotsTxt);
+  }
 });
 
 export default router;

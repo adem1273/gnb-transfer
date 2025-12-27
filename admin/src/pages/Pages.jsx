@@ -18,6 +18,7 @@ function Pages() {
     seo: {
       title: '',
       description: '',
+      canonical: '',
     },
     published: false,
   });
@@ -61,7 +62,7 @@ function Pages() {
       slug: page.slug || '',
       title: page.title || '',
       sections: page.sections || [],
-      seo: page.seo || { title: '', description: '' },
+      seo: page.seo || { title: '', description: '', canonical: '' },
       published: page.published || false,
     });
     setShowForm(true);
@@ -76,6 +77,7 @@ function Pages() {
       seo: {
         title: '',
         description: '',
+        canonical: '',
       },
       published: false,
     });
@@ -134,6 +136,18 @@ function Pages() {
         i === index ? { ...section, [field]: value } : section
       ),
     }));
+  };
+
+  // Helper function to check SEO issues
+  const getSEOIssues = (page) => {
+    const issues = [];
+    if (!page.seo?.title || page.seo.title.trim() === '') {
+      issues.push('Missing SEO title');
+    }
+    if (!page.seo?.description || page.seo.description.trim() === '') {
+      issues.push('Missing SEO description');
+    }
+    return issues;
   };
 
   const filteredPages = pages;
@@ -243,7 +257,7 @@ function Pages() {
                     />
                     <p className="text-xs text-gray-500">{formData.seo.title.length}/60</p>
                   </div>
-                  <div>
+                  <div className="mb-2">
                     <label className="block text-sm font-medium mb-1">SEO Description</label>
                     <textarea
                       value={formData.seo.description}
@@ -260,6 +274,25 @@ function Pages() {
                     />
                     <p className="text-xs text-gray-500">{formData.seo.description.length}/160</p>
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Canonical URL (Optional)</label>
+                    <input
+                      type="url"
+                      value={formData.seo.canonical || ''}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          seo: { ...formData.seo, canonical: e.target.value },
+                        })
+                      }
+                      className="w-full px-3 py-2 border rounded"
+                      placeholder="https://example.com/page"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Leave empty to auto-generate from slug
+                    </p>
+                  </div>
+                </div>
                 </div>
 
                 {/* Sections */}
@@ -379,6 +412,7 @@ function Pages() {
                 <th className="border p-2">Slug</th>
                 <th className="border p-2">Title</th>
                 <th className="border p-2">Sections</th>
+                <th className="border p-2">SEO Status</th>
                 <th className="border p-2">Status</th>
                 <th className="border p-2">Updated</th>
                 <th className="border p-2">Actions</th>
@@ -387,24 +421,39 @@ function Pages() {
             <tbody>
               {filteredPages.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="border p-4 text-center text-gray-500">
+                  <td colSpan="7" className="border p-4 text-center text-gray-500">
                     No pages found
                   </td>
                 </tr>
               ) : (
-                filteredPages.map((page) => (
-                  <tr key={page._id}>
-                    <td className="border p-2 font-mono text-sm">{page.slug}</td>
-                    <td className="border p-2">{page.title}</td>
-                    <td className="border p-2 text-center">{page.sections?.length || 0}</td>
-                    <td className="border p-2 text-center">
-                      <span
-                        className={`px-2 py-1 rounded text-xs ${
-                          page.published
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
-                      >
+                filteredPages.map((page) => {
+                  const seoIssues = getSEOIssues(page);
+                  return (
+                    <tr key={page._id}>
+                      <td className="border p-2 font-mono text-sm">{page.slug}</td>
+                      <td className="border p-2">{page.title}</td>
+                      <td className="border p-2 text-center">{page.sections?.length || 0}</td>
+                      <td className="border p-2 text-center">
+                        {seoIssues.length === 0 ? (
+                          <span className="text-green-600 text-xs">✓ Complete</span>
+                        ) : (
+                          <div className="flex flex-col gap-1">
+                            {seoIssues.map((issue, idx) => (
+                              <span key={idx} className="text-orange-600 text-xs">
+                                ⚠ {issue}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                      <td className="border p-2 text-center">
+                        <span
+                          className={`px-2 py-1 rounded text-xs ${
+                            page.published
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}
+                        >
                         {page.published ? 'Published' : 'Draft'}
                       </span>
                     </td>
@@ -426,7 +475,8 @@ function Pages() {
                       </button>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
