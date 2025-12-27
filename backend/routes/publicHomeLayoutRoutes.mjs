@@ -1,0 +1,46 @@
+import express from 'express';
+import HomeLayout from '../models/HomeLayout.mjs';
+import logger from '../config/logger.mjs';
+
+const router = express.Router();
+
+/**
+ * @route   GET /api/home-layout
+ * @desc    Get the active homepage layout for public display
+ * @access  Public
+ */
+router.get('/', async (req, res) => {
+  try {
+    const layout = await HomeLayout.getActiveLayout();
+
+    if (!layout) {
+      return res.apiError('No active homepage layout found', 404);
+    }
+
+    // Filter out inactive sections
+    const activeSections = layout.sections
+      .filter((section) => section.isActive !== false)
+      .sort((a, b) => a.order - b.order);
+
+    // Build public response with SEO and cache headers
+    const publicData = {
+      name: layout.name,
+      sections: activeSections,
+      seo: layout.seo || {},
+      updatedAt: layout.updatedAt,
+    };
+
+    // Set cache headers (cache for 5 minutes)
+    res.set('Cache-Control', 'public, max-age=300');
+
+    return res.apiSuccess(publicData, 'Active homepage layout retrieved successfully');
+  } catch (error) {
+    logger.error('Error fetching public homepage layout:', {
+      error: error.message,
+      stack: error.stack,
+    });
+    return res.apiError('Failed to fetch homepage layout', 500);
+  }
+});
+
+export default router;

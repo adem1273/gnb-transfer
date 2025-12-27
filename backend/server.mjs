@@ -78,6 +78,8 @@ import pageRoutes from './routes/pageRoutes.mjs';
 import publicPageRoutes from './routes/publicPageRoutes.mjs';
 import menuRoutes from './routes/menuRoutes.mjs';
 import publicMenuRoutes from './routes/publicMenuRoutes.mjs';
+import homeLayoutRoutes from './routes/homeLayoutRoutes.mjs';
+import publicHomeLayoutRoutes from './routes/publicHomeLayoutRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -277,6 +279,12 @@ app.use(`${API_V1}/admin/pages`, pageRoutes);
 // Public page routes (v1 - no authentication required)
 app.use(`${API_V1}/pages`, publicPageRoutes);
 
+// Home layout routes (v1 - admin only)
+app.use(`${API_V1}/admin/home-layouts`, homeLayoutRoutes);
+
+// Public home layout routes (v1 - no authentication required)
+app.use(`${API_V1}/home-layout`, publicHomeLayoutRoutes);
+
 // API documentation endpoint (v1)
 app.use(`${API_V1}/docs`, docsRoutes);
 
@@ -331,8 +339,10 @@ app.use('/api/admin/messaging', bulkMessagingRoutes);
 app.use('/api/admin/tracking', adTrackingRoutes);
 app.use('/api/admin/pages', pageRoutes);
 app.use('/api/admin/menus', menuRoutes);
+app.use('/api/admin/home-layouts', homeLayoutRoutes);
 app.use('/api/pages', publicPageRoutes);
 app.use('/api/menus', publicMenuRoutes);
+app.use('/api/home-layout', publicHomeLayoutRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/loyalty', loyaltyRoutes);
