@@ -72,6 +72,18 @@ const pageSchema = new mongoose.Schema(
         trim: true,
         maxlength: [160, 'SEO description cannot exceed 160 characters'],
       },
+      canonical: {
+        type: String,
+        trim: true,
+        validate: {
+          validator: function (v) {
+            if (!v) return true; // Allow empty
+            // Basic URL validation
+            return /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/.test(v);
+          },
+          message: 'Canonical URL must be a valid URL',
+        },
+      },
     },
     published: {
       type: Boolean,

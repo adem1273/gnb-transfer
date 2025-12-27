@@ -70,6 +70,7 @@ import loyaltyRoutes from './routes/loyaltyRoutes.mjs';
 import bulkMessagingRoutes from './routes/bulkMessagingRoutes.mjs';
 import invoiceRoutes from './routes/invoiceRoutes.mjs';
 import sitemapRoutes from './routes/sitemapRoutes.mjs';
+import robotsConfigRoutes from './routes/robotsConfigRoutes.mjs';
 import campaignRoutes from './routes/campaignRoutes.mjs';
 import uploadRoutes from './routes/uploadRoutes.mjs';
 import mediaRoutes from './routes/mediaRoutes.mjs';
@@ -268,6 +269,7 @@ app.use(`${API_V1}/loyalty`, loyaltyRoutes);
 app.use(`${API_V1}/invoices`, invoiceRoutes);
 app.use(`${API_V1}/tracking`, adTrackingRoutes);
 app.use(`${API_V1}/sitemap`, sitemapRoutes);
+app.use(`${API_V1}/admin/robots-config`, robotsConfigRoutes);
 app.use(`${API_V1}/campaigns`, campaignRoutes);
 
 // Upload routes (v1 - admin only)
@@ -325,6 +327,7 @@ app.use('/api/support', supportRoutes);
 app.use('/api/routes', routeRouter);
 app.use('/api/pricing', pricingRouter);
 app.use('/api/sitemap', sitemapRoutes);
+app.use('/api/admin/robots-config', robotsConfigRoutes);
 app.use('/api/admin/features', featureToggleRoutes);
 app.use('/api/admin/fleet', fleetRoutes);
 app.use('/api/admin/drivers', driverStatsRoutes);
