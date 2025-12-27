@@ -80,6 +80,11 @@ export const PERMISSIONS = {
   'drivers.update': ['superadmin', 'admin', 'manager'],
   'drivers.delete': ['superadmin', 'admin'],
 
+  // Media Management
+  'media.view': ['superadmin', 'admin', 'manager'],
+  'media.upload': ['superadmin', 'admin'],
+  'media.delete': ['superadmin', 'admin'],
+
   // AI Features
   'ai.insights': ['superadmin', 'admin', 'manager'],
   'ai.recommendations': ['superadmin', 'admin', 'manager'],

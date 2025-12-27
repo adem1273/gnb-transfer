@@ -34,6 +34,9 @@ function Sidebar() {
             <Link to="/admin/blog" className="px-2 py-1 hover:bg-gray-700 rounded flex items-center">
               📝 Blog (9 Languages)
             </Link>
+            <Link to="/admin/media" className="px-2 py-1 hover:bg-gray-700 rounded flex items-center">
+              🖼️ Media Manager
+            </Link>
 
             <div className="text-xs font-semibold text-gray-400 uppercase mt-4 mb-1">
               New Features
