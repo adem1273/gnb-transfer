@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import API from '../utils/api';
 import Loading from '../components/Loading';
+import ImageUpload from '../components/ImageUpload';
 
 function BlogManager() {
   const [posts, setPosts] = useState([]);
@@ -238,13 +239,10 @@ function BlogManager() {
                 </select>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Featured Image URL</label>
-                <input
-                  type="url"
-                  value={formData.featuredImage}
-                  onChange={(e) => setFormData({ ...formData, featuredImage: e.target.value })}
-                  className="w-full border rounded px-3 py-2"
-                  placeholder="https://..."
+                <ImageUpload
+                  onImageUploaded={(url) => setFormData({ ...formData, featuredImage: url })}
+                  currentImage={formData.featuredImage}
+                  label="Featured Image"
                 />
               </div>
               <div className="md:col-span-2">
