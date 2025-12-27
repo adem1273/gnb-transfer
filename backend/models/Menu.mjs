@@ -14,6 +14,31 @@ import mongoose from 'mongoose';
  * - Timestamps for tracking
  */
 
+// Shared validation function for menu items
+const validateMenuItemLink = function (value, fieldName, otherFieldName) {
+  const otherFieldValue = this[otherFieldName];
+  
+  // Either pageSlug or externalUrl must be present, but not both
+  if (!value && !otherFieldValue) {
+    return false;
+  }
+  if (value && otherFieldValue) {
+    return false;
+  }
+  
+  // Additional URL validation if this is the externalUrl field
+  if (fieldName === 'externalUrl' && value) {
+    try {
+      new URL(value);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  
+  return true;
+};
+
 const menuItemSchema = new mongoose.Schema(
   {
     label: {
@@ -28,14 +53,7 @@ const menuItemSchema = new mongoose.Schema(
       lowercase: true,
       validate: {
         validator: function (value) {
-          // Either pageSlug or externalUrl must be present, but not both
-          if (!value && !this.externalUrl) {
-            return false;
-          }
-          if (value && this.externalUrl) {
-            return false;
-          }
-          return true;
+          return validateMenuItemLink.call(this, value, 'pageSlug', 'externalUrl');
         },
         message: 'Menu item must have either pageSlug or externalUrl, but not both',
       },
@@ -45,25 +63,9 @@ const menuItemSchema = new mongoose.Schema(
       trim: true,
       validate: {
         validator: function (value) {
-          // Either pageSlug or externalUrl must be present, but not both
-          if (!value && !this.pageSlug) {
-            return false;
-          }
-          if (value && this.pageSlug) {
-            return false;
-          }
-          // Basic URL validation if provided
-          if (value) {
-            try {
-              new URL(value);
-              return true;
-            } catch {
-              return false;
-            }
-          }
-          return true;
+          return validateMenuItemLink.call(this, value, 'externalUrl', 'pageSlug');
         },
-        message: 'External URL must be a valid URL',
+        message: 'External URL must be valid and menu item cannot have both pageSlug and externalUrl',
       },
     },
     order: {
