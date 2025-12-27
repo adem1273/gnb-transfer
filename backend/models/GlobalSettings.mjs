@@ -79,6 +79,33 @@ const globalSettingsSchema = new mongoose.Schema(
       },
       lowercase: true,
     },
+    // System status and control flags
+    siteStatus: {
+      type: String,
+      enum: ['online', 'maintenance'],
+      default: 'online',
+    },
+    maintenanceMessage: {
+      type: String,
+      default: 'Site is currently under maintenance. Please check back soon.',
+      maxlength: [500, 'Maintenance message cannot exceed 500 characters'],
+    },
+    bookingEnabled: {
+      type: Boolean,
+      default: true,
+    },
+    paymentEnabled: {
+      type: Boolean,
+      default: true,
+    },
+    registrationsEnabled: {
+      type: Boolean,
+      default: true,
+    },
+    forceLogoutAll: {
+      type: Boolean,
+      default: false,
+    },
     featureFlags: {
       type: Map,
       of: Boolean,
