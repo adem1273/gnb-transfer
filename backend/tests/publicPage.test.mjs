@@ -238,5 +238,121 @@ describe('Public Page Routes', () => {
       expect(response.body.data.sections[0].type).toBe('image');
       expect(response.body.data.sections[0].content).toContain('cloudinary');
     });
+
+    it('should include structured data for published pages with enabled toggle', async () => {
+      await Page.create({
+        slug: 'structured-page',
+        title: 'Structured Data Page',
+        sections: [{ type: 'text', content: 'Content' }],
+        seo: {
+          title: 'Structured Page SEO',
+          description: 'Page with structured data',
+        },
+        structuredData: {
+          enabled: true,
+        },
+        published: true,
+      });
+
+      const response = await request(app)
+        .get('/api/pages/structured-page')
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.structuredData).toBeDefined();
+      expect(Array.isArray(response.body.data.structuredData)).toBe(true);
+      expect(response.body.data.structuredData.length).toBeGreaterThan(0);
+
+      // Verify WebPage schema exists
+      const webPageSchema = response.body.data.structuredData.find(
+        (schema) => schema['@type'] === 'WebPage'
+      );
+      expect(webPageSchema).toBeDefined();
+      expect(webPageSchema['@context']).toBe('https://schema.org');
+      expect(webPageSchema.name).toBe('Structured Page SEO');
+    });
+
+    it('should not include structured data when disabled', async () => {
+      await Page.create({
+        slug: 'no-structured-data',
+        title: 'No Structured Data Page',
+        sections: [{ type: 'text', content: 'Content' }],
+        structuredData: {
+          enabled: false,
+        },
+        published: true,
+      });
+
+      const response = await request(app)
+        .get('/api/pages/no-structured-data')
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.structuredData).toBeUndefined();
+    });
+
+    it('should include structured data by default for backward compatibility', async () => {
+      await Page.create({
+        slug: 'legacy-page',
+        title: 'Legacy Page',
+        sections: [{ type: 'text', content: 'Content' }],
+        seo: {
+          title: 'Legacy Page',
+          description: 'Page without structuredData field',
+        },
+        published: true,
+        // No structuredData field - should default to enabled
+      });
+
+      const response = await request(app)
+        .get('/api/pages/legacy-page')
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.structuredData).toBeDefined();
+      expect(Array.isArray(response.body.data.structuredData)).toBe(true);
+      expect(response.body.data.structuredData.length).toBeGreaterThan(0);
+    });
+
+    it('should include BreadcrumbList schema in structured data', async () => {
+      await Page.create({
+        slug: 'breadcrumb-page',
+        title: 'Breadcrumb Page',
+        sections: [{ type: 'text', content: 'Content' }],
+        published: true,
+      });
+
+      const response = await request(app)
+        .get('/api/pages/breadcrumb-page')
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      const breadcrumbSchema = response.body.data.structuredData.find(
+        (schema) => schema['@type'] === 'BreadcrumbList'
+      );
+      expect(breadcrumbSchema).toBeDefined();
+      expect(breadcrumbSchema.itemListElement).toBeDefined();
+      expect(breadcrumbSchema.itemListElement.length).toBeGreaterThanOrEqual(2);
+      expect(breadcrumbSchema.itemListElement[0].name).toBe('Home');
+    });
+
+    it('should not expose structured data for unpublished pages', async () => {
+      await Page.create({
+        slug: 'unpublished-structured',
+        title: 'Unpublished Page',
+        sections: [{ type: 'text', content: 'Content' }],
+        structuredData: {
+          enabled: true,
+        },
+        published: false,
+      });
+
+      const response = await request(app)
+        .get('/api/pages/unpublished-structured')
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Page not found');
+    });
   });
 });

@@ -90,6 +90,12 @@ const pageSchema = new mongoose.Schema(
         },
       },
     },
+    structuredData: {
+      enabled: {
+        type: Boolean,
+        default: true,
+      },
+    },
     published: {
       type: Boolean,
       default: false,

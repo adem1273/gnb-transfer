@@ -259,5 +259,56 @@ describe('Public HomeLayout Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.data.sections).toHaveLength(9);
     });
+
+    it('should include Organization and WebSite structured data', async () => {
+      await HomeLayout.create({
+        name: 'Main Layout',
+        sections: [],
+        isActive: true,
+        seo: {
+          title: 'GNB Transfer - Premium Services',
+          description: 'Premium tourism and transfer services',
+        },
+      });
+
+      const response = await request(app).get('/api/home-layout');
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.structuredData).toBeDefined();
+      expect(Array.isArray(response.body.data.structuredData)).toBe(true);
+      expect(response.body.data.structuredData.length).toBeGreaterThan(0);
+
+      // Check for Organization schema
+      const orgSchema = response.body.data.structuredData.find(
+        (schema) => schema['@type'] === 'Organization'
+      );
+      expect(orgSchema).toBeDefined();
+      expect(orgSchema['@context']).toBe('https://schema.org');
+      expect(orgSchema.name).toBeDefined();
+
+      // Check for WebSite schema
+      const webSiteSchema = response.body.data.structuredData.find(
+        (schema) => schema['@type'] === 'WebSite'
+      );
+      expect(webSiteSchema).toBeDefined();
+      expect(webSiteSchema['@context']).toBe('https://schema.org');
+      expect(webSiteSchema.potentialAction).toBeDefined();
+      expect(webSiteSchema.potentialAction['@type']).toBe('SearchAction');
+    });
+
+    it('should include structured data even without global settings', async () => {
+      await HomeLayout.create({
+        name: 'Simple Layout',
+        sections: [],
+        isActive: true,
+      });
+
+      const response = await request(app).get('/api/home-layout');
+
+      expect(response.status).toBe(200);
+      // Should still have structured data with defaults
+      expect(response.body.data.structuredData).toBeDefined();
+      expect(Array.isArray(response.body.data.structuredData)).toBe(true);
+    });
   });
 });

@@ -20,12 +20,16 @@ function Pages() {
       description: '',
       canonical: '',
     },
+    structuredData: {
+      enabled: true,
+    },
     published: false,
   });
   const [newSection, setNewSection] = useState({
     type: 'text',
     content: '',
   });
+  const [showStructuredDataPreview, setShowStructuredDataPreview] = useState(false);
 
   useEffect(() => {
     fetchPages();
@@ -63,6 +67,7 @@ function Pages() {
       title: page.title || '',
       sections: page.sections || [],
       seo: page.seo || { title: '', description: '', canonical: '' },
+      structuredData: page.structuredData || { enabled: true },
       published: page.published || false,
     });
     setShowForm(true);
@@ -78,6 +83,9 @@ function Pages() {
         title: '',
         description: '',
         canonical: '',
+      },
+      structuredData: {
+        enabled: true,
       },
       published: false,
     });
@@ -293,6 +301,75 @@ function Pages() {
                     </p>
                   </div>
                 </div>
+                </div>
+
+                {/* Structured Data Section */}
+                <div className="mb-4 p-3 bg-white rounded border">
+                  <h4 className="font-medium mb-2">Structured Data (JSON-LD)</h4>
+                  <div className="mb-3">
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.structuredData?.enabled !== false}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            structuredData: { enabled: e.target.checked },
+                          })
+                        }
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium">Enable Structured Data</span>
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1 ml-6">
+                      Generate JSON-LD schema for better search engine visibility and rich results
+                    </p>
+                  </div>
+
+                  {formData.structuredData?.enabled !== false && (
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowStructuredDataPreview(!showStructuredDataPreview)}
+                        className="text-sm text-blue-600 hover:text-blue-700 flex items-center"
+                      >
+                        {showStructuredDataPreview ? '▼' : '▶'} Preview Generated Schema
+                      </button>
+                      
+                      {showStructuredDataPreview && (
+                        <div className="mt-2 p-3 bg-gray-50 rounded border text-xs font-mono overflow-x-auto max-h-96 overflow-y-auto">
+                          <pre className="whitespace-pre-wrap">
+                            {JSON.stringify(
+                              // Filter out undefined values before stringifying
+                              Object.fromEntries(
+                                Object.entries({
+                                  // WebPage schema preview
+                                  '@context': 'https://schema.org',
+                                  '@type': 'WebPage',
+                                  '@id': `https://gnbtransfer.com/${formData.slug || 'page-slug'}`,
+                                  url: `https://gnbtransfer.com/${formData.slug || 'page-slug'}`,
+                                  name: formData.seo?.title || formData.title || 'Page Title',
+                                  headline: formData.seo?.title || formData.title || 'Page Title',
+                                  description: formData.seo?.description || undefined,
+                                  inLanguage: 'en',
+                                  isPartOf: {
+                                    '@type': 'WebSite',
+                                    '@id': 'https://gnbtransfer.com/#website',
+                                    url: 'https://gnbtransfer.com',
+                                  },
+                                }).filter(([_, v]) => v !== undefined)
+                              ),
+                              null,
+                              2
+                            )}}
+                          </pre>
+                          <p className="text-gray-600 mt-2 text-xs">
+                            Note: This is a preview. Actual schema will include additional fields when published.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Sections */}
