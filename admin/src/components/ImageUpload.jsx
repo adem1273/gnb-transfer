@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import API from '../utils/api';
 
 function ImageUpload({ onImageUploaded, currentImage, label = "Upload Image" }) {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(currentImage || '');
   const [error, setError] = useState('');
+
+  // Sync preview with currentImage prop changes
+  useEffect(() => {
+    setPreviewUrl(currentImage || '');
+  }, [currentImage]);
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
