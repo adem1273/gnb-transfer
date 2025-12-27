@@ -42,6 +42,7 @@
     "express-rate-limit": "^8.2.1",
     "express-validator": "^7.3.1",
     "fast-redact": "^3.5.0",
+    "form-data": "^4.0.5",
     "helmet": "^8.1.0",
     "i18next": "^23.7.6",
     "ioredis": "^5.3.2",

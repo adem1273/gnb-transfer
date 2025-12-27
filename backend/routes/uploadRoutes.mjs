@@ -18,7 +18,7 @@ import express from 'express';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { requireAdmin } from '../middlewares/adminGuard.mjs';
 import { uploadImage, handleUploadError } from '../middlewares/upload.mjs';
-import { logAdminAction } from '../middlewares/adminLogger.mjs';
+import { createAdminLog } from '../middlewares/adminLogger.mjs';
 import logger from '../config/logger.mjs';
 
 const router = express.Router();
@@ -48,7 +48,6 @@ router.post(
   '/image',
   requireAuth(),
   requireAdmin,
-  logAdminAction('Image Upload'),
   uploadImage.single('image'),
   handleUploadError,
   async (req, res) => {
@@ -61,11 +60,30 @@ router.post(
       // Cloudinary URL is available in req.file.path
       const imageUrl = req.file.path;
 
+      // Log admin action with file details
+      await createAdminLog({
+        action: 'IMAGE_UPLOAD',
+        user: req.user,
+        target: {
+          type: 'Image',
+          id: req.file.filename || req.file.public_id || 'unknown',
+          name: req.file.originalname,
+        },
+        metadata: {
+          url: imageUrl,
+          size: req.file.size,
+          mimetype: req.file.mimetype,
+          folder: 'gnb-transfer',
+        },
+        req,
+      });
+
       logger.info('✅ Image uploaded successfully', {
         userId: req.user.id,
         url: imageUrl,
         size: req.file.size,
         mimetype: req.file.mimetype,
+        originalname: req.file.originalname,
       });
 
       return res.apiSuccess({ url: imageUrl }, 'Image uploaded successfully', 201);
