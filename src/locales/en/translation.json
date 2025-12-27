@@ -68,7 +68,13 @@
     "pickupLocationPlaceholder": "Hotel name or address",
     "notes": "Additional Notes",
     "notesPlaceholder": "Special requests or questions",
-    "optional": "(Optional)"
+    "optional": "(Optional)",
+    "errors": {
+      "pageNotFound": "404 - Page Not Found",
+      "pageNotFoundMessage": "The page you are looking for does not exist or has been unpublished.",
+      "networkError": "Unable to connect to the server. Please check your internet connection.",
+      "serverError": "An error occurred while loading the page."
+    }
   },
   "auth": {
     "forgotPassword": "Forgot Password?",
@@ -109,7 +115,10 @@
     "csv": "CSV",
     "pdf": "PDF",
     "question": "Question",
-    "booking": "Booking"
+    "booking": "Booking",
+    "goHome": "Go to Home",
+    "retry": "Retry",
+    "lastUpdated": "Last updated"
   },
   "messages": {
     "allFieldsRequired": "All fields are required.",
@@ -632,5 +641,8 @@
     "newPassword": "New Password",
     "confirmPassword": "Confirm Password",
     "confirmPasswordPlaceholder": "Confirm your password"
+  },
+  "cms": {
+    "noContent": "No content available."
   }
 }
