@@ -216,6 +216,15 @@ const DynamicPage = () => {
         <meta property="og:title" content={pageTitle} />
         {pageDescription && <meta property="og:description" content={pageDescription} />}
         <meta property="og:type" content="article" />
+        
+        {/* JSON-LD Structured Data */}
+        {page.structuredData && Array.isArray(page.structuredData) && page.structuredData.length > 0 && (
+          page.structuredData.map((schema, index) => (
+            <script key={index} type="application/ld+json">
+              {JSON.stringify(schema)}
+            </script>
+          ))
+        )}
       </Helmet>
 
       <article className="max-w-4xl mx-auto">

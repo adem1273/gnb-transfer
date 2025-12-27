@@ -332,6 +332,15 @@ const DynamicHomepage = () => {
         {layout.seo?.keywords && layout.seo.keywords.length > 0 && (
           <meta name="keywords" content={layout.seo.keywords.join(', ')} />
         )}
+        
+        {/* JSON-LD Structured Data */}
+        {layout.structuredData && Array.isArray(layout.structuredData) && layout.structuredData.length > 0 && (
+          layout.structuredData.map((schema, index) => (
+            <script key={index} type="application/ld+json">
+              {JSON.stringify(schema)}
+            </script>
+          ))
+        )}
       </Helmet>
 
       {layout.sections?.map((section, index) => {
