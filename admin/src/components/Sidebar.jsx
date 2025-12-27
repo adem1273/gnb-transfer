@@ -8,6 +8,7 @@ function Sidebar() {
     { name: 'Users', path: '/admin/users' },
     { name: 'Tours', path: '/admin/tours' },
     { name: 'Bookings', path: '/admin/bookings' },
+    { name: 'Pages', path: '/admin/pages' },
     { name: 'Settings', path: '/admin/settings' }
   ];
 

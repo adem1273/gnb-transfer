@@ -74,6 +74,7 @@ import sitemapRoutes from './routes/sitemapRoutes.mjs';
 import campaignRoutes from './routes/campaignRoutes.mjs';
 import uploadRoutes from './routes/uploadRoutes.mjs';
 import mediaRoutes from './routes/mediaRoutes.mjs';
+import pageRoutes from './routes/pageRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -267,6 +268,9 @@ app.use(`${API_V1}/upload`, uploadRoutes);
 // Media routes (v1 - admin only)
 app.use(`${API_V1}/admin/media`, mediaRoutes);
 
+// Page routes (v1 - admin only)
+app.use(`${API_V1}/admin/pages`, pageRoutes);
+
 // API documentation endpoint (v1)
 app.use(`${API_V1}/docs`, docsRoutes);
 
@@ -319,6 +323,7 @@ app.use('/api/admin/base-pricing', basePricingRoutes);
 app.use('/api/admin/extra-services', extraServicesRoutes);
 app.use('/api/admin/messaging', bulkMessagingRoutes);
 app.use('/api/admin/tracking', adTrackingRoutes);
+app.use('/api/admin/pages', pageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/loyalty', loyaltyRoutes);
