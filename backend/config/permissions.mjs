@@ -91,6 +91,12 @@ export const PERMISSIONS = {
   'pages.update': ['superadmin', 'admin'],
   'pages.delete': ['superadmin', 'admin'],
 
+  // Menu Management (Navigation)
+  'menus.view': ['superadmin', 'admin', 'manager'],
+  'menus.create': ['superadmin', 'admin'],
+  'menus.update': ['superadmin', 'admin'],
+  'menus.delete': ['superadmin', 'admin'],
+
   // AI Features
   'ai.insights': ['superadmin', 'admin', 'manager'],
   'ai.recommendations': ['superadmin', 'admin', 'manager'],
