@@ -412,17 +412,19 @@ const HomeLayoutBuilder = () => {
   const handleDragEnd = (event) => {
     const { active, over } = event;
 
-    if (active.id !== over.id) {
-      setFormData((prev) => {
-        const oldIndex = prev.sections.findIndex((s) => s.id === active.id);
-        const newIndex = prev.sections.findIndex((s) => s.id === over.id);
-
-        return {
-          ...prev,
-          sections: arrayMove(prev.sections, oldIndex, newIndex),
-        };
-      });
+    if (!over || active.id === over.id) {
+      return;
     }
+
+    setFormData((prev) => {
+      const oldIndex = prev.sections.findIndex((s) => s.id === active.id);
+      const newIndex = prev.sections.findIndex((s) => s.id === over.id);
+
+      return {
+        ...prev,
+        sections: arrayMove(prev.sections, oldIndex, newIndex),
+      };
+    });
   };
 
   const addSection = () => {
