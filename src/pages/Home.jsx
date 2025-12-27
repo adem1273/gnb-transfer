@@ -15,6 +15,7 @@ import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
 import { useAuth } from '../context/AuthContext';
 import { servicesPageImages } from '../config/images';
+import DynamicHomepage from './DynamicHomepage';
 
 function Home() {
   const { t, i18n } = useTranslation();
@@ -24,7 +25,29 @@ function Home() {
   const [popularTours, setPopularTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [hasActiveLayout, setHasActiveLayout] = useState(false);
+  const [checkingLayout, setCheckingLayout] = useState(true);
   const currentLang = i18n.language;
+
+  // Check for active dynamic layout
+  useEffect(() => {
+    const checkLayout = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL || '/api'}/home-layout`
+        );
+        if (response.ok) {
+          setHasActiveLayout(true);
+        }
+      } catch (err) {
+        // No active layout, use static homepage
+        console.log('No active homepage layout, using static homepage');
+      } finally {
+        setCheckingLayout(false);
+      }
+    };
+    checkLayout();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,8 +68,14 @@ function Home() {
         setLoading(false);
       }
     };
-    fetchData();
-  }, [t]);
+    
+    // Only fetch data if not using dynamic layout
+    if (!checkingLayout && !hasActiveLayout) {
+      fetchData();
+    } else if (!checkingLayout && hasActiveLayout) {
+      setLoading(false);
+    }
+  }, [t, checkingLayout, hasActiveLayout]);
 
   const getTranslatedTitle = (item) => {
     const langKey = `title_${currentLang}`;
@@ -58,7 +87,12 @@ function Home() {
     return item[langKey] || item.description;
   };
 
-  if (loading) {
+  // If there's an active dynamic layout, render it instead
+  if (hasActiveLayout) {
+    return <DynamicHomepage />;
+  }
+
+  if (loading || checkingLayout) {
     return <Loading message="Loading home page content..." />;
   }
 
