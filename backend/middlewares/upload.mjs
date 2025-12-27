@@ -34,9 +34,16 @@ const validateCloudinaryConfig = () => {
     !process.env.CLOUDINARY_API_KEY ||
     !process.env.CLOUDINARY_API_SECRET
   ) {
-    logger.warn('⚠️  Cloudinary configuration is incomplete. Image uploads will fail.');
+    const error = 'Cloudinary configuration is incomplete. Set CLOUDINARY_* env variables.';
+    logger.error('⚠️  ' + error);
+    
+    // In production, we should fail fast
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(error);
+    }
     return false;
   }
+  logger.info('✅ Cloudinary configuration validated');
   return true;
 };
 
@@ -89,10 +96,22 @@ export const handleUploadError = (err, req, res, next) => {
     if (err.code === 'LIMIT_UNEXPECTED_FILE') {
       return res.apiError('Unexpected field in upload', 400);
     }
-    return res.apiError(`Upload error: ${err.message}`, 400);
+    // Generic error for other multer errors to avoid exposing internals
+    logger.error('Multer error during upload:', { error: err.message, code: err.code });
+    return res.apiError('File upload error. Please check file format and size.', 400);
   } else if (err) {
     // Other errors (including file filter errors)
-    return res.apiError(err.message, 400);
+    // File filter errors are user-facing, so we can show them
+    // But log the full error for debugging
+    logger.error('Upload error:', { error: err.message, stack: err.stack });
+    
+    // Only show file type errors to user (from fileFilter)
+    if (err.message && err.message.includes('Invalid file type')) {
+      return res.apiError(err.message, 400);
+    }
+    
+    // Generic error for unexpected errors
+    return res.apiError('File upload failed. Please try again.', 400);
   }
   next();
 };
