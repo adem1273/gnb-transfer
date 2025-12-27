@@ -1,9 +1,11 @@
 // api.js - GNB Pro Final
 import axios from 'axios';
 
-// API temel URL'si
+// API base URL from environment variable with fallback for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const API = axios.create({
-  baseURL: 'https://your-backend-domain.com/api', // Backend URL'nizi buraya ekleyin
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -34,8 +36,10 @@ API.interceptors.response.use(
 
     if (status === 401) {
       message = 'Oturum süresi doldu';
+      // Token expired or invalid - clear auth state and redirect
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
       if (!window.location.pathname.includes('/login')) {
-        localStorage.removeItem('token');
         window.location.href = '/login';
       }
     } else if (status === 403) {
