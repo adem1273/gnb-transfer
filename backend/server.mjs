@@ -71,6 +71,7 @@ import bulkMessagingRoutes from './routes/bulkMessagingRoutes.mjs';
 import invoiceRoutes from './routes/invoiceRoutes.mjs';
 import sitemapRoutes from './routes/sitemapRoutes.mjs';
 import campaignRoutes from './routes/campaignRoutes.mjs';
+import uploadRoutes from './routes/uploadRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -256,6 +257,9 @@ app.use(`${API_V1}/invoices`, invoiceRoutes);
 app.use(`${API_V1}/tracking`, adTrackingRoutes);
 app.use(`${API_V1}/sitemap`, sitemapRoutes);
 app.use(`${API_V1}/campaigns`, campaignRoutes);
+
+// Upload routes (v1 - admin only)
+app.use(`${API_V1}/upload`, uploadRoutes);
 
 // API documentation endpoint (v1)
 app.use(`${API_V1}/docs`, docsRoutes);
