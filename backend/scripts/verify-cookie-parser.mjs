@@ -6,6 +6,8 @@
  * 1. Cookie-parser is NOT globally available
  * 2. User routes have cookie-parser available
  * 3. Other routes do NOT have cookie-parser
+ * 
+ * Requirements: Node.js 18+ (uses native fetch API)
  */
 
 import express from 'express';
