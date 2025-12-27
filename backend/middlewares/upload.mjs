@@ -92,8 +92,11 @@ export const handleUploadError = (err, req, res, next) => {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.apiError('File size exceeds 2MB limit', 400);
     }
-    if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+    if (err.code === 'LIMIT_FILE_COUNT') {
       return res.apiError('Multiple file upload not allowed. Please upload only one image file.', 400);
+    }
+    if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      return res.apiError('Invalid upload field name. Expected field name is "image".', 400);
     }
     // Generic error for other multer errors to avoid exposing internals
     logger.error('Multer error during upload:', { error: err.message, code: err.code });
