@@ -137,9 +137,17 @@ Crawl-delay: 1`;
 
   // Add sitemap URL
   const sitemapPath = this.sitemapUrl || '/sitemap.xml';
-  const fullSitemapUrl = sitemapPath.startsWith('http') 
-    ? sitemapPath 
-    : `${siteUrl}${sitemapPath}`;
+  let fullSitemapUrl;
+  
+  if (sitemapPath.startsWith('http')) {
+    // Absolute URL
+    fullSitemapUrl = sitemapPath;
+  } else {
+    // Relative path - ensure it starts with /
+    const normalizedPath = sitemapPath.startsWith('/') ? sitemapPath : `/${sitemapPath}`;
+    fullSitemapUrl = `${siteUrl}${normalizedPath}`;
+  }
+  
   robotsTxt += `# Sitemap\nSitemap: ${fullSitemapUrl}\n`;
 
   return robotsTxt.trim();

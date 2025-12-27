@@ -150,11 +150,6 @@ function Pages() {
     return issues;
   };
 
-  // Helper function to check for duplicate slugs (for warnings)
-  const hasDuplicateSlug = (slug, currentId) => {
-    return pages.some((p) => p.slug === slug && p._id !== currentId);
-  };
-
   const filteredPages = pages;
 
   if (loading) return <p className="p-4">Loading pages...</p>;

@@ -155,17 +155,20 @@ describe('Sitemap Routes', () => {
     it('should handle errors gracefully', async () => {
       // Temporarily break the database connection to trigger error
       const originalFind = Page.find;
-      Page.find = () => {
-        throw new Error('Database error');
-      };
+      
+      try {
+        Page.find = () => {
+          throw new Error('Database error');
+        };
 
-      const response = await request(app).get('/api/sitemap').expect(500);
+        const response = await request(app).get('/api/sitemap').expect(500);
 
-      expect(response.body.success).toBe(false);
-      expect(response.body.error).toContain('Failed to generate sitemap');
-
-      // Restore
-      Page.find = originalFind;
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toContain('Failed to generate sitemap');
+      } finally {
+        // Restore in finally block to ensure cleanup even on test failure
+        Page.find = originalFind;
+      }
     });
   });
 
@@ -219,17 +222,21 @@ describe('Sitemap Routes', () => {
     it('should fallback to default on database error', async () => {
       // Temporarily break the database to trigger fallback
       const originalGetConfig = RobotsConfig.getConfig;
-      RobotsConfig.getConfig = async () => {
-        throw new Error('Database error');
-      };
+      
+      try {
+        RobotsConfig.getConfig = async () => {
+          throw new Error('Database error');
+        };
 
-      const response = await request(app).get('/api/sitemap/robots.txt').expect(200);
+        const response = await request(app).get('/api/sitemap/robots.txt').expect(200);
 
-      expect(response.text).toContain('User-agent: *');
-      expect(response.text).toContain('Disallow: /admin/');
-
-      // Restore
-      RobotsConfig.getConfig = originalGetConfig;
+        expect(response.text).toContain('User-agent: *');
+        expect(response.text).toContain('Disallow: /admin/');
+      } finally {
+        // Restore in finally block to ensure cleanup even on test failure
+        RobotsConfig.getConfig = originalGetConfig;
+      }
+    });
     });
   });
 });

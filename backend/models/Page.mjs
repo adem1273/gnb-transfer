@@ -78,8 +78,13 @@ const pageSchema = new mongoose.Schema(
         validate: {
           validator: function (v) {
             if (!v) return true; // Allow empty
-            // Basic URL validation
-            return /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/.test(v);
+            // Use URL constructor for robust validation
+            try {
+              new URL(v);
+              return true;
+            } catch {
+              return false;
+            }
           },
           message: 'Canonical URL must be a valid URL',
         },
