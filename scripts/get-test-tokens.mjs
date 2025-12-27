@@ -37,9 +37,10 @@ function print(message, color = 'reset') {
 function makeRequest(url, options = {}) {
   return new Promise((resolve, reject) => {
     const parsedUrl = new URL(url);
+    const defaultPort = parsedUrl.protocol === 'https:' ? 443 : 80;
     const requestOptions = {
       hostname: parsedUrl.hostname,
-      port: parsedUrl.port || 80,
+      port: parsedUrl.port || defaultPort,
       path: parsedUrl.pathname + parsedUrl.search,
       method: options.method || 'GET',
       headers: options.headers || {},

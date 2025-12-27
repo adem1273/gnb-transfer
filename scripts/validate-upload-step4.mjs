@@ -23,12 +23,9 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import os from 'os';
 import FormData from 'form-data';
 import axios from 'axios';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -94,7 +91,7 @@ function testResult(name, passed, message = '') {
  * Create test files in temp directory
  */
 async function createTestFiles() {
-  const tmpDir = '/tmp/upload-validation-test-files';
+  const tmpDir = path.join(os.tmpdir(), 'upload-validation-test-files');
   
   if (!fs.existsSync(tmpDir)) {
     fs.mkdirSync(tmpDir, { recursive: true });
@@ -178,6 +175,47 @@ async function testUpload(filePath, token, expectSuccess = true, testName = '') 
 }
 
 /**
+ * Recursively find files with specific extensions
+ */
+function findFiles(dir, extensions, excludePaths = []) {
+  let results = [];
+  
+  if (!fs.existsSync(dir)) {
+    return results;
+  }
+  
+  const files = fs.readdirSync(dir);
+  
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    
+    // Skip excluded paths
+    if (excludePaths.some(excluded => filePath.includes(excluded))) {
+      continue;
+    }
+    
+    try {
+      const stat = fs.statSync(filePath);
+      
+      if (stat.isDirectory()) {
+        // Recursively search subdirectories
+        results = results.concat(findFiles(filePath, extensions, excludePaths));
+      } else if (stat.isFile()) {
+        const ext = path.extname(filePath).toLowerCase();
+        if (extensions.includes(ext)) {
+          results.push(filePath);
+        }
+      }
+    } catch (error) {
+      // Skip files we can't read
+      continue;
+    }
+  }
+  
+  return results;
+}
+
+/**
  * Check if image files exist in backend or frontend directories
  */
 async function checkNoLocalImageFiles() {
@@ -187,44 +225,26 @@ async function checkNoLocalImageFiles() {
     path.join(__dirname, '..', 'admin', 'src'),
   ];
   
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+  const excludePaths = [
+    'node_modules',
+    'tests',
+    'test',
+    '.test.',
+    'public',
+    'static',
+    'assets',
+  ];
+  
   let foundImages = [];
   
-  // Check backend for uploaded images (exclude test files and static assets)
-  try {
-    const { stdout: backendImages } = await execAsync(
-      `find "${backendDir}" -type f \\( -name "*.jpg" -o -name "*.png" -o -name "*.webp" \\) ! -path "*/node_modules/*" ! -path "*/tests/*" ! -path "*test*" 2>/dev/null || true`
-    );
-    if (backendImages.trim()) {
-      foundImages.push(...backendImages.trim().split('\n').filter(f => f));
-    }
-  } catch (error) {
-    // Ignore errors
-  }
+  // Check backend for uploaded images
+  foundImages = foundImages.concat(findFiles(backendDir, imageExtensions, excludePaths));
   
-  // Check frontend for uploaded images (exclude public static assets)
+  // Check frontend directories for uploaded images
   for (const dir of frontendDirs) {
-    if (fs.existsSync(dir)) {
-      try {
-        const { stdout: frontendImages } = await execAsync(
-          `find "${dir}" -type f \\( -name "*.jpg" -o -name "*.png" -o -name "*.webp" \\) ! -path "*/node_modules/*" ! -path "*/public/*" ! -path "*test*" 2>/dev/null || true`
-        );
-        if (frontendImages.trim()) {
-          foundImages.push(...frontendImages.trim().split('\n').filter(f => f));
-        }
-      } catch (error) {
-        // Ignore errors
-      }
-    }
+    foundImages = foundImages.concat(findFiles(dir, imageExtensions, excludePaths));
   }
-  
-  // Filter out legitimate static assets in public directory
-  foundImages = foundImages.filter(img => {
-    const relative = path.relative(path.join(__dirname, '..'), img);
-    return !relative.startsWith('public/') && 
-           !relative.includes('/public/') &&
-           !relative.includes('static/') &&
-           !relative.includes('assets/');
-  });
   
   return foundImages;
 }
