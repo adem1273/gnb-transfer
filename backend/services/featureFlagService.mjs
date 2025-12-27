@@ -13,6 +13,18 @@ import logger from '../config/logger.mjs';
  * to ensure features don't break due to database issues.
  */
 
+// Flag name constants for consistency
+const SYSTEM_FLAGS = {
+  BOOKING_ENABLED: 'bookingEnabled',
+  PAYMENT_ENABLED: 'paymentEnabled',
+  REGISTRATIONS_ENABLED: 'registrationsEnabled',
+};
+
+const GLOBAL_FLAGS = {
+  ENABLE_BOOKINGS: 'enableBookings',
+  ENABLE_PAYMENTS: 'enablePayments',
+};
+
 /**
  * Check if a feature flag is enabled in FeatureToggle model
  * 
@@ -96,8 +108,8 @@ export const getSiteStatus = async () => {
 export const areBookingsEnabled = async () => {
   try {
     const [systemEnabled, flagEnabled] = await Promise.all([
-      isSystemSettingEnabled('bookingEnabled'),
-      isGlobalFlagEnabled('enableBookings'),
+      isSystemSettingEnabled(SYSTEM_FLAGS.BOOKING_ENABLED),
+      isGlobalFlagEnabled(GLOBAL_FLAGS.ENABLE_BOOKINGS),
     ]);
     return systemEnabled && flagEnabled;
   } catch (error) {
@@ -114,8 +126,8 @@ export const areBookingsEnabled = async () => {
 export const arePaymentsEnabled = async () => {
   try {
     const [systemEnabled, flagEnabled] = await Promise.all([
-      isSystemSettingEnabled('paymentEnabled'),
-      isGlobalFlagEnabled('enablePayments'),
+      isSystemSettingEnabled(SYSTEM_FLAGS.PAYMENT_ENABLED),
+      isGlobalFlagEnabled(GLOBAL_FLAGS.ENABLE_PAYMENTS),
     ]);
     return systemEnabled && flagEnabled;
   } catch (error) {
@@ -131,7 +143,7 @@ export const arePaymentsEnabled = async () => {
  */
 export const areRegistrationsEnabled = async () => {
   try {
-    return await isSystemSettingEnabled('registrationsEnabled');
+    return await isSystemSettingEnabled(SYSTEM_FLAGS.REGISTRATIONS_ENABLED);
   } catch (error) {
     logger.error('Error checking if registrations enabled:', error);
     return false;

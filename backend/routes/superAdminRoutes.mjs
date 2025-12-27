@@ -170,7 +170,7 @@ router.post(
         siteStatus: 'online',
         bookingEnabled: true,
         paymentEnabled: true,
-        maintenanceMessage: 'Site is currently under maintenance. Please check back soon.',
+        maintenanceMessage: '', // Clear emergency message when restoring
       };
 
       const settings = await GlobalSettings.updateGlobalSettings(updates);
