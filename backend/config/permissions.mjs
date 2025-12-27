@@ -85,6 +85,12 @@ export const PERMISSIONS = {
   'media.upload': ['superadmin', 'admin'],
   'media.delete': ['superadmin', 'admin'],
 
+  // Page Management (CMS)
+  'pages.view': ['superadmin', 'admin', 'manager'],
+  'pages.create': ['superadmin', 'admin'],
+  'pages.update': ['superadmin', 'admin'],
+  'pages.delete': ['superadmin', 'admin'],
+
   // AI Features
   'ai.insights': ['superadmin', 'admin', 'manager'],
   'ai.recommendations': ['superadmin', 'admin', 'manager'],

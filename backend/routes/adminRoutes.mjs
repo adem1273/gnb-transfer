@@ -437,6 +437,9 @@ router.get('/logs', requireAuth(['admin']), async (req, res) => {
       'CAMPAIGN_CREATE',
       'CAMPAIGN_UPDATE',
       'CAMPAIGN_DELETE',
+      'PAGE_CREATE',
+      'PAGE_UPDATE',
+      'PAGE_DELETE',
     ];
     if (action && validActions.includes(action)) {
       filter.action = action;
@@ -448,7 +451,7 @@ router.get('/logs', requireAuth(['admin']), async (req, res) => {
     }
 
     // Whitelist target type values
-    const validTargetTypes = ['User', 'Booking', 'Tour', 'Settings', 'Campaign'];
+    const validTargetTypes = ['User', 'Booking', 'Tour', 'Settings', 'Campaign', 'Page'];
     if (targetType && validTargetTypes.includes(targetType)) {
       filter['target.type'] = targetType;
     }

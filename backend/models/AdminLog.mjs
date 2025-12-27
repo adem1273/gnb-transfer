@@ -29,6 +29,9 @@ const adminLogSchema = new mongoose.Schema(
         'CAMPAIGN_CREATE',
         'CAMPAIGN_UPDATE',
         'CAMPAIGN_DELETE',
+        'PAGE_CREATE',
+        'PAGE_UPDATE',
+        'PAGE_DELETE',
       ],
     },
     user: {
