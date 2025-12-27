@@ -69,6 +69,7 @@ const BulkMessaging = lazy(() => import('./pages/BulkMessaging'));
 const AdTrackingDashboard = lazy(() => import('./pages/AdTrackingDashboard'));
 const CampaignManagement = lazy(() => import('./pages/CampaignManagement'));
 const MediaManager = lazy(() => import('./pages/MediaManager'));
+const MenuManager = lazy(() => import('./pages/MenuManager'));
 
 // Lazy load optional components (only load when needed)
 const LiveChat = lazy(() => import('./components/LiveChat'));
@@ -191,6 +192,7 @@ function App() {
                 <Route path="messaging" element={<BulkMessaging />} />
                 <Route path="tracking" element={<AdTrackingDashboard />} />
                 <Route path="media" element={<MediaManager />} />
+                <Route path="menus" element={<MenuManager />} />
               </Route>
               
               {/* Sürücü Paneli Rotası */}

@@ -10,7 +10,28 @@ function Header() {
   const { t, i18n } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
+  const [dynamicMenuItems, setDynamicMenuItems] = useState([]);
+  const [menuLoading, setMenuLoading] = useState(true);
   const languageMenuRef = useRef(null);
+
+  // Fetch dynamic menu items
+  useEffect(() => {
+    const fetchHeaderMenu = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/menus/header`);
+        const result = await response.json();
+        if (result.success && result.data.items) {
+          setDynamicMenuItems(result.data.items);
+        }
+      } catch (err) {
+        console.error('Error fetching header menu:', err);
+      } finally {
+        setMenuLoading(false);
+      }
+    };
+
+    fetchHeaderMenu();
+  }, []);
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
@@ -49,18 +70,49 @@ function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-6 rtl:space-x-reverse">
-            <Link to="/" className="hover:text-blue-200 transition-colors duration-200">
-              {t('header.home')}
-            </Link>
-            <Link to="/tours" className="hover:text-blue-200 transition-colors duration-200">
-              {t('header.tours')}
-            </Link>
-            <Link to="/booking" className="hover:text-blue-200 transition-colors duration-200">
-              {t('header.booking')}
-            </Link>
-            <Link to="/blog" className="hover:text-blue-200 transition-colors duration-200">
-              {t('header.blog')}
-            </Link>
+            {/* Static fallback links - shown if dynamic menu is empty or loading */}
+            {(!menuLoading && dynamicMenuItems.length === 0) && (
+              <>
+                <Link to="/" className="hover:text-blue-200 transition-colors duration-200">
+                  {t('header.home')}
+                </Link>
+                <Link to="/tours" className="hover:text-blue-200 transition-colors duration-200">
+                  {t('header.tours')}
+                </Link>
+                <Link to="/booking" className="hover:text-blue-200 transition-colors duration-200">
+                  {t('header.booking')}
+                </Link>
+                <Link to="/blog" className="hover:text-blue-200 transition-colors duration-200">
+                  {t('header.blog')}
+                </Link>
+              </>
+            )}
+
+            {/* Dynamic menu items */}
+            {dynamicMenuItems.map((item, index) => (
+              item.type === 'external' ? (
+                <a
+                  key={index}
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-blue-200 transition-colors duration-200 flex items-center gap-1"
+                >
+                  {item.label}
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              ) : (
+                <Link
+                  key={index}
+                  to={item.url}
+                  className="hover:text-blue-200 transition-colors duration-200"
+                >
+                  {item.label}
+                </Link>
+              )
+            ))}
 
             {user?.role === 'admin' && (
               <Link
@@ -191,34 +243,64 @@ function Header() {
               exit={{ opacity: 0, height: 0 }}
               className="lg:hidden pb-4 space-y-2"
             >
-              <Link
-                to="/"
-                className="block py-2 px-4 hover:bg-blue-700 rounded transition-colors duration-200"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {t('header.home')}
-              </Link>
-              <Link
-                to="/tours"
-                className="block py-2 px-4 hover:bg-blue-700 rounded transition-colors duration-200"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {t('header.tours')}
-              </Link>
-              <Link
-                to="/booking"
-                className="block py-2 px-4 hover:bg-blue-700 rounded transition-colors duration-200"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {t('header.booking')}
-              </Link>
-              <Link
-                to="/blog"
-                className="block py-2 px-4 hover:bg-blue-700 rounded transition-colors duration-200"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {t('header.blog')}
-              </Link>
+              {/* Static fallback links - shown if dynamic menu is empty or loading */}
+              {(!menuLoading && dynamicMenuItems.length === 0) && (
+                <>
+                  <Link
+                    to="/"
+                    className="block py-2 px-4 hover:bg-blue-700 rounded transition-colors duration-200"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {t('header.home')}
+                  </Link>
+                  <Link
+                    to="/tours"
+                    className="block py-2 px-4 hover:bg-blue-700 rounded transition-colors duration-200"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {t('header.tours')}
+                  </Link>
+                  <Link
+                    to="/booking"
+                    className="block py-2 px-4 hover:bg-blue-700 rounded transition-colors duration-200"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {t('header.booking')}
+                  </Link>
+                  <Link
+                    to="/blog"
+                    className="block py-2 px-4 hover:bg-blue-700 rounded transition-colors duration-200"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {t('header.blog')}
+                  </Link>
+                </>
+              )}
+
+              {/* Dynamic menu items */}
+              {dynamicMenuItems.map((item, index) => (
+                item.type === 'external' ? (
+                  <a
+                    key={index}
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block py-2 px-4 hover:bg-blue-700 rounded transition-colors duration-200"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item.label} ↗
+                  </a>
+                ) : (
+                  <Link
+                    key={index}
+                    to={item.url}
+                    className="block py-2 px-4 hover:bg-blue-700 rounded transition-colors duration-200"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                )
+              ))}
 
               {user?.role === 'admin' && (
                 <Link
