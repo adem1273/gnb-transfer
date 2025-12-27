@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet';
 import API from '../utils/api';
+import ImageUpload from '../components/ImageUpload';
 
 const SUPPORTED_LANGUAGES = ['tr', 'en', 'ar', 'ru', 'de', 'fr', 'es', 'zh', 'fa'];
 const LANGUAGE_NAMES = {
@@ -500,17 +501,11 @@ function BlogManagement() {
 
                 {/* Common Fields */}
                 <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Öne Çıkan Görsel URL *
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.featuredImage}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, featuredImage: e.target.value }))}
-                      className="w-full px-3 py-2 border rounded-lg"
-                      required
-                      placeholder="https://..."
+                  <div className="col-span-3">
+                    <ImageUpload
+                      onImageUploaded={(url) => setFormData((prev) => ({ ...prev, featuredImage: url }))}
+                      currentImage={formData.featuredImage}
+                      label="Öne Çıkan Görsel *"
                     />
                   </div>
                   <div>
