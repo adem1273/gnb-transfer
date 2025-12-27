@@ -9,9 +9,12 @@
  *
  * Security:
  * - Admin authentication required
+ * - Single file upload only (multiple files rejected)
  * - File type validation (JPEG, PNG, WebP only)
  * - File size limit (2MB max)
+ * - No local file storage (direct to Cloudinary)
  * - Cloudinary secure upload
+ * - Clear error messages for validation failures
  */
 
 import express from 'express';
@@ -22,6 +25,7 @@ import {
   uploadImage,
   handleUploadError,
   validateCloudinaryMiddleware,
+  validateSingleFileUpload,
 } from '../middlewares/upload.mjs';
 import { createAdminLog } from '../middlewares/adminLogger.mjs';
 import logger from '../config/logger.mjs';
@@ -54,6 +58,7 @@ router.post(
   requireAuth(),
   requireAdmin,
   validateCloudinaryMiddleware,
+  validateSingleFileUpload,
   uploadImage.single('image'),
   handleUploadError,
   async (req, res) => {

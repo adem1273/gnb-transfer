@@ -5,9 +5,12 @@
  * @description Handles secure file uploads to Cloudinary with validation
  *
  * Security features:
+ * - Single file upload only (multiple files rejected)
  * - File type validation (only image/jpeg, image/png, image/webp)
  * - File size limit (2MB max)
+ * - No local file storage (direct to Cloudinary)
  * - Cloudinary folder organization (gnb-transfer)
+ * - Clear error messages for all validation failures
  * - Error handling for invalid files
  *
  * Usage:
@@ -77,6 +80,7 @@ export const uploadImage = multer({
   storage: storage,
   limits: {
     fileSize: MAX_FILE_SIZE,
+    files: 1, // Explicitly limit to 1 file
   },
   fileFilter: imageFileFilter,
 });
@@ -88,8 +92,11 @@ export const handleUploadError = (err, req, res, next) => {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.apiError('File size exceeds 2MB limit', 400);
     }
+    if (err.code === 'LIMIT_FILE_COUNT') {
+      return res.apiError('Multiple file upload not allowed. Please upload only one image file.', 400);
+    }
     if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-      return res.apiError('Unexpected field in upload', 400);
+      return res.apiError('Invalid upload field name. Expected field name is "image".', 400);
     }
     // Generic error for other multer errors to avoid exposing internals
     logger.error('Multer error during upload:', { error: err.message, code: err.code });
@@ -120,6 +127,16 @@ export const validateCloudinaryMiddleware = (req, res, next) => {
     logger.error('Cloudinary configuration error:', error.message);
     return res.apiError('Image upload service is not configured', 500);
   }
+};
+
+// Middleware to validate single file upload before multer processes
+export const validateSingleFileUpload = (req, res, next) => {
+  // Check Content-Type header to ensure it's multipart/form-data
+  const contentType = req.headers['content-type'] || '';
+  if (!contentType.startsWith('multipart/form-data')) {
+    return res.apiError('Invalid request. Expected multipart/form-data.', 400);
+  }
+  next();
 };
 
 export default uploadImage;
