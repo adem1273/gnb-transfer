@@ -16,8 +16,9 @@ function ImageUpload({ onImageUploaded, currentImage, label = "Upload Image" }) 
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select an image file');
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Please select a valid image file (JPEG, PNG, or WebP)');
       return;
     }
 

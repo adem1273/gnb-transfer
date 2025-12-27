@@ -77,10 +77,12 @@ function Tours() {
     try {
       if (editingTour) {
         const res = await API.put(`/tours/${editingTour._id}`, formData);
-        setTours(tours.map(t => t._id === editingTour._id ? res.data : t));
+        const updatedTour = res.data.data || res.data;
+        setTours(tours.map(t => t._id === editingTour._id ? updatedTour : t));
       } else {
         const res = await API.post('/tours', formData);
-        setTours([...tours, res.data]);
+        const newTour = res.data.data || res.data;
+        setTours([...tours, newTour]);
       }
       setShowForm(false);
       setEditingTour(null);
