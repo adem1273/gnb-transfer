@@ -1,8 +1,10 @@
-// api.js - GNB Pro Final
+// api.js - GNB Pro Final - Standardized API with /api/v1 baseURL
 import axios from 'axios';
 
-// API base URL from environment variable with fallback for development
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// API base URL - standardized to /api/v1
+const API_BASE_URL = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/v1` 
+  : 'http://localhost:5000/api/v1';
 
 const API = axios.create({
   baseURL: API_BASE_URL,
@@ -11,16 +13,39 @@ const API = axios.create({
   },
 });
 
-// Eğer auth token gerekiyorsa her isteğe otomatik ekleyebiliriz
+// Global variable to access AuthContext if available
+let authContextRef = null;
+
+/**
+ * Set auth context reference for token access
+ * This should be called from App.jsx or AuthProvider
+ */
+export const setAuthContext = (authContext) => {
+  authContextRef = authContext;
+};
+
+// Request interceptor - Add auth token
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token'); // Token localStorage'da saklanıyor
+    // Try to get token from AuthContext first, fallback to localStorage
+    let token = null;
+    
+    if (authContextRef?.user?.token) {
+      token = authContextRef.user.token;
+    } else {
+      token = localStorage.getItem('token');
+    }
+    
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
+    
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('Request interceptor error:', error);
+    return Promise.reject(error);
+  }
 );
 
 // Response interceptor for enhanced error handling
@@ -28,30 +53,57 @@ API.interceptors.response.use(
   (response) => response,
   (error) => {
     if (!error.response) {
-      return Promise.reject({ message: 'Bağlantı hatası', code: 'NETWORK_ERROR' });
+      return Promise.reject({ 
+        message: 'Network connection error', 
+        code: 'NETWORK_ERROR',
+        originalError: error 
+      });
     }
 
     const { status, data } = error.response;
-    let message = data?.error || 'Bir hata oluştu';
+    let message = data?.error || data?.message || 'An error occurred';
 
     if (status === 401) {
-      message = 'Oturum süresi doldu';
+      message = 'Session expired. Please login again.';
       // Token expired or invalid - clear auth state and redirect
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
-      if (!window.location.pathname.includes('/login')) {
+      
+      // Only redirect if not already on login page
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }
     } else if (status === 403) {
-      message = 'Bu işleme yetkiniz yok';
+      message = 'Insufficient permissions for this action';
     } else if (status === 429) {
-      message = 'Çok fazla istek. Bekleyin.';
+      message = 'Too many requests. Please wait a moment.';
     } else if (status >= 500) {
-      message = 'Sunucu hatası';
+      message = 'Server error. Please try again later.';
     }
 
-    return Promise.reject({ status, message, code: `HTTP_${status}` });
+    // Log detailed error for debugging
+    console.error('API Error:', {
+      status,
+      message,
+      url: error.config?.url,
+      method: error.config?.method,
+    });
+
+    return Promise.reject({ 
+      status, 
+      message, 
+      code: `HTTP_${status}`,
+      data: data,
+      originalError: error 
+    });
   }
 );
+
+// Helper functions for common HTTP methods
+export const get = (url, config) => API.get(url, config);
+export const post = (url, data, config) => API.post(url, data, config);
+export const put = (url, data, config) => API.put(url, data, config);
+export const patch = (url, data, config) => API.patch(url, data, config);
+export const del = (url, config) => API.delete(url, config);
 
 export default API;

@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import API from '../utils/api';
+import { LoadingButton } from '../components/ui';
+import { useToast } from '../components/ui/ToastProvider';
+import { handleError } from '../utils/errorHandler';
 
 function ActivityLogs() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
   const [filters, setFilters] = useState({
     action: '',
     targetType: '',
@@ -18,6 +22,8 @@ function ActivityLogs() {
     total: 0,
     pages: 0,
   });
+
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchLogs();
@@ -38,11 +44,13 @@ function ActivityLogs() {
         ...prev,
         ...response.data.data.pagination,
       }));
+      setError('');
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching logs:', err);
-      setError('Failed to load logs');
+      const { userMessage } = handleError(err, 'fetching activity logs');
+      setError(userMessage);
       setLoading(false);
+      toast.error(userMessage);
     }
   };
 
@@ -51,34 +59,102 @@ function ActivityLogs() {
     fetchLogs();
   };
 
+  /**
+   * Export logs with automatic endpoint detection and fallback
+   */
   const handleExport = async () => {
+    setExporting(true);
     try {
       const params = new URLSearchParams(
         Object.fromEntries(Object.entries(filters).filter(([_, v]) => v !== ''))
       );
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/admin/logs/export?${params.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
+      // Try to detect backend export endpoint
+      const exportEndpoints = [
+        `/admin/logs/export`,
+        `/admin/logs/job`,
+        `/admin/audit-logs/export`,
+      ];
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `admin-logs-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      let exportSuccessful = false;
+
+      // Try each endpoint
+      for (const endpoint of exportEndpoints) {
+        try {
+          const response = await API.get(`${endpoint}?${params.toString()}`, {
+            responseType: 'blob',
+          });
+
+          // If we get here, the endpoint worked
+          const blob = response.data;
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `activity-logs-${new Date().toISOString().split('T')[0]}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+
+          toast.success('Activity logs exported successfully');
+          exportSuccessful = true;
+          break;
+        } catch (err) {
+          // Try next endpoint
+          continue;
+        }
+      }
+
+      // If no backend endpoint worked, export visible rows
+      if (!exportSuccessful) {
+        if (pagination.total > 5000) {
+          // For large datasets, warn user and export in chunks
+          console.warn(`Large dataset (${pagination.total} rows). Exporting visible rows only.`);
+          toast.warning(`Exporting ${logs.length} visible rows. Full export requires backend support.`, 8000);
+        }
+
+        exportLogsAsCSV(logs);
+        toast.success('Activity logs exported successfully');
+      }
     } catch (err) {
-      console.error('Error exporting logs:', err);
-      setError('Failed to export logs');
+      const { userMessage } = handleError(err, 'exporting activity logs');
+      toast.error(userMessage);
+    } finally {
+      setExporting(false);
     }
+  };
+
+  /**
+   * Fallback CSV export for visible rows
+   */
+  const exportLogsAsCSV = (logsData) => {
+    const headers = ['Timestamp', 'Action', 'User Name', 'User Email', 'User Role', 'Target Type', 'Target Name', 'IP Address'];
+    
+    const rows = logsData.map(log => [
+      new Date(log.createdAt).toISOString(),
+      log.action,
+      log.user.name,
+      log.user.email,
+      log.user.role,
+      log.target.type,
+      log.target.name || '',
+      log.ipAddress || 'N/A',
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `activity-logs-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
   const getActionBadgeColor = (action) => {
@@ -106,12 +182,14 @@ function ActivityLogs() {
 
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold">Activity Logs</h2>
-        <button
+        <LoadingButton
           onClick={handleExport}
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          loading={exporting}
+          variant="primary"
+          className="bg-green-600 hover:bg-green-700"
         >
           Export CSV
-        </button>
+        </LoadingButton>
       </div>
 
       {error && (
@@ -184,6 +262,7 @@ function ActivityLogs() {
 
         <div className="mt-4 flex justify-end space-x-2">
           <button
+            type="button"
             onClick={() => {
               setFilters({ action: '', targetType: '', startDate: '', endDate: '' });
               setTimeout(() => {
@@ -196,6 +275,7 @@ function ActivityLogs() {
             Clear Filters
           </button>
           <button
+            type="button"
             onClick={handleFilterChange}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
@@ -265,16 +345,18 @@ function ActivityLogs() {
               </div>
               <div className="flex space-x-2">
                 <button
+                  type="button"
                   onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
-                  disabled={pagination.page === 1}
+                  disabled={pagination.page <= 1}
                   className="px-3 py-1 bg-white border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
                 <span className="px-4 py-1">
-                  Page {pagination.page} of {pagination.pages}
+                  Page {pagination.page} of {pagination.pages || 1}
                 </span>
                 <button
+                  type="button"
                   onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
                   disabled={pagination.page >= pagination.pages}
                   className="px-3 py-1 bg-white border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
