@@ -78,6 +78,9 @@ const LiveChat = lazy(() => import('./components/LiveChat'));
 const Feedback = lazy(() => import('./components/Feedback'));
 const FAQBot = lazy(() => import('./components/FAQBot'));
 
+// Lazy load Super Admin page
+const SuperAdmin = lazy(() => import('./pages/SuperAdmin'));
+
 // Main User Layout
 const MainLayout = () => {
   const { t } = useTranslation();
@@ -196,6 +199,9 @@ function App() {
                 <Route path="media" element={<MediaManager />} />
                 <Route path="menus" element={<MenuManager />} />
                 <Route path="homepage-builder" element={<HomeLayoutBuilder />} />
+                
+                {/* Super Admin Route */}
+                <Route path="super" element={<SuperAdmin />} />
               </Route>
               
               {/* Sürücü Paneli Rotası */}
