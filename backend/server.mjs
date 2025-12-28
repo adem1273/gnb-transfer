@@ -80,6 +80,7 @@ import menuRoutes from './routes/menuRoutes.mjs';
 import publicMenuRoutes from './routes/publicMenuRoutes.mjs';
 import homeLayoutRoutes from './routes/homeLayoutRoutes.mjs';
 import publicHomeLayoutRoutes from './routes/publicHomeLayoutRoutes.mjs';
+import superAdminRoutes from './routes/superAdminRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -248,6 +249,9 @@ app.use(`${API_V1}/pricing`, pricingRouter);
 
 // Feature toggle routes (v1)
 app.use(`${API_V1}/admin/features`, featureToggleRoutes);
+
+// Super admin routes (v1)
+app.use(`${API_V1}/super-admin`, superAdminRoutes);
 
 // New feature routes (v1 - protected by feature toggles)
 app.use(`${API_V1}/admin/fleet`, fleetRoutes);
