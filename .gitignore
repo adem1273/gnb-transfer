@@ -8,12 +8,19 @@ frontend/node_modules/
 .env
 .env.*
 !.env.example
+!.env.gcloud.example
 backend/.env
 backend/.env.*
 !backend/.env.example
 frontend/.env
 frontend/.env.*
 !frontend/.env.example
+
+# Google Cloud specific files
+.env.gcloud
+.env.yaml
+*.env.gcloud
+*.env.yaml
 
 # Build output
 build/
