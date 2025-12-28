@@ -17,6 +17,9 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useAuth } from '../context/AuthContext';
+import { ConfirmModal, LoadingButton } from '../components/ui';
+import { useToast } from '../components/ui/ToastProvider';
+import { handleError } from '../utils/errorHandler';
 
 // Sortable menu item component
 const SortableMenuItem = ({ item, index, onRemove, onUpdate }) => {
@@ -60,6 +63,7 @@ const SortableMenuItem = ({ item, index, onRemove, onUpdate }) => {
 const MenuManager = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [menus, setMenus] = useState([]);
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,6 +71,11 @@ const MenuManager = () => {
   const [success, setSuccess] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingMenu, setEditingMenu] = useState(null);
+  
+  // Confirmation modals
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [menuToDelete, setMenuToDelete] = useState(null);
+  const [deletingMenuId, setDeletingMenuId] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -294,15 +303,19 @@ const MenuManager = () => {
     }
   };
 
-  const handleDeleteMenu = async (menuId) => {
-    if (!window.confirm('Are you sure you want to delete this menu?')) {
-      return;
-    }
+  const handleDeleteMenuClick = (menu) => {
+    setMenuToDelete(menu);
+    setDeleteModalOpen(true);
+  };
 
+  const handleDeleteMenuConfirm = async () => {
+    if (!menuToDelete) return;
+
+    setDeletingMenuId(menuToDelete._id);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || '/api'}/admin/menus/${menuId}`,
+        `${import.meta.env.VITE_API_URL || '/api'}/admin/menus/${menuToDelete._id}`,
         {
           method: 'DELETE',
           headers: {
@@ -313,16 +326,27 @@ const MenuManager = () => {
 
       const result = await response.json();
       if (result.success) {
-        setSuccess('Menu deleted successfully');
+        toast.success(`Menu "${menuToDelete.name}" deleted successfully`);
+        setDeleteModalOpen(false);
+        setMenuToDelete(null);
         fetchMenus();
-        setTimeout(() => setSuccess(''), 3000);
       } else {
-        setError(result.message || 'Failed to delete menu');
+        const errorMsg = result.message || 'Failed to delete menu';
+        setError(errorMsg);
+        toast.error(errorMsg);
       }
     } catch (err) {
-      setError('Network error while deleting menu');
-      console.error('Delete menu error:', err);
+      const { userMessage } = handleError(err, 'deleting menu');
+      setError(userMessage);
+      toast.error(userMessage);
+    } finally {
+      setDeletingMenuId(null);
     }
+  };
+
+  const handleDeleteMenuCancel = () => {
+    setDeleteModalOpen(false);
+    setMenuToDelete(null);
   };
 
   if (loading) {
@@ -371,17 +395,21 @@ const MenuManager = () => {
               {isAdmin && (
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={() => handleEditMenu(menu)}
                     className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded"
                   >
                     Edit
                   </button>
-                  <button
-                    onClick={() => handleDeleteMenu(menu._id)}
+                  <LoadingButton
+                    type="button"
+                    onClick={() => handleDeleteMenuClick(menu)}
+                    loading={deletingMenuId === menu._id}
+                    variant="link"
                     className="px-3 py-1 text-red-600 hover:bg-red-50 rounded"
                   >
                     Delete
-                  </button>
+                  </LoadingButton>
                 </div>
               )}
             </div>
@@ -580,6 +608,17 @@ const MenuManager = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        open={deleteModalOpen}
+        title="Delete Menu"
+        message={`Are you sure you want to delete menu "${menuToDelete?.name}"? This action cannot be undone.`}
+        confirmButtonText="Delete"
+        cancelButtonText="Cancel"
+        onConfirm={handleDeleteMenuConfirm}
+        onCancel={handleDeleteMenuCancel}
+      />
     </div>
   );
 };

@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet';
 import API from '../utils/api';
 import ImageUpload from '../components/ImageUpload';
+import { ConfirmModal, LoadingButton } from '../components/ui';
+import { useToast } from '../components/ui/ToastProvider';
+import { handleError } from '../utils/errorHandler';
 
 const SUPPORTED_LANGUAGES = ['tr', 'en', 'ar', 'ru', 'de', 'fr', 'es', 'zh', 'fa'];
 const LANGUAGE_NAMES = {
@@ -29,6 +32,7 @@ const CATEGORIES = [
 
 function BlogManagement() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,6 +40,11 @@ function BlogManagement() {
   const [editingPost, setEditingPost] = useState(null);
   const [activeTab, setActiveTab] = useState('tr');
   const [filter, setFilter] = useState({ status: '', category: '' });
+  
+  // Confirmation modals
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
+  const [deletingPostId, setDeletingPostId] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -159,15 +168,33 @@ function BlogManagement() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Bu blog yazısını silmek istediğinize emin misiniz?')) return;
+  const handleDeleteClick = (post) => {
+    setPostToDelete(post);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!postToDelete) return;
+
+    setDeletingPostId(postToDelete._id);
     try {
-      await API.delete(`/blogs/${id}`);
+      await API.delete(`/blogs/${postToDelete._id}`);
+      toast.success(t('blog.deleteSuccess') || `Blog yazısı "${postToDelete.translations?.tr?.title || 'Untitled'}" silindi`);
+      setDeleteModalOpen(false);
+      setPostToDelete(null);
       fetchPosts();
     } catch (err) {
-      setError('Blog yazısı silinemedi');
-      console.error('Error deleting post:', err);
+      const { userMessage } = handleError(err, 'deleting blog post');
+      setError(userMessage);
+      toast.error(userMessage);
+    } finally {
+      setDeletingPostId(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setPostToDelete(null);
   };
 
   const resetForm = () => {
@@ -360,17 +387,21 @@ function BlogManagement() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button
+                      type="button"
                       onClick={() => handleEdit(post)}
                       className="text-blue-600 hover:text-blue-800 mr-3"
                     >
                       Düzenle
                     </button>
-                    <button
-                      onClick={() => handleDelete(post._id)}
-                      className="text-red-600 hover:text-red-800"
+                    <LoadingButton
+                      type="button"
+                      onClick={() => handleDeleteClick(post)}
+                      loading={deletingPostId === post._id}
+                      variant="link"
+                      className="text-red-600 hover:text-red-800 p-0"
                     >
                       Sil
-                    </button>
+                    </LoadingButton>
                   </td>
                 </tr>
               ))}
@@ -632,6 +663,20 @@ function BlogManagement() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        open={deleteModalOpen}
+        title={t('blog.deleteTitle') || 'Blog Yazısını Sil'}
+        message={
+          t('blog.deleteConfirm') ||
+          `"${postToDelete?.translations?.tr?.title || 'Untitled'}" blog yazısını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        }
+        confirmButtonText={t('common.delete') || 'Sil'}
+        cancelButtonText={t('common.cancel') || 'İptal'}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     </div>
   );
 }
