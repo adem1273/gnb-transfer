@@ -13,6 +13,40 @@ import logger from '../config/logger.mjs';
  */
 
 /**
+ * Sanitize request data before logging to prevent exposing sensitive information
+ * 
+ * @param {Object} data - Data to sanitize
+ * @returns {Object} - Sanitized data
+ */
+const sanitizeLogData = (data) => {
+  if (!data || typeof data !== 'object') {
+    return data;
+  }
+
+  const sensitiveFields = [
+    'password',
+    'token',
+    'secret',
+    'apiKey',
+    'accessToken',
+    'refreshToken',
+    'creditCard',
+    'ssn',
+    'cvv',
+  ];
+
+  const sanitized = { ...data };
+  
+  for (const field of sensitiveFields) {
+    if (field in sanitized) {
+      sanitized[field] = '[REDACTED]';
+    }
+  }
+
+  return sanitized;
+};
+
+/**
  * Get client IP address from request
  * Handles proxy headers (X-Forwarded-For) correctly
  * 
@@ -73,7 +107,8 @@ export const logAdminAction = (action, targetType = 'System') => {
           name: req.body?.name || req.params.id || 'N/A',
         },
         metadata: {
-          body: req.body,
+          // Filter out sensitive fields from body
+          body: sanitizeLogData(req.body),
           params: req.params,
           query: req.query,
         },

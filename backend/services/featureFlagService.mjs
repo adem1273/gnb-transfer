@@ -51,12 +51,14 @@ export const isGlobalFlagEnabled = async (flagName) => {
   try {
     const settings = await GlobalSettings.getGlobalSettings();
     if (!settings || !settings.featureFlags) {
-      return false;
+      return true; // Default to enabled if settings don't exist (backward compatibility)
     }
-    return settings.featureFlags.get(flagName) === true;
+    // Return true if flag is not set (backward compatibility) or explicitly true
+    const flagValue = settings.featureFlags.get(flagName);
+    return flagValue === undefined || flagValue === true;
   } catch (error) {
     logger.error(`Error checking global flag ${flagName}:`, error);
-    return false;
+    return true; // Default to enabled on error (fail open for backward compatibility)
   }
 };
 

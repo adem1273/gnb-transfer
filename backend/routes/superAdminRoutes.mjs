@@ -76,6 +76,33 @@ router.put(
         forceLogoutAll,
       } = req.body;
 
+      // Validate siteStatus enum
+      if (siteStatus !== undefined && !['online', 'maintenance'].includes(siteStatus)) {
+        return res.apiError('Invalid siteStatus. Must be "online" or "maintenance"', 400);
+      }
+
+      // Validate maintenanceMessage length
+      if (
+        maintenanceMessage !== undefined &&
+        typeof maintenanceMessage === 'string' &&
+        maintenanceMessage.length > 500
+      ) {
+        return res.apiError('Maintenance message cannot exceed 500 characters', 400);
+      }
+
+      // Validate boolean fields
+      const booleanFields = {
+        bookingEnabled,
+        paymentEnabled,
+        registrationsEnabled,
+        forceLogoutAll,
+      };
+      for (const [field, value] of Object.entries(booleanFields)) {
+        if (value !== undefined && typeof value !== 'boolean') {
+          return res.apiError(`${field} must be a boolean`, 400);
+        }
+      }
+
       // Build update object with only provided fields
       const updates = {};
       if (siteStatus !== undefined) updates.siteStatus = siteStatus;
