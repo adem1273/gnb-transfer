@@ -32,6 +32,10 @@ const adminLogSchema = new mongoose.Schema(
         'PAGE_CREATE',
         'PAGE_UPDATE',
         'PAGE_DELETE',
+        'SUPER_ADMIN_ACTION',
+        'KILL_SWITCH_ACTIVATED',
+        'SYSTEM_SETTINGS_UPDATE',
+        'FEATURE_FLAG_CHANGE',
       ],
     },
     user: {
@@ -48,6 +52,8 @@ const adminLogSchema = new mongoose.Schema(
     metadata: { type: mongoose.Schema.Types.Mixed }, // Additional context
     ipAddress: { type: String },
     userAgent: { type: String },
+    endpoint: { type: String }, // API endpoint that was called
+    method: { type: String }, // HTTP method (GET, POST, PUT, DELETE)
   },
   { timestamps: true }
 );

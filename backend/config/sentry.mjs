@@ -12,7 +12,7 @@
  */
 
 import * as Sentry from '@sentry/node';
-import { ProfilingIntegration } from '@sentry/profiling-node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import logger from './logger.mjs';
 
 /**
@@ -45,7 +45,7 @@ export function initSentry(app) {
       
       // Integrations
       integrations: [
-        new ProfilingIntegration(),
+        nodeProfilingIntegration(),
         new Sentry.Integrations.Http({ tracing: true }),
         new Sentry.Integrations.Express({ app }),
       ],
