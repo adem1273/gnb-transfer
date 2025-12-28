@@ -1,6 +1,6 @@
 import { Suspense, lazy } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Loading from '../components/Loading';
 
 // Lazy load super admin components

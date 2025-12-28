@@ -8,7 +8,7 @@ import ErrorMessage from '../components/ErrorMessage';
 
 /**
  * DynamicPage Component
- * 
+ *
  * Renders CMS pages dynamically based on slug
  * Supports multiple section types: text, markdown, image
  * Optimized to prevent duplicate fetches
@@ -48,7 +48,7 @@ const DynamicPage = () => {
         }
 
         const data = await response.json();
-        
+
         if (!data.success) {
           setError('serverError');
           setLoading(false);
@@ -68,7 +68,7 @@ const DynamicPage = () => {
     if (slug) {
       fetchPage();
     }
-    
+
     // Reset fetched slugs when slug changes
     return () => {
       if (!fetchedSlugsRef.current.has(slug)) {
@@ -80,28 +80,25 @@ const DynamicPage = () => {
   // Validate image URL to ensure it's from trusted sources
   const isValidImageUrl = (url) => {
     if (!url || typeof url !== 'string') return false;
-    
+
     try {
       // Allow data URLs for embedded images
       if (url.startsWith('data:image/')) return true;
-      
+
       const urlObj = new URL(url);
-      
+
       // Trusted domains with exact matching to prevent subdomain attacks
-      const trustedDomains = [
-        'res.cloudinary.com',
-        'cloudinary.com',
-      ];
-      
+      const trustedDomains = ['res.cloudinary.com', 'cloudinary.com'];
+
       // For same-origin images, check exact hostname match
       if (urlObj.hostname === window.location.hostname) {
         return true;
       }
-      
+
       // Check if hostname exactly matches or is a direct subdomain of trusted domains
-      return trustedDomains.some(domain => {
-        return urlObj.hostname === domain || urlObj.hostname.endsWith('.' + domain);
-      });
+      return trustedDomains.some(
+        (domain) => urlObj.hostname === domain || urlObj.hostname.endsWith(`.${domain}`)
+      );
     } catch {
       // Invalid URL
       return false;
@@ -114,9 +111,7 @@ const DynamicPage = () => {
       case 'text':
         return (
           <div key={index} className="prose prose-lg max-w-none mb-6">
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-              {section.content}
-            </p>
+            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{section.content}</p>
           </div>
         );
 
@@ -133,7 +128,7 @@ const DynamicPage = () => {
           console.warn('Invalid or untrusted image URL:', section.content);
           return null;
         }
-        
+
         return (
           <div key={index} className="mb-6">
             <img
@@ -169,7 +164,10 @@ const DynamicPage = () => {
             {t('errors.pageNotFound', '404 - Page Not Found')}
           </h1>
           <p className="text-gray-600 mb-8">
-            {t('errors.pageNotFoundMessage', 'The page you are looking for does not exist or has been unpublished.')}
+            {t(
+              'errors.pageNotFoundMessage',
+              'The page you are looking for does not exist or has been unpublished.'
+            )}
           </p>
           <button
             onClick={() => navigate('/')}
@@ -185,7 +183,12 @@ const DynamicPage = () => {
   if (error === 'networkError') {
     return (
       <div className="container mx-auto px-4 py-12">
-        <ErrorMessage message={t('errors.networkError', 'Unable to connect to the server. Please check your internet connection.')} />
+        <ErrorMessage
+          message={t(
+            'errors.networkError',
+            'Unable to connect to the server. Please check your internet connection.'
+          )}
+        />
         <div className="text-center mt-4">
           <button
             onClick={() => window.location.reload()}
@@ -201,7 +204,9 @@ const DynamicPage = () => {
   if (error === 'serverError') {
     return (
       <div className="container mx-auto px-4 py-12">
-        <ErrorMessage message={t('errors.serverError', 'An error occurred while loading the page.')} />
+        <ErrorMessage
+          message={t('errors.serverError', 'An error occurred while loading the page.')}
+        />
         <div className="text-center mt-4">
           <button
             onClick={() => navigate('/')}
@@ -232,26 +237,26 @@ const DynamicPage = () => {
         <meta property="og:title" content={pageTitle} />
         {pageDescription && <meta property="og:description" content={pageDescription} />}
         <meta property="og:type" content="article" />
-        
+
         {/* JSON-LD Structured Data */}
-        {page.structuredData && Array.isArray(page.structuredData) && page.structuredData.length > 0 && (
+        {page.structuredData &&
+          Array.isArray(page.structuredData) &&
+          page.structuredData.length > 0 &&
           page.structuredData.map((schema, index) => (
             <script key={index} type="application/ld+json">
               {JSON.stringify(schema)}
             </script>
-          ))
-        )}
+          ))}
       </Helmet>
 
       <article className="max-w-4xl mx-auto">
         {/* Page Title */}
         <header className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            {page.title}
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">{page.title}</h1>
           {page.updatedAt && (
             <p className="text-sm text-gray-500">
-              {t('common.lastUpdated', 'Last updated')}: {new Date(page.updatedAt).toLocaleDateString()}
+              {t('common.lastUpdated', 'Last updated')}:{' '}
+              {new Date(page.updatedAt).toLocaleDateString()}
             </p>
           )}
         </header>
@@ -261,9 +266,7 @@ const DynamicPage = () => {
           {page.sections && page.sections.length > 0 ? (
             page.sections.map((section, index) => renderSection(section, index))
           ) : (
-            <p className="text-gray-500 italic">
-              {t('cms.noContent', 'No content available.')}
-            </p>
+            <p className="text-gray-500 italic">{t('cms.noContent', 'No content available.')}</p>
           )}
         </div>
       </article>

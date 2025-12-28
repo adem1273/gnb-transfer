@@ -71,9 +71,7 @@ function ReviewManagement() {
     }
   };
 
-  const renderStars = (rating) => {
-    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
-  };
+  const renderStars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
 
   if (loading) return <Loading message="Loading reviews..." />;
 
@@ -84,14 +82,18 @@ function ReviewManagement() {
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           {error}
-          <button onClick={() => setError('')} className="float-right font-bold">×</button>
+          <button onClick={() => setError('')} className="float-right font-bold">
+            ×
+          </button>
         </div>
       )}
 
       {success && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
           {success}
-          <button onClick={() => setSuccess('')} className="float-right font-bold">×</button>
+          <button onClick={() => setSuccess('')} className="float-right font-bold">
+            ×
+          </button>
         </div>
       )}
 
@@ -136,7 +138,9 @@ function ReviewManagement() {
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
-                  <span className="w-16 text-sm text-gray-600">{count} ({percentage.toFixed(0)}%)</span>
+                  <span className="w-16 text-sm text-gray-600">
+                    {count} ({percentage.toFixed(0)}%)
+                  </span>
                 </div>
               );
             })}
@@ -185,12 +189,17 @@ function ReviewManagement() {
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <span className="text-xl text-yellow-500">{renderStars(review.rating)}</span>
-                  <span className={`px-2 py-1 text-xs rounded ${
-                    review.status === 'approved' ? 'bg-green-100 text-green-800' :
-                    review.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    review.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 text-xs rounded ${
+                      review.status === 'approved'
+                        ? 'bg-green-100 text-green-800'
+                        : review.status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : review.status === 'rejected'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
                     {review.status}
                   </span>
                   {review.showOnHomepage && (
@@ -200,7 +209,8 @@ function ReviewManagement() {
                   )}
                 </div>
                 <p className="text-sm text-gray-500">
-                  By {review.user?.name || 'Anonymous'} • {new Date(review.createdAt).toLocaleDateString()}
+                  By {review.user?.name || 'Anonymous'} •{' '}
+                  {new Date(review.createdAt).toLocaleDateString()}
                 </p>
                 {review.title && <h3 className="font-semibold mt-2">{review.title}</h3>}
                 <p className="text-gray-700 mt-2">{review.comment || 'No comment provided'}</p>
@@ -210,7 +220,9 @@ function ReviewManagement() {
                   <div className="mt-3 flex gap-4 text-sm text-gray-600">
                     {review.driverRating && <span>Driver: {review.driverRating}⭐</span>}
                     {review.vehicleRating && <span>Vehicle: {review.vehicleRating}⭐</span>}
-                    {review.punctualityRating && <span>Punctuality: {review.punctualityRating}⭐</span>}
+                    {review.punctualityRating && (
+                      <span>Punctuality: {review.punctualityRating}⭐</span>
+                    )}
                   </div>
                 )}
 
@@ -243,7 +255,9 @@ function ReviewManagement() {
                 )}
                 {review.status === 'approved' && (
                   <button
-                    onClick={() => updateReviewStatus(review._id, 'approved', !review.showOnHomepage)}
+                    onClick={() =>
+                      updateReviewStatus(review._id, 'approved', !review.showOnHomepage)
+                    }
                     className={`px-3 py-1 text-sm rounded ${
                       review.showOnHomepage
                         ? 'bg-gray-200 text-gray-700'
@@ -271,9 +285,7 @@ function ReviewManagement() {
         ))}
 
         {reviews.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            No reviews found
-          </div>
+          <div className="text-center py-12 text-gray-500">No reviews found</div>
         )}
       </div>
 
@@ -302,7 +314,13 @@ function ReviewManagement() {
                 Cancel
               </button>
               <button
-                onClick={() => updateReviewStatus(selectedReview._id, selectedReview.status, selectedReview.showOnHomepage)}
+                onClick={() =>
+                  updateReviewStatus(
+                    selectedReview._id,
+                    selectedReview.status,
+                    selectedReview.showOnHomepage
+                  )
+                }
                 className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
               >
                 Submit Response

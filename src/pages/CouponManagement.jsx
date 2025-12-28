@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import API from '../utils/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
+import { ConfirmModal, LoadingButton } from '../components/ui';
+import { useToast } from '../components/ui/ToastProvider';
+import { handleError } from '../utils/errorHandler';
 
 function CouponManagement() {
   const [coupons, setCoupons] = useState([]);
@@ -21,6 +24,13 @@ function CouponManagement() {
     validUntil: '',
     active: true,
   });
+  
+  // Confirmation modals
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [couponToDelete, setCouponToDelete] = useState(null);
+  const [deletingCouponId, setDeletingCouponId] = useState(null);
+
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchCoupons();
@@ -52,9 +62,10 @@ function CouponManagement() {
       setEditingCoupon(null);
       resetForm();
       fetchCoupons();
+      toast.success(editingCoupon ? 'Coupon updated successfully' : 'Coupon created successfully');
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.error || 'Failed to save coupon');
+      const { userMessage } = handleError(err, 'saving coupon');
+      toast.error(userMessage);
     }
   };
 
@@ -75,16 +86,32 @@ function CouponManagement() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this coupon?')) return;
+  const handleDeleteClick = (coupon) => {
+    setCouponToDelete(coupon);
+    setDeleteModalOpen(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!couponToDelete) return;
+
+    setDeletingCouponId(couponToDelete._id);
     try {
-      await API.delete(`/coupons/${id}`);
+      await API.delete(`/coupons/${couponToDelete._id}`);
+      toast.success(`Coupon "${couponToDelete.code}" deleted successfully`);
+      setDeleteModalOpen(false);
+      setCouponToDelete(null);
       fetchCoupons();
     } catch (err) {
-      console.error(err);
-      alert('Failed to delete coupon');
+      const { userMessage } = handleError(err, 'deleting coupon');
+      toast.error(userMessage);
+    } finally {
+      setDeletingCouponId(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setCouponToDelete(null);
   };
 
   const resetForm = () => {
@@ -306,23 +333,38 @@ function CouponManagement() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
+                    type="button"
                     onClick={() => handleEdit(coupon)}
                     className="text-blue-600 hover:text-blue-900 mr-3"
                   >
                     Edit
                   </button>
-                  <button
-                    onClick={() => handleDelete(coupon._id)}
-                    className="text-red-600 hover:text-red-900"
+                  <LoadingButton
+                    type="button"
+                    onClick={() => handleDeleteClick(coupon)}
+                    loading={deletingCouponId === coupon._id}
+                    variant="link"
+                    className="text-red-600 hover:text-red-900 p-0"
                   >
                     Delete
-                  </button>
+                  </LoadingButton>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        open={deleteModalOpen}
+        title="Delete Coupon"
+        message={`Are you sure you want to delete coupon "${couponToDelete?.code}"? This action cannot be undone.`}
+        confirmButtonText="Delete"
+        cancelButtonText="Cancel"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     </div>
   );
 }

@@ -4,14 +4,10 @@
  */
 
 // Check if Google Analytics is loaded
-const isGALoaded = () => {
-  return typeof window !== 'undefined' && typeof window.gtag === 'function';
-};
+const isGALoaded = () => typeof window !== 'undefined' && typeof window.gtag === 'function';
 
 // Check if Microsoft Clarity is loaded
-const isClarityLoaded = () => {
-  return typeof window !== 'undefined' && typeof window.clarity === 'function';
-};
+const isClarityLoaded = () => typeof window !== 'undefined' && typeof window.clarity === 'function';
 
 /**
  * Initialize Google Analytics 4
@@ -61,7 +57,7 @@ export const initClarity = (projectId) => {
       };
     t = l.createElement(r);
     t.async = 1;
-    t.src = 'https://www.clarity.ms/tag/' + i;
+    t.src = `https://www.clarity.ms/tag/${i}`;
     y = l.getElementsByTagName(r)[0];
     y.parentNode.insertBefore(t, y);
   })(window, document, 'clarity', 'script', projectId);
@@ -158,7 +154,7 @@ export const trackBookingComplete = (bookingId, tourName, tourPrice, paymentMeth
 export const trackPaymentSuccess = (bookingId, amount, method) => {
   trackEvent('payment_success', {
     booking_id: bookingId,
-    amount: amount,
+    amount,
     currency: 'EUR',
     payment_method: method,
   });
@@ -221,7 +217,7 @@ export const trackSocialShare = (platform, content) => {
 
 export const trackChatInteraction = (action, duration) => {
   trackEvent('chat_interaction', {
-    action: action,
+    action,
     duration_seconds: duration,
   });
 };
@@ -229,7 +225,7 @@ export const trackChatInteraction = (action, duration) => {
 export const trackUpsellClick = (productName, location) => {
   trackEvent('upsell_click', {
     product_name: productName,
-    location: location,
+    location,
   });
 };
 
@@ -283,8 +279,8 @@ export const trackError = (description, fatal = false) => {
   // Google Analytics
   if (isGALoaded()) {
     window.gtag('event', 'exception', {
-      description: description,
-      fatal: fatal,
+      description,
+      fatal,
     });
   }
 
@@ -302,7 +298,7 @@ export const trackTiming = (category, variable, value) => {
   if (isGALoaded()) {
     window.gtag('event', 'timing_complete', {
       name: variable,
-      value: value,
+      value,
       event_category: category,
     });
   }

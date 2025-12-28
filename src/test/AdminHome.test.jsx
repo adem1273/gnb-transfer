@@ -26,12 +26,8 @@ const renderAdminHome = (user = { role: 'admin' }) => {
       login: vi.fn(),
       logout: vi.fn(),
     };
-    
-    return (
-      <AuthProvider value={authValue}>
-        {children}
-      </AuthProvider>
-    );
+
+    return <AuthProvider value={authValue}>{children}</AuthProvider>;
   };
 
   return render(

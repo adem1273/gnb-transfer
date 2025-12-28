@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
 import {
   DndContext,
   closestCenter,
@@ -17,6 +16,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useAuth } from '../context/AuthContext';
 
 // Sortable section component
 const SortableSection = ({ section, index, onRemove, onUpdate, onToggleActive }) => {
@@ -114,10 +114,7 @@ const SectionEditorModal = ({ section, onSave, onCancel }) => {
           {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
         </div>
         <div className="flex justify-end gap-2">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 border rounded hover:bg-gray-50"
-          >
+          <button onClick={onCancel} className="px-4 py-2 border rounded hover:bg-gray-50">
             Cancel
           </button>
           <button
@@ -179,14 +176,11 @@ const HomeLayoutBuilder = () => {
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || '/api'}/admin/home-layouts`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/admin/home-layouts`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const result = await response.json();
 
@@ -257,22 +251,19 @@ const HomeLayoutBuilder = () => {
         isActive: s.isActive !== false,
       }));
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || '/api'}/admin/home-layouts`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: formData.name,
-            description: formData.description,
-            sections,
-            seo: formData.seo,
-          }),
-        }
-      );
+      const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/admin/home-layouts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          sections,
+          seo: formData.seo,
+        }),
+      });
 
       const result = await response.json();
 
@@ -283,7 +274,12 @@ const HomeLayoutBuilder = () => {
       setSuccess('Layout created successfully');
       setShowCreateModal(false);
       fetchLayouts();
-      setFormData({ name: '', description: '', sections: [], seo: { title: '', description: '', keywords: [] } });
+      setFormData({
+        name: '',
+        description: '',
+        sections: [],
+        seo: { title: '', description: '', keywords: [] },
+      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -399,7 +395,12 @@ const HomeLayoutBuilder = () => {
       setSuccess('Layout deleted successfully');
       if (currentLayout?._id === layoutId) {
         setCurrentLayout(null);
-        setFormData({ name: '', description: '', sections: [], seo: { title: '', description: '', keywords: [] } });
+        setFormData({
+          name: '',
+          description: '',
+          sections: [],
+          seo: { title: '', description: '', keywords: [] },
+        });
       }
       fetchLayouts();
     } catch (err) {
@@ -751,7 +752,12 @@ const HomeLayoutBuilder = () => {
               <button
                 onClick={() => {
                   setShowCreateModal(false);
-                  setFormData({ name: '', description: '', sections: [], seo: { title: '', description: '', keywords: [] } });
+                  setFormData({
+                    name: '',
+                    description: '',
+                    sections: [],
+                    seo: { title: '', description: '', keywords: [] },
+                  });
                 }}
                 className="px-4 py-2 border rounded hover:bg-gray-50"
               >

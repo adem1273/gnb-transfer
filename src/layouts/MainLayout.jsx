@@ -1,9 +1,9 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import LiveChat from '../components/LiveChat';
-import { useTranslation } from 'react-i18next';
 
 const MainLayout = () => {
   const { t } = useTranslation();

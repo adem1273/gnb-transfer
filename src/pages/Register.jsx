@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import API from '../utils/api';
 import { useTranslation } from 'react-i18next';
+import API from '../utils/api';
 
 function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });

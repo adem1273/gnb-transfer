@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import API from '../utils/api';
 import { useTranslation } from 'react-i18next';
+import API from '../utils/api';
 import SEO from './SEO';
 import BlogCTA from './BlogCTA';
 import { generateArticleSchema, generateBreadcrumbSchema } from '../utils/seoHelpers';
@@ -50,7 +50,7 @@ function BlogPost() {
     let url = '';
     switch (platform) {
       case 'whatsapp':
-        url = `https://wa.me/?text=${encodeURIComponent(shareTitle + ' ' + shareUrl)}`;
+        url = `https://wa.me/?text=${encodeURIComponent(`${shareTitle} ${shareUrl}`)}`;
         break;
       case 'twitter':
         url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`;
@@ -94,18 +94,16 @@ function BlogPost() {
         <h1 className="text-2xl font-bold text-gray-900 mb-4">
           {t('blog.notFound') || 'Yazı bulunamadı'}
         </h1>
-        <Link
-          to="/blog"
-          className="text-blue-600 hover:text-blue-700 font-medium"
-        >
-          {t('blog.backToBlog') || '← Blog\'a Dön'}
+        <Link to="/blog" className="text-blue-600 hover:text-blue-700 font-medium">
+          {t('blog.backToBlog') || "← Blog'a Dön"}
         </Link>
       </div>
     );
   }
 
   // SEO data
-  const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://gnbtransfer.com';
+  const siteUrl =
+    typeof window !== 'undefined' ? window.location.origin : 'https://gnbtransfer.com';
   const postUrl = `${siteUrl}/blog/${post.slug}`;
   const pageTitle = post.metaTitle || post.title;
   const pageDescription = post.metaDescription || post.excerpt || post.title;
@@ -161,9 +159,13 @@ function BlogPost() {
         <div className="bg-white rounded-xl shadow-xl p-6 md:p-10 mb-8">
           {/* Breadcrumb */}
           <nav className="text-sm text-gray-500 mb-4">
-            <Link to="/" className="hover:text-blue-600">{t('header.home') || 'Ana Sayfa'}</Link>
+            <Link to="/" className="hover:text-blue-600">
+              {t('header.home') || 'Ana Sayfa'}
+            </Link>
             <span className="mx-2">/</span>
-            <Link to="/blog" className="hover:text-blue-600">Blog</Link>
+            <Link to="/blog" className="hover:text-blue-600">
+              Blog
+            </Link>
             <span className="mx-2">/</span>
             <span className="text-gray-700">{post.title.substring(0, 30)}...</span>
           </nav>
@@ -194,15 +196,30 @@ function BlogPost() {
             {post.readingTime && (
               <span className="flex items-center">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 {post.readingTime} {t('blog.minRead') || 'dk okuma'}
               </span>
             )}
             <span className="flex items-center">
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
               </svg>
               {post.views} {t('blog.views') || 'görüntülenme'}
             </span>
@@ -253,7 +270,12 @@ function BlogPost() {
               title={t('blog.copyLink') || 'Linki Kopyala'}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
               </svg>
             </button>
           </div>
@@ -290,11 +312,13 @@ function BlogPost() {
                 {t('blog.ctaBoxTitle') || 'VIP Transfer Rezervasyonu'}
               </h3>
               <p className="text-blue-100 mb-4">
-                {t('blog.ctaBoxDescription') || `${post.pricingInfo?.startingPrice || 75}${post.pricingInfo?.currency || '$'}'dan başlayan fiyatlarla profesyonel transfer hizmeti!`}
+                {t('blog.ctaBoxDescription') ||
+                  `${post.pricingInfo?.startingPrice || 75}${post.pricingInfo?.currency || '$'}'dan başlayan fiyatlarla profesyonel transfer hizmeti!`}
               </p>
               {post.pricingInfo?.discountCode && (
                 <p className="text-sm text-blue-200 mb-4">
-                  {t('blog.discountCode') || 'İndirim Kodu'}: <strong className="text-white">{post.pricingInfo.discountCode}</strong>
+                  {t('blog.discountCode') || 'İndirim Kodu'}:{' '}
+                  <strong className="text-white">{post.pricingInfo.discountCode}</strong>
                 </p>
               )}
               <div className="flex flex-wrap gap-3">
@@ -306,8 +330,8 @@ function BlogPost() {
                       cta.style === 'whatsapp'
                         ? 'bg-green-500 hover:bg-green-600 text-white'
                         : cta.style === 'secondary'
-                        ? 'bg-white/20 hover:bg-white/30 text-white'
-                        : 'bg-white text-blue-600 hover:bg-gray-100'
+                          ? 'bg-white/20 hover:bg-white/30 text-white'
+                          : 'bg-white text-blue-600 hover:bg-gray-100'
                     }`}
                   >
                     {cta.text}
@@ -365,11 +389,7 @@ function BlogPost() {
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
               {relatedPosts.map((relatedPost) => (
-                <Link
-                  key={relatedPost._id}
-                  to={`/blog/${relatedPost.slug}`}
-                  className="group"
-                >
+                <Link key={relatedPost._id} to={`/blog/${relatedPost.slug}`} className="group">
                   <div className="aspect-video rounded-lg overflow-hidden mb-3">
                     <img
                       src={relatedPost.featuredImage}
@@ -397,9 +417,14 @@ function BlogPost() {
             className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
             </svg>
-            {t('blog.backToBlog') || 'Blog\'a Dön'}
+            {t('blog.backToBlog') || "Blog'a Dön"}
           </Link>
         </div>
       </article>

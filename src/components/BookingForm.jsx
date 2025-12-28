@@ -102,7 +102,7 @@ function BookingForm({ onSubmit, tours = [], initialTourId = '' }) {
         });
 
         if (campaignResponse.data?.success && campaignResponse.data?.data?.bestCampaign) {
-          const bestCampaign = campaignResponse.data.data.bestCampaign;
+          const { bestCampaign } = campaignResponse.data.data;
           discountAmount = bestCampaign.calculatedDiscount || 0;
           campaign = {
             name: bestCampaign.name,
@@ -142,7 +142,15 @@ function BookingForm({ onSubmit, tours = [], initialTourId = '' }) {
       setDiscount(0);
       setAppliedCampaign(null);
     }
-  }, [formData.tourId, formData.guests, formData.discountCode, formData.date, formData.pickupLocation, tours, validateDiscountCode]);
+  }, [
+    formData.tourId,
+    formData.guests,
+    formData.discountCode,
+    formData.date,
+    formData.pickupLocation,
+    tours,
+    validateDiscountCode,
+  ]);
 
   useEffect(() => {
     calculatePrice();
@@ -513,12 +521,14 @@ function BookingForm({ onSubmit, tours = [], initialTourId = '' }) {
                           <div className="text-xs text-green-700 bg-green-100 px-2 py-1 rounded">
                             {appliedCampaign.type === 'automatic' ? (
                               <>
-                                🎉 {t('booking.campaignApplied') || 'Campaign Applied'}: {appliedCampaign.name}
+                                🎉 {t('booking.campaignApplied') || 'Campaign Applied'}:{' '}
+                                {appliedCampaign.name}
                                 {appliedCampaign.code && ` (${appliedCampaign.code})`}
                               </>
                             ) : (
                               <>
-                                ✓ {t('booking.couponApplied') || 'Coupon Applied'}: {appliedCampaign.code}
+                                ✓ {t('booking.couponApplied') || 'Coupon Applied'}:{' '}
+                                {appliedCampaign.code}
                               </>
                             )}
                           </div>

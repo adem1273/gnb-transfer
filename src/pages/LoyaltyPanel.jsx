@@ -53,7 +53,10 @@ function LoyaltyPanel() {
   const handleAwardBonus = async (e) => {
     e.preventDefault();
     try {
-      const userIds = bonusForm.userIds.split(',').map((id) => id.trim()).filter(Boolean);
+      const userIds = bonusForm.userIds
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean);
       await API.post('/loyalty/award-bonus', {
         userIds,
         points: parseInt(bonusForm.points),
@@ -70,10 +73,14 @@ function LoyaltyPanel() {
 
   const getTierColor = (tier) => {
     switch (tier) {
-      case 'platinum': return 'bg-gradient-to-r from-gray-400 to-gray-600 text-white';
-      case 'gold': return 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white';
-      case 'silver': return 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800';
-      default: return 'bg-gradient-to-r from-orange-300 to-orange-500 text-white';
+      case 'platinum':
+        return 'bg-gradient-to-r from-gray-400 to-gray-600 text-white';
+      case 'gold':
+        return 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white';
+      case 'silver':
+        return 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800';
+      default:
+        return 'bg-gradient-to-r from-orange-300 to-orange-500 text-white';
     }
   };
 
@@ -102,14 +109,18 @@ function LoyaltyPanel() {
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           {error}
-          <button onClick={() => setError('')} className="float-right font-bold">×</button>
+          <button onClick={() => setError('')} className="float-right font-bold">
+            ×
+          </button>
         </div>
       )}
 
       {success && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
           {success}
-          <button onClick={() => setSuccess('')} className="float-right font-bold">×</button>
+          <button onClick={() => setSuccess('')} className="float-right font-bold">
+            ×
+          </button>
         </div>
       )}
 
@@ -118,23 +129,33 @@ function LoyaltyPanel() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="bg-gradient-to-br from-purple-500 to-purple-700 text-white p-6 rounded-lg shadow-lg">
             <div className="text-sm opacity-90">Total Members</div>
-            <div className="text-3xl font-bold mt-2">{stats.summary.totalMembers?.toLocaleString()}</div>
+            <div className="text-3xl font-bold mt-2">
+              {stats.summary.totalMembers?.toLocaleString()}
+            </div>
           </div>
           <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white p-6 rounded-lg shadow-lg">
             <div className="text-sm opacity-90">Total Points Issued</div>
-            <div className="text-3xl font-bold mt-2">{stats.summary.totalPointsIssued?.toLocaleString()}</div>
+            <div className="text-3xl font-bold mt-2">
+              {stats.summary.totalPointsIssued?.toLocaleString()}
+            </div>
           </div>
           <div className="bg-gradient-to-br from-green-500 to-green-700 text-white p-6 rounded-lg shadow-lg">
             <div className="text-sm opacity-90">Available Points</div>
-            <div className="text-3xl font-bold mt-2">{stats.summary.totalPointsAvailable?.toLocaleString()}</div>
+            <div className="text-3xl font-bold mt-2">
+              {stats.summary.totalPointsAvailable?.toLocaleString()}
+            </div>
           </div>
           <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 text-white p-6 rounded-lg shadow-lg">
             <div className="text-sm opacity-90">Total Rides</div>
-            <div className="text-3xl font-bold mt-2">{stats.summary.totalRides?.toLocaleString()}</div>
+            <div className="text-3xl font-bold mt-2">
+              {stats.summary.totalRides?.toLocaleString()}
+            </div>
           </div>
           <div className="bg-gradient-to-br from-pink-500 to-pink-700 text-white p-6 rounded-lg shadow-lg">
             <div className="text-sm opacity-90">Avg Points/Member</div>
-            <div className="text-3xl font-bold mt-2">{Math.round(stats.summary.avgPointsPerMember || 0)}</div>
+            <div className="text-3xl font-bold mt-2">
+              {Math.round(stats.summary.avgPointsPerMember || 0)}
+            </div>
           </div>
         </div>
       )}
@@ -171,7 +192,10 @@ function LoyaltyPanel() {
             <h2 className="text-xl font-semibold mb-4">Rewards Overview</h2>
             <div className="space-y-3">
               {stats.rewardStats.map((reward) => (
-                <div key={reward._id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div
+                  key={reward._id}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded"
+                >
                   <span className="font-medium capitalize">{reward._id?.replace('_', ' ')}</span>
                   <div className="flex gap-4">
                     <span className="text-green-600">✓ Earned: {reward.earned}</span>
@@ -194,24 +218,48 @@ function LoyaltyPanel() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tier</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Lifetime Points</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Available</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Rides</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Rank
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Member
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Tier
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Lifetime Points
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Available
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Rides
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {leaderboard.map((member, index) => (
                 <tr key={member._id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
-                    <span className={`text-lg ${
-                      index === 0 ? 'text-yellow-500' :
-                      index === 1 ? 'text-gray-400' :
-                      index === 2 ? 'text-orange-500' : ''
-                    }`}>
-                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                    <span
+                      className={`text-lg ${
+                        index === 0
+                          ? 'text-yellow-500'
+                          : index === 1
+                            ? 'text-gray-400'
+                            : index === 2
+                              ? 'text-orange-500'
+                              : ''
+                      }`}
+                    >
+                      {index === 0
+                        ? '🥇'
+                        : index === 1
+                          ? '🥈'
+                          : index === 2
+                            ? '🥉'
+                            : `#${index + 1}`}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -219,7 +267,9 @@ function LoyaltyPanel() {
                     <div className="text-xs text-gray-500">{member.user?.email}</div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-1 text-xs rounded font-medium ${getTierColor(member.tier)}`}>
+                    <span
+                      className={`px-2 py-1 text-xs rounded font-medium ${getTierColor(member.tier)}`}
+                    >
                       {member.tier?.toUpperCase()}
                     </span>
                   </td>
@@ -229,9 +279,7 @@ function LoyaltyPanel() {
                   <td className="px-4 py-3 text-right">
                     {member.availablePoints?.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    {member.totalRides}
-                  </td>
+                  <td className="px-4 py-3 text-right">{member.totalRides}</td>
                 </tr>
               ))}
               {leaderboard.length === 0 && (

@@ -14,7 +14,7 @@ function BlogManager() {
   const [showForm, setShowForm] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [filter, setFilter] = useState({ status: '', category: '' });
-  
+
   // Confirmation modals
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
@@ -22,7 +22,7 @@ function BlogManager() {
   const [postToPublish, setPostToPublish] = useState(null);
   const [deletingPostId, setDeletingPostId] = useState(null);
   const [publishingPostId, setPublishingPostId] = useState(null);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -70,7 +70,10 @@ function BlogManager() {
       setError('');
       const payload = {
         ...formData,
-        tags: formData.tags.split(',').map((t) => t.trim()).filter(Boolean),
+        tags: formData.tags
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean),
       };
 
       if (editingPost) {
@@ -99,7 +102,7 @@ function BlogManager() {
 
   const deletePost = async () => {
     if (!postToDelete) return;
-    
+
     setDeletingPostId(postToDelete._id);
     try {
       await API.delete(`/blog/${postToDelete._id}`);
@@ -122,12 +125,16 @@ function BlogManager() {
 
   const togglePublish = async () => {
     if (!postToPublish) return;
-    
+
     setPublishingPostId(postToPublish._id);
     try {
       const newStatus = postToPublish.status !== 'published';
       await API.patch(`/blog/${postToPublish._id}/publish`, { publish: newStatus });
-      toast.success(postToPublish.status === 'published' ? 'Post unpublished successfully' : 'Post published successfully');
+      toast.success(
+        postToPublish.status === 'published'
+          ? 'Post unpublished successfully'
+          : 'Post published successfully'
+      );
       setPublishModalOpen(false);
       setPostToPublish(null);
       fetchPosts();
@@ -185,14 +192,13 @@ function BlogManager() {
     }
   };
 
-  const generateSlug = (title) => {
-    return title
+  const generateSlug = (title) =>
+    title
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .substring(0, 100);
-  };
 
   if (loading && !showForm) return <Loading message="Loading posts..." />;
 
@@ -215,21 +221,27 @@ function BlogManager() {
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           {error}
-          <button onClick={() => setError('')} className="float-right font-bold">×</button>
+          <button onClick={() => setError('')} className="float-right font-bold">
+            ×
+          </button>
         </div>
       )}
 
       {success && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
           {success}
-          <button onClick={() => setSuccess('')} className="float-right font-bold">×</button>
+          <button onClick={() => setSuccess('')} className="float-right font-bold">
+            ×
+          </button>
         </div>
       )}
 
       {/* Post Editor */}
       {showForm && (
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">{editingPost ? 'Edit Post' : 'Create New Post'}</h2>
+          <h2 className="text-xl font-semibold mb-4">
+            {editingPost ? 'Edit Post' : 'Create New Post'}
+          </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -330,14 +342,18 @@ function BlogManager() {
               <h3 className="font-medium mb-3">🔍 SEO Settings</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Meta Title (max 70 chars)</label>
+                  <label className="block text-sm font-medium mb-1">
+                    Meta Title (max 70 chars)
+                  </label>
                   <input
                     type="text"
                     value={formData.seo.metaTitle}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      seo: { ...formData.seo, metaTitle: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        seo: { ...formData.seo, metaTitle: e.target.value },
+                      })
+                    }
                     className="w-full border rounded px-3 py-2"
                     maxLength={70}
                   />
@@ -348,25 +364,33 @@ function BlogManager() {
                   <input
                     type="text"
                     value={formData.seo.focusKeyword}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      seo: { ...formData.seo, focusKeyword: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        seo: { ...formData.seo, focusKeyword: e.target.value },
+                      })
+                    }
                     className="w-full border rounded px-3 py-2"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-1">Meta Description (max 160 chars)</label>
+                  <label className="block text-sm font-medium mb-1">
+                    Meta Description (max 160 chars)
+                  </label>
                   <textarea
                     value={formData.seo.metaDescription}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      seo: { ...formData.seo, metaDescription: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        seo: { ...formData.seo, metaDescription: e.target.value },
+                      })
+                    }
                     className="w-full border rounded px-3 py-2 h-16"
                     maxLength={160}
                   />
-                  <p className="text-xs text-gray-500 mt-1">{formData.seo.metaDescription.length}/160</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.seo.metaDescription.length}/160
+                  </p>
                 </div>
               </div>
             </div>
@@ -435,12 +459,24 @@ function BlogManager() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Views</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Title
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Category
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Views
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Date
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -454,11 +490,15 @@ function BlogManager() {
                     <span className="px-2 py-1 text-xs bg-gray-100 rounded">{post.category}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      post.status === 'published' ? 'bg-green-100 text-green-800' :
-                      post.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 text-xs rounded ${
+                        post.status === 'published'
+                          ? 'bg-green-100 text-green-800'
+                          : post.status === 'draft'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
                       {post.status}
                     </span>
                   </td>

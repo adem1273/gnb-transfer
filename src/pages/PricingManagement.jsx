@@ -250,14 +250,18 @@ function PricingManagement() {
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
-          <button onClick={() => setError('')} className="float-right font-bold">×</button>
+          <button onClick={() => setError('')} className="float-right font-bold">
+            ×
+          </button>
         </div>
       )}
 
       {success && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
           {success}
-          <button onClick={() => setSuccess('')} className="float-right font-bold">×</button>
+          <button onClick={() => setSuccess('')} className="float-right font-bold">
+            ×
+          </button>
         </div>
       )}
 
@@ -329,7 +333,9 @@ function PricingManagement() {
                   <input
                     type="text"
                     value={pricingForm.destination}
-                    onChange={(e) => setPricingForm({ ...pricingForm, destination: e.target.value })}
+                    onChange={(e) =>
+                      setPricingForm({ ...pricingForm, destination: e.target.value })
+                    }
                     className="w-full border rounded px-3 py-2"
                     required
                     placeholder="e.g., Taksim"
@@ -339,7 +345,9 @@ function PricingManagement() {
                   <label className="block text-sm font-medium mb-1">Destination Type</label>
                   <select
                     value={pricingForm.destinationType}
-                    onChange={(e) => setPricingForm({ ...pricingForm, destinationType: e.target.value })}
+                    onChange={(e) =>
+                      setPricingForm({ ...pricingForm, destinationType: e.target.value })
+                    }
                     className="w-full border rounded px-3 py-2"
                   >
                     <option value="airport">Airport</option>
@@ -354,10 +362,12 @@ function PricingManagement() {
                     type="number"
                     step="0.01"
                     value={pricingForm.prices.sedan}
-                    onChange={(e) => setPricingForm({
-                      ...pricingForm,
-                      prices: { ...pricingForm.prices, sedan: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setPricingForm({
+                        ...pricingForm,
+                        prices: { ...pricingForm.prices, sedan: e.target.value },
+                      })
+                    }
                     className="w-full border rounded px-3 py-2"
                     required
                   />
@@ -368,10 +378,12 @@ function PricingManagement() {
                     type="number"
                     step="0.01"
                     value={pricingForm.prices.minivan}
-                    onChange={(e) => setPricingForm({
-                      ...pricingForm,
-                      prices: { ...pricingForm.prices, minivan: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setPricingForm({
+                        ...pricingForm,
+                        prices: { ...pricingForm.prices, minivan: e.target.value },
+                      })
+                    }
                     className="w-full border rounded px-3 py-2"
                     required
                   />
@@ -382,10 +394,12 @@ function PricingManagement() {
                     type="number"
                     step="0.01"
                     value={pricingForm.prices.vip}
-                    onChange={(e) => setPricingForm({
-                      ...pricingForm,
-                      prices: { ...pricingForm.prices, vip: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setPricingForm({
+                        ...pricingForm,
+                        prices: { ...pricingForm.prices, vip: e.target.value },
+                      })
+                    }
                     className="w-full border rounded px-3 py-2"
                     required
                   />
@@ -405,7 +419,9 @@ function PricingManagement() {
                   <input
                     type="number"
                     value={pricingForm.estimatedDuration}
-                    onChange={(e) => setPricingForm({ ...pricingForm, estimatedDuration: e.target.value })}
+                    onChange={(e) =>
+                      setPricingForm({ ...pricingForm, estimatedDuration: e.target.value })
+                    }
                     className="w-full border rounded px-3 py-2"
                   />
                 </div>
@@ -420,7 +436,10 @@ function PricingManagement() {
                 </div>
               </div>
               <div className="mt-4 flex gap-2">
-                <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
                   {editingPricing ? 'Update' : 'Create'}
                 </button>
               </div>
@@ -432,40 +451,74 @@ function PricingManagement() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sedan</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Minivan</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">VIP</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Distance</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Route
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Sedan
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Minivan
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    VIP
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Distance
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {pricings.map((pricing) => (
                   <tr key={pricing._id}>
                     <td className="px-4 py-3">
-                      <div className="font-medium">{pricing.origin} → {pricing.destination}</div>
-                      <div className="text-xs text-gray-500">{pricing.originType} → {pricing.destinationType}</div>
+                      <div className="font-medium">
+                        {pricing.origin} → {pricing.destination}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {pricing.originType} → {pricing.destinationType}
+                      </div>
                     </td>
                     <td className="px-4 py-3">${pricing.prices.sedan}</td>
                     <td className="px-4 py-3">${pricing.prices.minivan}</td>
                     <td className="px-4 py-3">${pricing.prices.vip}</td>
-                    <td className="px-4 py-3">{pricing.distanceKm ? `${pricing.distanceKm} km` : '-'}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 text-xs rounded ${pricing.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {pricing.distanceKm ? `${pricing.distanceKm} km` : '-'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2 py-1 text-xs rounded ${pricing.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                      >
                         {pricing.active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => editPricing(pricing)} className="text-blue-600 hover:text-blue-800 mr-2">Edit</button>
-                      <button onClick={() => deletePricing(pricing._id)} className="text-red-600 hover:text-red-800">Delete</button>
+                      <button
+                        onClick={() => editPricing(pricing)}
+                        className="text-blue-600 hover:text-blue-800 mr-2"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deletePricing(pricing._id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
                 {pricings.length === 0 && (
                   <tr>
-                    <td colSpan="7" className="px-4 py-8 text-center text-gray-500">No pricing routes found</td>
+                    <td colSpan="7" className="px-4 py-8 text-center text-gray-500">
+                      No pricing routes found
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -510,7 +563,9 @@ function PricingManagement() {
                   <input
                     type="text"
                     value={serviceForm.code}
-                    onChange={(e) => setServiceForm({ ...serviceForm, code: e.target.value.toUpperCase() })}
+                    onChange={(e) =>
+                      setServiceForm({ ...serviceForm, code: e.target.value.toUpperCase() })
+                    }
                     className="w-full border rounded px-3 py-2"
                     required
                     placeholder="e.g., CHILD_SEAT"
@@ -559,7 +614,9 @@ function PricingManagement() {
                   <input
                     type="number"
                     value={serviceForm.maxQuantity}
-                    onChange={(e) => setServiceForm({ ...serviceForm, maxQuantity: e.target.value })}
+                    onChange={(e) =>
+                      setServiceForm({ ...serviceForm, maxQuantity: e.target.value })
+                    }
                     className="w-full border rounded px-3 py-2"
                     min="1"
                   />
@@ -569,7 +626,9 @@ function PricingManagement() {
                   <input
                     type="text"
                     value={serviceForm.description}
-                    onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
+                    onChange={(e) =>
+                      setServiceForm({ ...serviceForm, description: e.target.value })
+                    }
                     className="w-full border rounded px-3 py-2"
                     placeholder="Optional description"
                   />
@@ -585,7 +644,10 @@ function PricingManagement() {
                 </div>
               </div>
               <div className="mt-4">
-                <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
                   {editingService ? 'Update' : 'Create'}
                 </button>
               </div>
@@ -601,18 +663,32 @@ function PricingManagement() {
                     <h3 className="font-semibold">{service.name}</h3>
                     <p className="text-sm text-gray-500">{service.code}</p>
                   </div>
-                  <span className={`px-2 py-1 text-xs rounded ${service.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  <span
+                    className={`px-2 py-1 text-xs rounded ${service.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                  >
                     {service.active ? 'Active' : 'Inactive'}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 mt-2">{service.description || 'No description'}</p>
+                <p className="text-sm text-gray-600 mt-2">
+                  {service.description || 'No description'}
+                </p>
                 <div className="mt-3 flex justify-between items-center">
                   <span className="text-lg font-bold text-purple-600">${service.price}</span>
                   <span className="text-xs bg-gray-100 px-2 py-1 rounded">{service.category}</span>
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <button onClick={() => editService(service)} className="text-sm text-blue-600 hover:text-blue-800">Edit</button>
-                  <button onClick={() => deleteService(service._id)} className="text-sm text-red-600 hover:text-red-800">Delete</button>
+                  <button
+                    onClick={() => editService(service)}
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => deleteService(service._id)}
+                    className="text-sm text-red-600 hover:text-red-800"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             ))}
@@ -627,7 +703,7 @@ function PricingManagement() {
       {activeTab === 'settings' && settings && (
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Pricing Settings</h2>
-          
+
           <form onSubmit={handleSettingsSubmit} className="space-y-6">
             {/* Pricing Options */}
             <div className="border rounded-lg p-4">
@@ -638,10 +714,12 @@ function PricingManagement() {
                   <input
                     type="number"
                     value={settings.pricing?.minimumFare || 20}
-                    onChange={(e) => setSettings({
-                      ...settings,
-                      pricing: { ...settings.pricing, minimumFare: parseFloat(e.target.value) }
-                    })}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        pricing: { ...settings.pricing, minimumFare: parseFloat(e.target.value) },
+                      })
+                    }
                     className="w-full border rounded px-3 py-2"
                   />
                 </div>
@@ -650,10 +728,12 @@ function PricingManagement() {
                   <input
                     type="number"
                     value={settings.pricing?.taxRate || 18}
-                    onChange={(e) => setSettings({
-                      ...settings,
-                      pricing: { ...settings.pricing, taxRate: parseFloat(e.target.value) }
-                    })}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        pricing: { ...settings.pricing, taxRate: parseFloat(e.target.value) },
+                      })
+                    }
                     className="w-full border rounded px-3 py-2"
                   />
                 </div>
@@ -661,10 +741,12 @@ function PricingManagement() {
                   <input
                     type="checkbox"
                     checked={settings.pricing?.nightSurchargeEnabled}
-                    onChange={(e) => setSettings({
-                      ...settings,
-                      pricing: { ...settings.pricing, nightSurchargeEnabled: e.target.checked }
-                    })}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        pricing: { ...settings.pricing, nightSurchargeEnabled: e.target.checked },
+                      })
+                    }
                     className="mr-2"
                   />
                   <label className="text-sm">Night Surcharge</label>
@@ -675,10 +757,15 @@ function PricingManagement() {
                     type="number"
                     step="0.01"
                     value={settings.pricing?.nightSurchargeMultiplier || 1.25}
-                    onChange={(e) => setSettings({
-                      ...settings,
-                      pricing: { ...settings.pricing, nightSurchargeMultiplier: parseFloat(e.target.value) }
-                    })}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        pricing: {
+                          ...settings.pricing,
+                          nightSurchargeMultiplier: parseFloat(e.target.value),
+                        },
+                      })
+                    }
                     className="w-full border rounded px-3 py-2"
                   />
                 </div>
@@ -693,10 +780,12 @@ function PricingManagement() {
                   <label className="block text-sm font-medium mb-1">Default Currency</label>
                   <select
                     value={settings.currency?.default || 'USD'}
-                    onChange={(e) => setSettings({
-                      ...settings,
-                      currency: { ...settings.currency, default: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        currency: { ...settings.currency, default: e.target.value },
+                      })
+                    }
                     className="w-full border rounded px-3 py-2"
                   >
                     <option value="USD">USD ($)</option>
@@ -706,7 +795,7 @@ function PricingManagement() {
                   </select>
                 </div>
               </div>
-              
+
               <h4 className="font-medium mt-4 mb-2">Exchange Rates (to USD)</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {settings.currency?.exchangeRates?.map((rate, index) => (
@@ -721,7 +810,7 @@ function PricingManagement() {
                         newRates[index].rate = parseFloat(e.target.value);
                         setSettings({
                           ...settings,
-                          currency: { ...settings.currency, exchangeRates: newRates }
+                          currency: { ...settings.currency, exchangeRates: newRates },
                         });
                       }}
                       className="w-full border rounded px-3 py-2"
@@ -736,13 +825,21 @@ function PricingManagement() {
               <h3 className="font-medium mb-3">📅 Seasonal Multipliers</h3>
               <div className="space-y-2">
                 {settings.seasonalMultipliers?.map((multiplier, index) => (
-                  <div key={multiplier._id || index} className="flex items-center gap-4 bg-gray-50 p-2 rounded">
+                  <div
+                    key={multiplier._id || index}
+                    className="flex items-center gap-4 bg-gray-50 p-2 rounded"
+                  >
                     <span className="font-medium">{multiplier.name}</span>
                     <span className="text-sm text-gray-500">
-                      {new Date(multiplier.startDate).toLocaleDateString()} - {new Date(multiplier.endDate).toLocaleDateString()}
+                      {new Date(multiplier.startDate).toLocaleDateString()} -{' '}
+                      {new Date(multiplier.endDate).toLocaleDateString()}
                     </span>
-                    <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm">×{multiplier.multiplier}</span>
-                    <span className={`text-xs ${multiplier.active ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm">
+                      ×{multiplier.multiplier}
+                    </span>
+                    <span
+                      className={`text-xs ${multiplier.active ? 'text-green-600' : 'text-red-600'}`}
+                    >
                       {multiplier.active ? 'Active' : 'Inactive'}
                     </span>
                   </div>
@@ -753,7 +850,10 @@ function PricingManagement() {
               </div>
             </div>
 
-            <button type="submit" className="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+            <button
+              type="submit"
+              className="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+            >
               Save Settings
             </button>
           </form>

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import API from '../utils/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
 import TourCard from '../components/TourCard';
 import SEO from '../components/SEO';
 import { getSEOTranslations, generateServiceSchema } from '../utils/seoHelpers';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 function Tours() {
@@ -59,7 +59,7 @@ function Tours() {
     // Filter by price
     if (priceRange !== 'all') {
       result = result.filter((tour) => {
-        const price = tour.price;
+        const { price } = tour;
         if (priceRange === 'budget') return price < 50;
         if (priceRange === 'mid') return price >= 50 && price <= 150;
         if (priceRange === 'luxury') return price > 150;

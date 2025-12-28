@@ -75,7 +75,7 @@ function KillSwitchPanel() {
         setSuccess('🚨 Kill switch activated successfully');
         setSiteStatus('maintenance');
         setShowKillModal(false);
-        
+
         // Clear success message after 5 seconds
         setTimeout(() => setSuccess(null), 5000);
       }
@@ -102,7 +102,7 @@ function KillSwitchPanel() {
       if (response.data && response.data.success) {
         setSuccess('✅ System restored successfully');
         setSiteStatus('online');
-        
+
         // Clear success message after 5 seconds
         setTimeout(() => setSuccess(null), 5000);
       }
@@ -201,7 +201,10 @@ function KillSwitchPanel() {
 
             <div className="space-y-4 mb-6">
               <div>
-                <label htmlFor="killMessage" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="killMessage"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Maintenance Message
                 </label>
                 <textarea
@@ -215,7 +218,10 @@ function KillSwitchPanel() {
               </div>
 
               <div>
-                <label htmlFor="killReason" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="killReason"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Reason for Kill Switch *
                 </label>
                 <input
@@ -229,7 +235,10 @@ function KillSwitchPanel() {
               </div>
 
               <div>
-                <label htmlFor="confirmText" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="confirmText"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Type <strong>{CONFIRM_STRING}</strong> to confirm *
                 </label>
                 <input

@@ -104,10 +104,12 @@ function ModuleManagement() {
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => handleToggle(module)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                   isActive ? 'bg-green-600' : 'bg-gray-300'
                 }`}
+                aria-label={`Toggle ${module} module`}
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -121,6 +123,7 @@ function ModuleManagement() {
 
         <div className="mt-6 flex justify-end">
           <button
+            type="button"
             onClick={handleSave}
             disabled={saving}
             className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"

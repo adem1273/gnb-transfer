@@ -25,15 +25,14 @@ vi.mock('../components/ErrorMessage', () => ({
   default: ({ message }) => <div data-testid="error-message">{message}</div>,
 }));
 
-const renderLogin = () => {
-  return render(
+const renderLogin = () =>
+  render(
     <BrowserRouter>
       <AuthProvider>
         <Login />
       </AuthProvider>
     </BrowserRouter>
   );
-};
 
 describe('Login Component', () => {
   beforeEach(() => {
@@ -42,11 +41,11 @@ describe('Login Component', () => {
 
   it('renders login form with email and password fields', () => {
     renderLogin();
-    
+
     const emailInput = screen.getByPlaceholderText('forms.emailPlaceholder');
     const passwordInput = screen.getByPlaceholderText('forms.passwordPlaceholder');
     const submitButton = screen.getByRole('button', { type: 'submit' });
-    
+
     expect(emailInput).toBeInTheDocument();
     expect(passwordInput).toBeInTheDocument();
     expect(submitButton).toBeInTheDocument();
@@ -55,12 +54,13 @@ describe('Login Component', () => {
   it('shows validation error for empty email', async () => {
     renderLogin();
     const user = userEvent.setup();
-    
+
     const loginButton = screen.getByRole('button', { type: 'submit' });
     await user.click(loginButton);
-    
+
     await waitFor(() => {
-      const errorMessage = screen.queryByText(/email is required/i) || screen.queryByTestId('error-message');
+      const errorMessage =
+        screen.queryByText(/email is required/i) || screen.queryByTestId('error-message');
       expect(errorMessage).toBeInTheDocument();
     });
   });
@@ -68,15 +68,16 @@ describe('Login Component', () => {
   it('shows validation error for invalid email format', async () => {
     renderLogin();
     const user = userEvent.setup();
-    
+
     const emailInput = screen.getByPlaceholderText('forms.emailPlaceholder');
     await user.type(emailInput, 'invalid-email');
-    
+
     const loginButton = screen.getByRole('button', { type: 'submit' });
     await user.click(loginButton);
-    
+
     await waitFor(() => {
-      const errorMessage = screen.queryByText(/invalid email format/i) || screen.queryByTestId('error-message');
+      const errorMessage =
+        screen.queryByText(/invalid email format/i) || screen.queryByTestId('error-message');
       expect(errorMessage).toBeInTheDocument();
     });
   });
@@ -84,18 +85,20 @@ describe('Login Component', () => {
   it('shows validation error for short password', async () => {
     renderLogin();
     const user = userEvent.setup();
-    
+
     const emailInput = screen.getByPlaceholderText('forms.emailPlaceholder');
     const passwordInput = screen.getByPlaceholderText('forms.passwordPlaceholder');
-    
+
     await user.type(emailInput, 'test@example.com');
     await user.type(passwordInput, '12345');
-    
+
     const loginButton = screen.getByRole('button', { type: 'submit' });
     await user.click(loginButton);
-    
+
     await waitFor(() => {
-      const errorMessage = screen.queryByText(/password must be at least 6 characters/i) || screen.queryByTestId('error-message');
+      const errorMessage =
+        screen.queryByText(/password must be at least 6 characters/i) ||
+        screen.queryByTestId('error-message');
       expect(errorMessage).toBeInTheDocument();
     });
   });
@@ -103,13 +106,13 @@ describe('Login Component', () => {
   it('allows typing in email and password fields', async () => {
     renderLogin();
     const user = userEvent.setup();
-    
+
     const emailInput = screen.getByPlaceholderText('forms.emailPlaceholder');
     const passwordInput = screen.getByPlaceholderText('forms.passwordPlaceholder');
-    
+
     await user.type(emailInput, 'test@example.com');
     await user.type(passwordInput, 'password123');
-    
+
     expect(emailInput).toHaveValue('test@example.com');
     expect(passwordInput).toHaveValue('password123');
   });
@@ -128,14 +131,14 @@ describe('Login Component', () => {
   it('disables submit button while submitting', async () => {
     renderLogin();
     const user = userEvent.setup();
-    
+
     const emailInput = screen.getByPlaceholderText('forms.emailPlaceholder');
     const passwordInput = screen.getByPlaceholderText('forms.passwordPlaceholder');
     const loginButton = screen.getByRole('button', { type: 'submit' });
-    
+
     await user.type(emailInput, 'test@example.com');
     await user.type(passwordInput, 'password123');
-    
+
     // Check button is not disabled before submit
     expect(loginButton).not.toBeDisabled();
   });

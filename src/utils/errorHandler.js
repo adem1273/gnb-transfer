@@ -1,6 +1,6 @@
 /**
  * Error Handler Utility
- * 
+ *
  * Centralized error handling for consistent error messages and UX
  */
 
@@ -63,10 +63,10 @@ export function getUserFriendlyMessage(error) {
 export function handleError(error, context = 'performing this action') {
   const userMessage = getUserFriendlyMessage(error);
   const consoleMessage = `Error ${context}: ${error.message || JSON.stringify(error)}`;
-  
+
   // Log to console for debugging
   console.error(consoleMessage, error);
-  
+
   return {
     userMessage,
     consoleMessage,

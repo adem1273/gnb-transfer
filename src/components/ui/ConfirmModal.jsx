@@ -109,7 +109,8 @@ function ConfirmModal({
     onCancel?.();
   };
 
-  const isConfirmDisabled = requireTextConfirm && inputValue.toLowerCase() !== confirmText.toLowerCase();
+  const isConfirmDisabled =
+    requireTextConfirm && inputValue.toLowerCase() !== confirmText.toLowerCase();
 
   if (!open) return null;
 
@@ -145,7 +146,10 @@ function ConfirmModal({
           {/* Text Confirmation Input */}
           {requireTextConfirm && (
             <div className="mb-6">
-              <label htmlFor="confirm-input" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="confirm-input"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Type <span className="font-mono font-bold">{confirmText}</span> to confirm:
               </label>
               <input
@@ -176,9 +180,7 @@ function ConfirmModal({
               onClick={handleConfirm}
               disabled={isConfirmDisabled}
               className={`px-4 py-2 text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 ${
-                isConfirmDisabled
-                  ? 'bg-red-300 cursor-not-allowed'
-                  : 'bg-red-600 hover:bg-red-700'
+                isConfirmDisabled ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
               }`}
             >
               {confirmButtonText}

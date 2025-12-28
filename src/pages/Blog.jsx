@@ -7,26 +7,96 @@ import { getSEOTranslations } from '../utils/seoHelpers';
 import API from '../utils/api';
 
 const CATEGORIES = {
-  'transfer-prices': { tr: 'Transfer Fiyatları', en: 'Transfer Prices', ar: 'أسعار النقل', ru: 'Цены трансфера', de: 'Transferpreise', fr: 'Prix des transferts', es: 'Precios de traslados', zh: '接送价格', fa: 'قیمت ترانسفر' },
-  'destinations': { tr: 'Destinasyonlar', en: 'Destinations', ar: 'الوجهات', ru: 'Направления', de: 'Reiseziele', fr: 'Destinations', es: 'Destinos', zh: '目的地', fa: 'مقاصد' },
-  'services': { tr: 'Hizmetler', en: 'Services', ar: 'الخدمات', ru: 'Услуги', de: 'Dienstleistungen', fr: 'Services', es: 'Servicios', zh: '服务', fa: 'خدمات' },
-  'tips': { tr: 'Seyahat İpuçları', en: 'Travel Tips', ar: 'نصائح السفر', ru: 'Советы', de: 'Reisetipps', fr: 'Conseils', es: 'Consejos', zh: '旅行提示', fa: 'نکات سفر' },
-  'news': { tr: 'Haberler', en: 'News', ar: 'الأخبار', ru: 'Новости', de: 'Nachrichten', fr: 'Actualités', es: 'Noticias', zh: '新闻', fa: 'اخبار' },
-  'promotions': { tr: 'Kampanyalar', en: 'Promotions', ar: 'العروض', ru: 'Акции', de: 'Aktionen', fr: 'Promotions', es: 'Promociones', zh: '促销', fa: 'تخفیفات' },
-  'seasonal': { tr: 'Sezonluk', en: 'Seasonal', ar: 'موسمي', ru: 'Сезонные', de: 'Saisonal', fr: 'Saisonnier', es: 'Estacional', zh: '季节性', fa: 'فصلی' },
+  'transfer-prices': {
+    tr: 'Transfer Fiyatları',
+    en: 'Transfer Prices',
+    ar: 'أسعار النقل',
+    ru: 'Цены трансфера',
+    de: 'Transferpreise',
+    fr: 'Prix des transferts',
+    es: 'Precios de traslados',
+    zh: '接送价格',
+    fa: 'قیمت ترانسفر',
+  },
+  destinations: {
+    tr: 'Destinasyonlar',
+    en: 'Destinations',
+    ar: 'الوجهات',
+    ru: 'Направления',
+    de: 'Reiseziele',
+    fr: 'Destinations',
+    es: 'Destinos',
+    zh: '目的地',
+    fa: 'مقاصد',
+  },
+  services: {
+    tr: 'Hizmetler',
+    en: 'Services',
+    ar: 'الخدمات',
+    ru: 'Услуги',
+    de: 'Dienstleistungen',
+    fr: 'Services',
+    es: 'Servicios',
+    zh: '服务',
+    fa: 'خدمات',
+  },
+  tips: {
+    tr: 'Seyahat İpuçları',
+    en: 'Travel Tips',
+    ar: 'نصائح السفر',
+    ru: 'Советы',
+    de: 'Reisetipps',
+    fr: 'Conseils',
+    es: 'Consejos',
+    zh: '旅行提示',
+    fa: 'نکات سفر',
+  },
+  news: {
+    tr: 'Haberler',
+    en: 'News',
+    ar: 'الأخبار',
+    ru: 'Новости',
+    de: 'Nachrichten',
+    fr: 'Actualités',
+    es: 'Noticias',
+    zh: '新闻',
+    fa: 'اخبار',
+  },
+  promotions: {
+    tr: 'Kampanyalar',
+    en: 'Promotions',
+    ar: 'العروض',
+    ru: 'Акции',
+    de: 'Aktionen',
+    fr: 'Promotions',
+    es: 'Promociones',
+    zh: '促销',
+    fa: 'تخفیفات',
+  },
+  seasonal: {
+    tr: 'Sezonluk',
+    en: 'Seasonal',
+    ar: 'موسمي',
+    ru: 'Сезонные',
+    de: 'Saisonal',
+    fr: 'Saisonnier',
+    es: 'Estacional',
+    zh: '季节性',
+    fa: 'فصلی',
+  },
 };
 
 function Blog() {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language || 'tr';
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [categories, setCategories] = useState([]);
-  
+
   const selectedCategory = searchParams.get('category') || '';
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
@@ -44,7 +114,7 @@ function Blog() {
         limit: '12',
       });
       if (selectedCategory) params.append('category', selectedCategory);
-      
+
       const res = await API.get(`/blogs?${params.toString()}`);
       const data = res.data?.data;
       setPosts(data?.posts || []);
@@ -86,9 +156,8 @@ function Blog() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const getCategoryName = (categoryId) => {
-    return CATEGORIES[categoryId]?.[currentLang] || CATEGORIES[categoryId]?.en || categoryId;
-  };
+  const getCategoryName = (categoryId) =>
+    CATEGORIES[categoryId]?.[currentLang] || CATEGORIES[categoryId]?.en || categoryId;
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -101,8 +170,9 @@ function Blog() {
 
   // SEO metadata
   const seoData = getSEOTranslations('blog', currentLang);
-  const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://gnbtransfer.com';
-  const pageTitle = selectedCategory 
+  const siteUrl =
+    typeof window !== 'undefined' ? window.location.origin : 'https://gnbtransfer.com';
+  const pageTitle = selectedCategory
     ? `${getCategoryName(selectedCategory)} | ${seoData.title}`
     : seoData.title;
 
@@ -151,7 +221,8 @@ function Blog() {
             {t('blog.title') || 'GNB Transfer Blog'}
           </h1>
           <p className="text-xl text-blue-100 max-w-2xl">
-            {t('blog.subtitle') || 'VIP transfer hizmetleri, İstanbul rehberleri ve seyahat ipuçları'}
+            {t('blog.subtitle') ||
+              'VIP transfer hizmetleri, İstanbul rehberleri ve seyahat ipuçları'}
           </p>
         </div>
       </div>
@@ -210,15 +281,26 @@ function Blog() {
           /* Empty State */
           <div className="text-center py-16">
             <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+              <svg
+                className="w-12 h-12 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+                />
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               {t('blog.noPosts') || 'Henüz blog yazısı yok'}
             </h2>
             <p className="text-gray-600 mb-6">
-              {t('blog.noPostsDescription') || 'Yakında VIP transfer ve turizm hakkında faydalı içerikler paylaşacağız.'}
+              {t('blog.noPostsDescription') ||
+                'Yakında VIP transfer ve turizm hakkında faydalı içerikler paylaşacağız.'}
             </p>
             <Link
               to="/booking"
@@ -257,7 +339,9 @@ function Blog() {
                       {post.readingTime && (
                         <>
                           <span className="mx-2">•</span>
-                          <span>{post.readingTime} {t('blog.minRead') || 'dk okuma'}</span>
+                          <span>
+                            {post.readingTime} {t('blog.minRead') || 'dk okuma'}
+                          </span>
                         </>
                       )}
                     </div>
@@ -274,8 +358,18 @@ function Blog() {
                       className="inline-flex items-center text-blue-600 font-medium hover:text-blue-700"
                     >
                       {t('blog.readMore') || 'Devamını Oku'}
-                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      <svg
+                        className="w-4 h-4 ml-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
                       </svg>
                     </Link>
                   </div>
@@ -293,7 +387,7 @@ function Blog() {
                 >
                   {t('common.previous') || 'Önceki'}
                 </button>
-                
+
                 {[...Array(pagination.pages)].map((_, i) => (
                   <button
                     key={i + 1}
@@ -307,7 +401,7 @@ function Blog() {
                     {i + 1}
                   </button>
                 ))}
-                
+
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === pagination.pages}
@@ -326,7 +420,8 @@ function Blog() {
             {t('blog.ctaTitle') || 'VIP Transfer Hizmetimizi Deneyin'}
           </h2>
           <p className="text-xl text-blue-100 mb-6 max-w-2xl mx-auto">
-            {t('blog.ctaDescription') || '75$\'dan başlayan fiyatlarla profesyonel şoförlü araç kiralama. İstanbul Havalimanı ve Sabiha Gökçen transferlerinde %15 indirim!'}
+            {t('blog.ctaDescription') ||
+              "75$'dan başlayan fiyatlarla profesyonel şoförlü araç kiralama. İstanbul Havalimanı ve Sabiha Gökçen transferlerinde %15 indirim!"}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

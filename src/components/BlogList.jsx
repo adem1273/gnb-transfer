@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import API from '../utils/api';
 import { useTranslation } from 'react-i18next';
+import API from '../utils/api';
 
 function BlogList() {
   const [blogs, setBlogs] = useState([]);

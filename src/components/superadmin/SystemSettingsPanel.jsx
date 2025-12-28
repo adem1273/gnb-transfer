@@ -67,7 +67,7 @@ function SystemSettingsPanel() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate maintenance message length
     if (formData.maintenanceMessage.length > 500) {
       setError('Maintenance message cannot exceed 500 characters');
@@ -84,7 +84,7 @@ function SystemSettingsPanel() {
       if (response.data && response.data.success) {
         setSuccess('System settings updated successfully');
         setSettings(response.data.data);
-        
+
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(null), 3000);
       }
@@ -127,9 +127,7 @@ function SystemSettingsPanel() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Site Status */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Site Status
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Site Status</label>
           <div className="flex gap-4">
             <label className="flex items-center">
               <input
@@ -158,7 +156,10 @@ function SystemSettingsPanel() {
 
         {/* Maintenance Message */}
         <div>
-          <label htmlFor="maintenanceMessage" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="maintenanceMessage"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Maintenance Message
           </label>
           <textarea
@@ -179,7 +180,7 @@ function SystemSettingsPanel() {
         {/* Feature Toggles */}
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-gray-700">Feature Controls</h3>
-          
+
           <label className="flex items-center">
             <input
               type="checkbox"
@@ -217,7 +218,8 @@ function SystemSettingsPanel() {
         {/* Submit Button */}
         <div className="flex items-center justify-between pt-4 border-t">
           <p className="text-xs text-gray-500">
-            Last updated: {settings?.updatedAt ? new Date(settings.updatedAt).toLocaleString() : 'N/A'}
+            Last updated:{' '}
+            {settings?.updatedAt ? new Date(settings.updatedAt).toLocaleString() : 'N/A'}
           </p>
           <button
             type="submit"

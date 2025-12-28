@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import API from '../utils/api';
 import Loading from '../components/Loading';
 
@@ -23,8 +37,12 @@ function AdTrackingDashboard() {
     try {
       setLoading(true);
       const [dashboardRes, campaignsRes] = await Promise.all([
-        API.get(`/admin/tracking/dashboard?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`),
-        API.get(`/admin/tracking/campaigns?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`),
+        API.get(
+          `/admin/tracking/dashboard?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`
+        ),
+        API.get(
+          `/admin/tracking/campaigns?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`
+        ),
       ]);
 
       setDashboard(dashboardRes.data.data);
@@ -73,19 +91,27 @@ function AdTrackingDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white p-6 rounded-lg shadow-lg">
             <div className="text-sm opacity-90">Total Sessions</div>
-            <div className="text-3xl font-bold mt-2">{dashboard.summary.totalSessions?.toLocaleString()}</div>
+            <div className="text-3xl font-bold mt-2">
+              {dashboard.summary.totalSessions?.toLocaleString()}
+            </div>
           </div>
           <div className="bg-gradient-to-br from-green-500 to-green-700 text-white p-6 rounded-lg shadow-lg">
             <div className="text-sm opacity-90">Total Conversions</div>
-            <div className="text-3xl font-bold mt-2">{dashboard.summary.totalConversions?.toLocaleString()}</div>
+            <div className="text-3xl font-bold mt-2">
+              {dashboard.summary.totalConversions?.toLocaleString()}
+            </div>
           </div>
           <div className="bg-gradient-to-br from-purple-500 to-purple-700 text-white p-6 rounded-lg shadow-lg">
             <div className="text-sm opacity-90">Total Revenue</div>
-            <div className="text-3xl font-bold mt-2">${dashboard.summary.totalRevenue?.toLocaleString()}</div>
+            <div className="text-3xl font-bold mt-2">
+              ${dashboard.summary.totalRevenue?.toLocaleString()}
+            </div>
           </div>
           <div className="bg-gradient-to-br from-yellow-500 to-yellow-700 text-white p-6 rounded-lg shadow-lg">
             <div className="text-sm opacity-90">Conversion Rate</div>
-            <div className="text-3xl font-bold mt-2">{dashboard.summary.conversionRate?.toFixed(2)}%</div>
+            <div className="text-3xl font-bold mt-2">
+              {dashboard.summary.conversionRate?.toFixed(2)}%
+            </div>
           </div>
         </div>
       )}
@@ -143,14 +169,30 @@ function AdTrackingDashboard() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Campaign</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Medium</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Sessions</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Conversions</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Conv. Rate</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Revenue</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">AOV</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Campaign
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Source
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Medium
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Sessions
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Conversions
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Conv. Rate
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Revenue
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  AOV
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -162,16 +204,24 @@ function AdTrackingDashboard() {
                   <td className="px-4 py-3 text-right">{campaign.sessions?.toLocaleString()}</td>
                   <td className="px-4 py-3 text-right">{campaign.conversions}</td>
                   <td className="px-4 py-3 text-right">
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      campaign.conversionRate > 5 ? 'bg-green-100 text-green-800' :
-                      campaign.conversionRate > 2 ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded text-xs ${
+                        campaign.conversionRate > 5
+                          ? 'bg-green-100 text-green-800'
+                          : campaign.conversionRate > 2
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                      }`}
+                    >
                       {campaign.conversionRate?.toFixed(2)}%
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right font-semibold">${campaign.revenue?.toFixed(2)}</td>
-                  <td className="px-4 py-3 text-right">${campaign.avgOrderValue?.toFixed(2) || '0.00'}</td>
+                  <td className="px-4 py-3 text-right font-semibold">
+                    ${campaign.revenue?.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    ${campaign.avgOrderValue?.toFixed(2) || '0.00'}
+                  </td>
                 </tr>
               ))}
               {campaigns.length === 0 && (

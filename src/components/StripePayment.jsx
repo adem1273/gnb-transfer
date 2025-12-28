@@ -64,12 +64,10 @@ const CheckoutForm = ({ bookingId }) => {
   );
 };
 
-const StripePayment = ({ bookingId }) => {
-  return (
-    <Elements stripe={stripePromise}>
-      <CheckoutForm bookingId={bookingId} />
-    </Elements>
-  );
-};
+const StripePayment = ({ bookingId }) => (
+  <Elements stripe={stripePromise}>
+    <CheckoutForm bookingId={bookingId} />
+  </Elements>
+);
 
 export default StripePayment;

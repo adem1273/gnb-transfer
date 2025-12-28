@@ -58,11 +58,7 @@ function AuditLogViewer() {
         if (filters.endDate) params.endDate = filters.endDate;
 
         // Try endpoints in order
-        const endpoints = [
-          '/admin/logs',
-          '/admin/audit-logs',
-          '/logs',
-        ];
+        const endpoints = ['/admin/logs', '/admin/audit-logs', '/logs'];
 
         let response;
         let foundEndpoint = workingEndpoint;
@@ -202,7 +198,10 @@ function AuditLogViewer() {
       // Fallback: export visible rows as CSV
       if (!exportSuccessful) {
         if (pagination.total > 5000) {
-          toast.warning(`Exporting ${logs.length} visible rows. Full export requires backend support.`, 8000);
+          toast.warning(
+            `Exporting ${logs.length} visible rows. Full export requires backend support.`,
+            8000
+          );
         }
         exportLogsAsCSV(logs);
         toast.success('Audit logs exported successfully');
@@ -216,7 +215,17 @@ function AuditLogViewer() {
   };
 
   const exportLogsAsCSV = (logsData) => {
-    const headers = ['Timestamp', 'Action', 'User Email', 'User Name', 'Target Type', 'Target Name', 'IP Address', 'Method', 'Endpoint'];
+    const headers = [
+      'Timestamp',
+      'Action',
+      'User Email',
+      'User Name',
+      'Target Type',
+      'Target Name',
+      'IP Address',
+      'Method',
+      'Endpoint',
+    ];
     const rows = logsData.map((log) => [
       log.createdAt ? new Date(log.createdAt).toISOString() : '',
       log.action || '',

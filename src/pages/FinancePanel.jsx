@@ -17,6 +17,8 @@ import {
 import API from '../utils/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
+import { useToast } from '../components/ui/ToastProvider';
+import { handleError } from '../utils/errorHandler';
 
 const COLORS = ['#667eea', '#764ba2', '#f093fb', '#4facfe'];
 
@@ -28,6 +30,8 @@ function FinancePanel() {
   const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: '',
+  });
+  const { toast } = useToast();
   });
 
   useEffect(() => {
@@ -85,9 +89,10 @@ function FinancePanel() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      toast.success('Export completed successfully!');
     } catch (err) {
-      console.error(err);
-      alert('Export failed. Please try again.');
+      const { userMessage } = handleError(err, 'exporting data');
+      toast.error(userMessage);
     }
   };
 
