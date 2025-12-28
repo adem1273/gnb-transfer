@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+// eslint-disable-next-line no-unused-vars
 import KillSwitchPanel from '../KillSwitchPanel';
 import API from '../../../utils/api';
 
@@ -17,7 +18,7 @@ describe('KillSwitchPanel', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock successful GET request
     API.get.mockResolvedValue({
       data: {
@@ -36,7 +37,7 @@ describe('KillSwitchPanel', () => {
 
   it('renders loading state initially', () => {
     render(<KillSwitchPanel />);
-    
+
     // Check for loading skeleton
     const skeletons = document.querySelectorAll('.animate-pulse');
     expect(skeletons.length).toBeGreaterThan(0);
@@ -145,7 +146,9 @@ describe('KillSwitchPanel', () => {
     await user.click(confirmButton);
 
     await waitFor(() => {
-      const errorMessages = screen.getAllByText('Please provide a reason for activating the kill switch');
+      const errorMessages = screen.getAllByText(
+        'Please provide a reason for activating the kill switch'
+      );
       expect(errorMessages.length).toBeGreaterThan(0);
     });
 
@@ -178,7 +181,6 @@ describe('KillSwitchPanel', () => {
     fireEvent.click(confirmButton); // Use fireEvent to bypass disabled state
 
     await waitFor(() => {
-      const errorMessage = screen.queryByText(/Please type "ONAY" to confirm/i);
       // Error might not show if button is disabled, which is expected behavior
       // Just verify the API wasn't called
       expect(API.post).not.toHaveBeenCalled();
@@ -279,7 +281,7 @@ describe('KillSwitchPanel', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock successful restore
     API.post.mockResolvedValueOnce({
       data: {
@@ -368,12 +370,17 @@ describe('KillSwitchPanel', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock a slow POST request
     API.post.mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve({
-        data: { success: true, data: mockSystemSettings },
-      }), 100))
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              data: { success: true, data: mockSystemSettings },
+            });
+          }, 100);
+        })
     );
 
     const activateButton = screen.getByRole('button', { name: /🚨 Activate Kill Switch/i });

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+// eslint-disable-next-line no-unused-vars
 import FeatureFlagsPanel from '../FeatureFlagsPanel';
 import API from '../../../utils/api';
 
@@ -16,7 +17,7 @@ describe('FeatureFlagsPanel', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock successful GET request
     API.get.mockResolvedValue({
       data: {
@@ -32,7 +33,7 @@ describe('FeatureFlagsPanel', () => {
 
   it('renders loading state initially', () => {
     render(<FeatureFlagsPanel />);
-    
+
     // Check for loading skeleton
     const skeletons = document.querySelectorAll('.animate-pulse');
     expect(skeletons.length).toBeGreaterThan(0);
@@ -70,7 +71,7 @@ describe('FeatureFlagsPanel', () => {
 
     const toggles = screen.getAllByRole('switch');
     expect(toggles).toHaveLength(3);
-    
+
     toggles.forEach((toggle) => {
       expect(toggle).toHaveAttribute('aria-checked', 'true');
     });
@@ -84,7 +85,7 @@ describe('FeatureFlagsPanel', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock successful PUT request
     API.put.mockResolvedValueOnce({
       data: {
@@ -117,7 +118,7 @@ describe('FeatureFlagsPanel', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock successful PUT request
     API.put.mockResolvedValueOnce({
       data: {
@@ -150,7 +151,7 @@ describe('FeatureFlagsPanel', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock successful PUT request
     API.put.mockResolvedValueOnce({
       data: {
@@ -183,13 +184,13 @@ describe('FeatureFlagsPanel', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock API error
     API.put.mockRejectedValueOnce(new Error('Failed to update feature flag'));
 
     const bookingToggle = screen.getAllByRole('switch')[0];
     const initialState = bookingToggle.getAttribute('aria-checked');
-    
+
     await user.click(bookingToggle);
 
     // Should revert to initial state on error
@@ -211,12 +212,17 @@ describe('FeatureFlagsPanel', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock a slow PUT request
     API.put.mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve({
-        data: { success: true, data: mockFeatures },
-      }), 100))
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              data: { success: true, data: mockFeatures },
+            });
+          }, 100);
+        })
     );
 
     const bookingToggle = screen.getAllByRole('switch')[0];
@@ -237,7 +243,7 @@ describe('FeatureFlagsPanel', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock successful PUT requests
     API.put.mockResolvedValue({
       data: {
@@ -247,7 +253,7 @@ describe('FeatureFlagsPanel', () => {
     });
 
     const bookingToggle = screen.getAllByRole('switch')[0];
-    
+
     // Click multiple times rapidly
     await user.click(bookingToggle);
     await user.click(bookingToggle);
@@ -266,7 +272,7 @@ describe('FeatureFlagsPanel', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock API error
     API.put.mockRejectedValueOnce(new Error('Network error'));
 
@@ -274,9 +280,12 @@ describe('FeatureFlagsPanel', () => {
     await user.click(bookingToggle);
 
     // Error should appear
-    await waitFor(() => {
-      expect(screen.getByText(/Network error/i)).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Network error/i)).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
   });
 
   it('displays correct toggle states from API response', async () => {
@@ -294,14 +303,17 @@ describe('FeatureFlagsPanel', () => {
 
     render(<FeatureFlagsPanel />);
 
-    await waitFor(() => {
-      const toggles = screen.queryAllByRole('switch');
-      if (toggles.length === 3) {
-        expect(toggles[0]).toHaveAttribute('aria-checked', 'false'); // booking
-        expect(toggles[1]).toHaveAttribute('aria-checked', 'true');  // payment
-        expect(toggles[2]).toHaveAttribute('aria-checked', 'false'); // registrations
-      }
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        const toggles = screen.queryAllByRole('switch');
+        if (toggles.length === 3) {
+          expect(toggles[0]).toHaveAttribute('aria-checked', 'false'); // booking
+          expect(toggles[1]).toHaveAttribute('aria-checked', 'true'); // payment
+          expect(toggles[2]).toHaveAttribute('aria-checked', 'false'); // registrations
+        }
+      },
+      { timeout: 3000 }
+    );
   });
 
   it('handles API error on initial load', async () => {
@@ -311,20 +323,26 @@ describe('FeatureFlagsPanel', () => {
 
     render(<FeatureFlagsPanel />);
 
-    await waitFor(() => {
-      expect(screen.getByText(errorMessage)).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText(errorMessage)).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
   });
 
   it('updates feature state with server response after toggle', async () => {
     render(<FeatureFlagsPanel />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Feature Flags')).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Feature Flags')).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
 
     const user = userEvent.setup();
-    
+
     // Mock PUT request with server response
     API.put.mockResolvedValueOnce({
       data: {
@@ -341,37 +359,46 @@ describe('FeatureFlagsPanel', () => {
       await user.click(toggles[0]);
 
       // Should update with server response
-      await waitFor(() => {
-        expect(API.put).toHaveBeenCalled();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(API.put).toHaveBeenCalled();
+        },
+        { timeout: 3000 }
+      );
     }
   });
 
   it('has proper ARIA attributes for accessibility', async () => {
     render(<FeatureFlagsPanel />);
 
-    await waitFor(() => {
-      const toggles = screen.queryAllByRole('switch');
-      if (toggles.length > 0) {
-        toggles.forEach((toggle) => {
-          expect(toggle).toHaveAttribute('role', 'switch');
-          expect(toggle).toHaveAttribute('aria-checked');
-          expect(toggle).toHaveAttribute('type', 'button');
-        });
-      }
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        const toggles = screen.queryAllByRole('switch');
+        if (toggles.length > 0) {
+          toggles.forEach((toggle) => {
+            expect(toggle).toHaveAttribute('role', 'switch');
+            expect(toggle).toHaveAttribute('aria-checked');
+            expect(toggle).toHaveAttribute('type', 'button');
+          });
+        }
+      },
+      { timeout: 3000 }
+    );
   });
 
   it('displays informational text about changes taking effect', async () => {
     render(<FeatureFlagsPanel />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Feature Flags')).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Feature Flags')).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
 
     const changesText = screen.queryByText(/Changes take effect immediately/i);
     const disabledText = screen.queryByText(/Disabled features will show error messages to users/i);
-    
+
     // These texts exist in the component
     expect(changesText || disabledText).toBeTruthy();
   });
@@ -379,9 +406,12 @@ describe('FeatureFlagsPanel', () => {
   it('disables toggle while updating', async () => {
     render(<FeatureFlagsPanel />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Feature Flags')).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Feature Flags')).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
 
     // Just verify the component renders - button disabling is handled by component
     expect(screen.getAllByRole('switch').length).toBeGreaterThan(0);

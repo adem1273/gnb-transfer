@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+// eslint-disable-next-line no-unused-vars
 import SystemSettingsPanel from '../SystemSettingsPanel';
 import API from '../../../utils/api';
 
@@ -19,7 +20,7 @@ describe('SystemSettingsPanel', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock successful GET request
     API.get.mockResolvedValue({
       data: {
@@ -35,7 +36,7 @@ describe('SystemSettingsPanel', () => {
 
   it('renders loading state initially', () => {
     render(<SystemSettingsPanel />);
-    
+
     // Check for loading skeleton
     const skeletons = document.querySelectorAll('.animate-pulse');
     expect(skeletons.length).toBeGreaterThan(0);
@@ -86,13 +87,13 @@ describe('SystemSettingsPanel', () => {
 
     const textarea = screen.getByLabelText(/Maintenance Message/i);
     const longMessage = 'a'.repeat(501);
-    
+
     const user = userEvent.setup();
     await user.clear(textarea);
     await user.type(textarea, longMessage.substring(0, 500)); // Type will be limited by maxLength
 
     const submitButton = screen.getByRole('button', { name: /Save Settings/i });
-    
+
     // Mock the PUT request
     API.put.mockResolvedValueOnce({
       data: {
@@ -119,18 +120,20 @@ describe('SystemSettingsPanel', () => {
     // Manually set form state to exceed limit
     const submitButton = screen.getByRole('button', { name: /Save Settings/i });
     const textarea = screen.getByLabelText(/Maintenance Message/i);
-    
+
     // Use fireEvent to bypass maxLength (simulating form manipulation)
     Object.defineProperty(textarea, 'value', {
       writable: true,
       value: 'a'.repeat(501),
     });
-    
+
     fireEvent.change(textarea, { target: { value: 'a'.repeat(501) } });
     fireEvent.submit(submitButton.closest('form'));
 
     await waitFor(() => {
-      expect(screen.getByText('Maintenance message cannot exceed 500 characters')).toBeInTheDocument();
+      expect(
+        screen.getByText('Maintenance message cannot exceed 500 characters')
+      ).toBeInTheDocument();
     });
 
     expect(API.put).not.toHaveBeenCalled();
@@ -144,7 +147,7 @@ describe('SystemSettingsPanel', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Change site status to maintenance
     const maintenanceRadio = screen.getByLabelText(/🔴 Maintenance/i);
     await user.click(maintenanceRadio);
@@ -191,12 +194,17 @@ describe('SystemSettingsPanel', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock a slow PUT request
     API.put.mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve({
-        data: { success: true, data: mockSettings },
-      }), 100))
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              data: { success: true, data: mockSettings },
+            });
+          }, 100);
+        })
     );
 
     const submitButton = screen.getByRole('button', { name: /Save Settings/i });
@@ -217,7 +225,7 @@ describe('SystemSettingsPanel', () => {
     });
 
     const user = userEvent.setup();
-    
+
     const bookingCheckbox = screen.getByLabelText(/Booking Enabled/i);
     expect(bookingCheckbox).toBeChecked();
 
@@ -237,7 +245,7 @@ describe('SystemSettingsPanel', () => {
 
     const user = userEvent.setup();
     const textarea = screen.getByLabelText(/Maintenance Message/i);
-    
+
     // Initially should show 0/500
     expect(screen.getByText('0/500 characters')).toBeInTheDocument();
 
@@ -257,7 +265,7 @@ describe('SystemSettingsPanel', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock API error
     API.put.mockRejectedValueOnce(new Error('Network error'));
 
@@ -285,7 +293,9 @@ describe('SystemSettingsPanel', () => {
 
     await waitFor(() => {
       const formattedDate = timestamp.toLocaleString();
-      expect(screen.getByText(new RegExp(`Last updated: ${formattedDate}`, 'i'))).toBeInTheDocument();
+      expect(
+        screen.getByText(new RegExp(`Last updated: ${formattedDate}`, 'i'))
+      ).toBeInTheDocument();
     });
   });
 

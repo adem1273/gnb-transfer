@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+// eslint-disable-next-line no-unused-vars
 import AuditLogViewer from '../AuditLogViewer';
 import API from '../../../utils/api';
 
@@ -55,7 +56,7 @@ describe('AuditLogViewer', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock successful GET request
     API.get.mockResolvedValue({
       data: {
@@ -71,7 +72,7 @@ describe('AuditLogViewer', () => {
 
   it('renders loading state initially', () => {
     render(<AuditLogViewer />);
-    
+
     // Check for loading skeleton
     const skeletons = document.querySelectorAll('.animate-pulse');
     expect(skeletons.length).toBeGreaterThan(0);
@@ -84,13 +85,14 @@ describe('AuditLogViewer', () => {
       expect(screen.getByText('Audit Logs')).toBeInTheDocument();
     });
 
-    // Check table headers
+    // Check table headers - use getAllByText for elements that appear multiple times
     expect(screen.getByText('Timestamp')).toBeInTheDocument();
-    // Use getAllByText for elements that appear multiple times (label and header)
     const actionElements = screen.getAllByText('Action');
     expect(actionElements.length).toBeGreaterThan(0);
-    expect(screen.getByText('User')).toBeInTheDocument();
-    expect(screen.getByText('Target')).toBeInTheDocument();
+    const userElements = screen.getAllByText('User');
+    expect(userElements.length).toBeGreaterThan(0);
+    const targetElements = screen.getAllByText('Target');
+    expect(targetElements.length).toBeGreaterThan(0);
     expect(screen.getByText('IP')).toBeInTheDocument();
     expect(screen.getByText('Endpoint')).toBeInTheDocument();
 
@@ -130,7 +132,7 @@ describe('AuditLogViewer', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock filtered response
     API.get.mockResolvedValueOnce({
       data: {
@@ -162,7 +164,7 @@ describe('AuditLogViewer', () => {
     });
 
     const user = userEvent.setup();
-    
+
     const userIdInput = screen.getByLabelText(/User ID/i);
     await user.type(userIdInput, '12345');
 
@@ -183,7 +185,7 @@ describe('AuditLogViewer', () => {
     });
 
     const user = userEvent.setup();
-    
+
     const startDateInput = screen.getByLabelText(/From Date/i);
     const endDateInput = screen.getByLabelText(/To Date/i);
 
@@ -268,7 +270,7 @@ describe('AuditLogViewer', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock page 2 response
     API.get.mockResolvedValueOnce({
       data: { success: true, data: multiPageLogs },
@@ -325,7 +327,7 @@ describe('AuditLogViewer', () => {
     });
 
     const user = userEvent.setup();
-    
+
     // Mock document.createElement and appendChild
     const mockLink = {
       setAttribute: vi.fn(),
@@ -381,7 +383,7 @@ describe('AuditLogViewer', () => {
   it('tries fallback endpoint when primary fails with 404', async () => {
     const error404 = new Error('Not found');
     error404.status = 404;
-    
+
     API.get.mockRejectedValueOnce(error404);
     API.get.mockResolvedValueOnce({
       data: {
@@ -402,7 +404,7 @@ describe('AuditLogViewer', () => {
   it('displays endpoint unavailable message when both endpoints fail', async () => {
     const error404 = new Error('Not found');
     error404.status = 404;
-    
+
     API.get.mockRejectedValueOnce(error404);
     API.get.mockRejectedValueOnce(new Error('Also not found'));
 
@@ -410,7 +412,9 @@ describe('AuditLogViewer', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Audit log endpoint is not available')).toBeInTheDocument();
-      expect(screen.getByText(/Please ensure the backend audit log API is configured/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Please ensure the backend audit log API is configured/i)
+      ).toBeInTheDocument();
     });
   });
 
