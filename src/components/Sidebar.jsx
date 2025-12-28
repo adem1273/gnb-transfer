@@ -119,6 +119,9 @@ function Sidebar() {
                 <Link to="/admin/logs" className="px-2 py-1 hover:bg-gray-700 rounded">
                   📝 Activity Logs
                 </Link>
+                <Link to="/admin/super" className="px-2 py-1 hover:bg-red-700 bg-red-600 rounded font-semibold">
+                  ⚡ Super Admin
+                </Link>
               </>
             )}
 
