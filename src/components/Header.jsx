@@ -71,7 +71,7 @@ function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-6 rtl:space-x-reverse">
             {/* Static fallback links - shown if dynamic menu is empty or loading */}
-            {(!menuLoading && dynamicMenuItems.length === 0) && (
+            {!menuLoading && dynamicMenuItems.length === 0 && (
               <>
                 <Link to="/" className="hover:text-blue-200 transition-colors duration-200">
                   {t('header.home')}
@@ -89,7 +89,7 @@ function Header() {
             )}
 
             {/* Dynamic menu items */}
-            {dynamicMenuItems.map((item, index) => (
+            {dynamicMenuItems.map((item, index) =>
               item.type === 'external' ? (
                 <a
                   key={index}
@@ -100,7 +100,12 @@ function Header() {
                 >
                   {item.label}
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
                   </svg>
                 </a>
               ) : (
@@ -112,7 +117,7 @@ function Header() {
                   {item.label}
                 </Link>
               )
-            ))}
+            )}
 
             {user?.role === 'admin' && (
               <Link
@@ -244,7 +249,7 @@ function Header() {
               className="lg:hidden pb-4 space-y-2"
             >
               {/* Static fallback links - shown if dynamic menu is empty or loading */}
-              {(!menuLoading && dynamicMenuItems.length === 0) && (
+              {!menuLoading && dynamicMenuItems.length === 0 && (
                 <>
                   <Link
                     to="/"
@@ -278,7 +283,7 @@ function Header() {
               )}
 
               {/* Dynamic menu items */}
-              {dynamicMenuItems.map((item, index) => (
+              {dynamicMenuItems.map((item, index) =>
                 item.type === 'external' ? (
                   <a
                     key={index}
@@ -300,7 +305,7 @@ function Header() {
                     {item.label}
                   </Link>
                 )
-              ))}
+              )}
 
               {user?.role === 'admin' && (
                 <Link

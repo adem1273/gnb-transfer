@@ -51,4 +51,3 @@ if (process.env.NODE_ENV === 'production') {
       console.error('Service worker registration failed:', error);
     });
 }
-

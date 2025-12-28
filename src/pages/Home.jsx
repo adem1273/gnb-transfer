@@ -9,7 +9,11 @@ import HeroSlider from '../components/HeroSlider';
 import FleetSection from '../components/FleetSection';
 import TrustBadgesSection from '../components/TrustBadgesSection';
 import SEO from '../components/SEO';
-import { generateLocalBusinessSchema, generateWebSiteSchema, getSEOTranslations } from '../utils/seoHelpers';
+import {
+  generateLocalBusinessSchema,
+  generateWebSiteSchema,
+  getSEOTranslations,
+} from '../utils/seoHelpers';
 import API from '../utils/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
@@ -33,9 +37,7 @@ function Home() {
   useEffect(() => {
     const checkLayout = async () => {
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL || '/api'}/home-layout`
-        );
+        const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/home-layout`);
         if (response.ok) {
           setHasActiveLayout(true);
         }
@@ -68,7 +70,7 @@ function Home() {
         setLoading(false);
       }
     };
-    
+
     // Only fetch data if not using dynamic layout
     if (!checkingLayout && !hasActiveLayout) {
       fetchData();

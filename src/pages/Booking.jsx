@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import API from '../utils/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
-import { useTranslation } from 'react-i18next';
 import SEO from '../components/SEO';
 import { getSEOTranslations, generateFAQSchema } from '../utils/seoHelpers';
 import TourCard from '../components/TourCard';
@@ -168,22 +168,28 @@ function Booking() {
   const { i18n } = useTranslation();
   const currentLang = i18n.language;
   const seoData = getSEOTranslations('booking', currentLang);
-  
+
   const bookingFAQs = [
     {
       question: t('faq.booking.howToBook.q') || 'How do I make a booking?',
-      answer: t('faq.booking.howToBook.a') || 'Select your tour, fill in your details, and confirm your booking. You can pay online or on arrival.',
+      answer:
+        t('faq.booking.howToBook.a') ||
+        'Select your tour, fill in your details, and confirm your booking. You can pay online or on arrival.',
     },
     {
       question: t('faq.booking.cancellation.q') || 'What is the cancellation policy?',
-      answer: t('faq.booking.cancellation.a') || 'Free cancellation up to 24 hours before your scheduled tour. Contact us for more details.',
+      answer:
+        t('faq.booking.cancellation.a') ||
+        'Free cancellation up to 24 hours before your scheduled tour. Contact us for more details.',
     },
     {
       question: t('faq.booking.payment.q') || 'What payment methods do you accept?',
-      answer: t('faq.booking.payment.a') || 'We accept credit cards, debit cards, and cash payments. Online payment is secure and instant.',
+      answer:
+        t('faq.booking.payment.a') ||
+        'We accept credit cards, debit cards, and cash payments. Online payment is secure and instant.',
     },
   ];
-  
+
   const faqSchema = generateFAQSchema(bookingFAQs);
 
   return (

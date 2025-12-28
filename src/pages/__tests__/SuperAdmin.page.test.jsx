@@ -91,23 +91,19 @@ describe('SuperAdmin Page', () => {
     });
   });
 
-  it(
-    'renders all main sections in correct layout',
-    async () => {
-      const adminUser = { id: '1', role: 'admin', email: 'admin@test.com' };
-      renderWithAuth(adminUser, false);
+  it('renders all main sections in correct layout', async () => {
+    const adminUser = { id: '1', role: 'admin', email: 'admin@test.com' };
+    renderWithAuth(adminUser, false);
 
-      await waitFor(() => {
-        expect(screen.getByText('Super Admin Dashboard')).toBeInTheDocument();
-      });
+    await waitFor(() => {
+      expect(screen.getByText('Super Admin Dashboard')).toBeInTheDocument();
+    });
 
-      // Just verify the grid layout exists - lazy components will load asynchronously
-      const grid = document.querySelector('.grid');
-      expect(grid).toBeInTheDocument();
-      expect(grid).toHaveClass('grid-cols-1');
-    },
-    10000
-  ); // Increase test timeout to 10 seconds
+    // Just verify the grid layout exists - lazy components will load asynchronously
+    const grid = document.querySelector('.grid');
+    expect(grid).toBeInTheDocument();
+    expect(grid).toHaveClass('grid-cols-1');
+  }, 10000); // Increase test timeout to 10 seconds
 
   it('toggles bookingEnabled and makes PUT request', async () => {
     const adminUser = { id: '1', role: 'admin', email: 'admin@test.com' };

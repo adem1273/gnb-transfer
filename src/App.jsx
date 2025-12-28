@@ -142,79 +142,107 @@ function App() {
           <AuthProvider>
             <ToastProvider>
               <Suspense fallback={<Loading />}>
-              <Routes>
-              {/* Ana Kullanıcı Rotaları */}
-              <Route path="/" element={<MainLayout />}> 
-                <Route index element={<Home />} />
-                <Route path="tours" element={<Tours />} />
-                <Route path="booking" element={<Booking />} />
-                <Route path="login" element={<Login />} />
-                <Route path="register" element={<Register />} />
-                <Route path="forgot-password" element={<ForgotPassword />} />
-                <Route path="reset-password/:token" element={<ResetPassword />} />
-                <Route path="blog" element={<Blog />} />
-                <Route path="blog/:id" element={<BlogPost />} />
-                <Route path="payment" element={<StripePayment />} />
-                <Route path="reviews" element={<Suspense fallback={<Loading />}><Feedback /></Suspense>} />
-                <Route path="contact" element={<Contact />} />
-                <Route path="faq" element={<Suspense fallback={<Loading />}><FAQBot /></Suspense>} />
-                <Route path="pages/:slug" element={<DynamicPage />} />
-              </Route>
- 
-              {/* Admin Paneli Rotaları (Korunmuş) */}
-              <Route path="/admin" element={<PrivateRoute allowedRoles={['admin', 'manager']}><AdminLayout /></PrivateRoute>}> 
-                <Route index element={<AdminDashboard />} />
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="users" element={<AdminUsers />} />
-                <Route path="bookings" element={<AdminBookings />} />
-                <Route path="ai" element={<AIAdminPanel />} />
-                <Route path="marketing" element={<AIMarketingPanel />} />
-                <Route path="vehicles" element={<VehicleManagement />} />
-                <Route path="modules" element={<ModuleManagement />} />
-                <Route path="campaigns" element={<CampaignRules />} />
-                <Route path="insights" element={<AIInsights />} />
-                <Route path="notifications" element={<NotificationSettings />} />
-                <Route path="calendar" element={<CalendarView />} />
-                <Route path="logs" element={<ActivityLogs />} />
-                <Route path="finance" element={<FinancePanel />} />
-                <Route path="coupons" element={<CouponManagement />} />
-                <Route path="campaigns" element={<CampaignManagement />} />
-                <Route path="referrals" element={<ReferralProgram />} />
-                
-                {/* Feature Toggle Management */}
-                <Route path="features" element={<FeatureManagement />} />
-                
-                {/* New Feature Toggle Routes */}
-                <Route path="fleet" element={<FleetTrackingDashboard />} />
-                <Route path="drivers/performance" element={<DriverPerformance />} />
-                <Route path="delay-compensation" element={<DelayCompensationPanel />} />
-                <Route path="analytics" element={<RevenueAnalytics />} />
-                <Route path="corporate" element={<CorporateClients />} />
-                
-                {/* New Admin Features */}
-                <Route path="pricing" element={<PricingManagement />} />
-                <Route path="reviews" element={<ReviewManagement />} />
-                <Route path="blog" element={<BlogManager />} />
-                <Route path="loyalty" element={<LoyaltyPanel />} />
-                <Route path="messaging" element={<BulkMessaging />} />
-                <Route path="tracking" element={<AdTrackingDashboard />} />
-                <Route path="media" element={<MediaManager />} />
-                <Route path="menus" element={<MenuManager />} />
-                <Route path="homepage-builder" element={<HomeLayoutBuilder />} />
-                
-                {/* Super Admin Route */}
-                <Route path="super" element={<SuperAdmin />} />
-              </Route>
-              
-              {/* Sürücü Paneli Rotası */}
-              <Route path="/driver" element={<PrivateRoute allowedRoles={['driver']}><DriverPanel /></PrivateRoute>} />
-            </Routes>
-          </Suspense>
-        </ToastProvider>
-      </AuthProvider>
-    </Router>
-  </I18nextProvider>
-  </ErrorBoundary>
+                <Routes>
+                  {/* Ana Kullanıcı Rotaları */}
+                  <Route path="/" element={<MainLayout />}>
+                    <Route index element={<Home />} />
+                    <Route path="tours" element={<Tours />} />
+                    <Route path="booking" element={<Booking />} />
+                    <Route path="login" element={<Login />} />
+                    <Route path="register" element={<Register />} />
+                    <Route path="forgot-password" element={<ForgotPassword />} />
+                    <Route path="reset-password/:token" element={<ResetPassword />} />
+                    <Route path="blog" element={<Blog />} />
+                    <Route path="blog/:id" element={<BlogPost />} />
+                    <Route path="payment" element={<StripePayment />} />
+                    <Route
+                      path="reviews"
+                      element={
+                        <Suspense fallback={<Loading />}>
+                          <Feedback />
+                        </Suspense>
+                      }
+                    />
+                    <Route path="contact" element={<Contact />} />
+                    <Route
+                      path="faq"
+                      element={
+                        <Suspense fallback={<Loading />}>
+                          <FAQBot />
+                        </Suspense>
+                      }
+                    />
+                    <Route path="pages/:slug" element={<DynamicPage />} />
+                  </Route>
+
+                  {/* Admin Paneli Rotaları (Korunmuş) */}
+                  <Route
+                    path="/admin"
+                    element={
+                      <PrivateRoute allowedRoles={['admin', 'manager']}>
+                        <AdminLayout />
+                      </PrivateRoute>
+                    }
+                  >
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="users" element={<AdminUsers />} />
+                    <Route path="bookings" element={<AdminBookings />} />
+                    <Route path="ai" element={<AIAdminPanel />} />
+                    <Route path="marketing" element={<AIMarketingPanel />} />
+                    <Route path="vehicles" element={<VehicleManagement />} />
+                    <Route path="modules" element={<ModuleManagement />} />
+                    <Route path="campaigns" element={<CampaignRules />} />
+                    <Route path="insights" element={<AIInsights />} />
+                    <Route path="notifications" element={<NotificationSettings />} />
+                    <Route path="calendar" element={<CalendarView />} />
+                    <Route path="logs" element={<ActivityLogs />} />
+                    <Route path="finance" element={<FinancePanel />} />
+                    <Route path="coupons" element={<CouponManagement />} />
+                    <Route path="campaigns" element={<CampaignManagement />} />
+                    <Route path="referrals" element={<ReferralProgram />} />
+
+                    {/* Feature Toggle Management */}
+                    <Route path="features" element={<FeatureManagement />} />
+
+                    {/* New Feature Toggle Routes */}
+                    <Route path="fleet" element={<FleetTrackingDashboard />} />
+                    <Route path="drivers/performance" element={<DriverPerformance />} />
+                    <Route path="delay-compensation" element={<DelayCompensationPanel />} />
+                    <Route path="analytics" element={<RevenueAnalytics />} />
+                    <Route path="corporate" element={<CorporateClients />} />
+
+                    {/* New Admin Features */}
+                    <Route path="pricing" element={<PricingManagement />} />
+                    <Route path="reviews" element={<ReviewManagement />} />
+                    <Route path="blog" element={<BlogManager />} />
+                    <Route path="loyalty" element={<LoyaltyPanel />} />
+                    <Route path="messaging" element={<BulkMessaging />} />
+                    <Route path="tracking" element={<AdTrackingDashboard />} />
+                    <Route path="media" element={<MediaManager />} />
+                    <Route path="menus" element={<MenuManager />} />
+                    <Route path="homepage-builder" element={<HomeLayoutBuilder />} />
+
+                    {/* Super Admin Route */}
+                    <Route path="super" element={<SuperAdmin />} />
+                  </Route>
+
+                  {/* Sürücü Paneli Rotası */}
+                  <Route
+                    path="/driver"
+                    element={
+                      <PrivateRoute allowedRoles={['driver']}>
+                        <DriverPanel />
+                      </PrivateRoute>
+                    }
+                  />
+                </Routes>
+              </Suspense>
+            </ToastProvider>
+          </AuthProvider>
+        </Router>
+      </I18nextProvider>
+    </ErrorBoundary>
   );
 }
 

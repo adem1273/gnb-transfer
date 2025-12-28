@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getToken, setToken, removeToken, setRefreshToken, removeRefreshToken, logout as authLogout } from '../utils/auth';
+import {
+  getToken,
+  setToken,
+  removeToken,
+  setRefreshToken,
+  removeRefreshToken,
+  logout as authLogout,
+} from '../utils/auth';
 
 const AuthContext = createContext();
 

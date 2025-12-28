@@ -87,7 +87,7 @@ function FeatureFlagsPanel() {
         ...prev,
         [featureName]: previousValue,
       }));
-      
+
       setError(err.message || `Failed to update ${featureName}`);
       console.error(`Error updating ${featureName}:`, err);
 

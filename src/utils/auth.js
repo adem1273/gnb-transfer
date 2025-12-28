@@ -1,13 +1,9 @@
 // auth.js - GNB Pro Final
 import API from './api';
 
-export const getToken = () => {
-  return localStorage.getItem('token');
-};
+export const getToken = () => localStorage.getItem('token');
 
-export const getRefreshToken = () => {
-  return localStorage.getItem('refreshToken');
-};
+export const getRefreshToken = () => localStorage.getItem('refreshToken');
 
 export const setToken = (token) => {
   localStorage.setItem('token', token);
@@ -31,7 +27,7 @@ export const removeRefreshToken = () => {
  */
 export const logout = async () => {
   const refreshToken = getRefreshToken();
-  
+
   // Revoke refresh token on backend if available
   if (refreshToken) {
     try {
@@ -41,7 +37,7 @@ export const logout = async () => {
       console.error('Logout error:', error);
     }
   }
-  
+
   // Clear tokens from storage
   removeToken();
   removeRefreshToken();

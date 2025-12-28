@@ -28,13 +28,17 @@ function Sidebar() {
               Vehicles
             </Link>
 
-            <div className="text-xs font-semibold text-gray-400 uppercase mt-4 mb-1">
-              Content
-            </div>
-            <Link to="/admin/blog" className="px-2 py-1 hover:bg-gray-700 rounded flex items-center">
+            <div className="text-xs font-semibold text-gray-400 uppercase mt-4 mb-1">Content</div>
+            <Link
+              to="/admin/blog"
+              className="px-2 py-1 hover:bg-gray-700 rounded flex items-center"
+            >
               📝 Blog (9 Languages)
             </Link>
-            <Link to="/admin/media" className="px-2 py-1 hover:bg-gray-700 rounded flex items-center">
+            <Link
+              to="/admin/media"
+              className="px-2 py-1 hover:bg-gray-700 rounded flex items-center"
+            >
               🖼️ Media Manager
             </Link>
 
@@ -119,7 +123,10 @@ function Sidebar() {
                 <Link to="/admin/logs" className="px-2 py-1 hover:bg-gray-700 rounded">
                   📝 Activity Logs
                 </Link>
-                <Link to="/admin/super" className="px-2 py-1 hover:bg-red-700 bg-red-600 rounded font-semibold">
+                <Link
+                  to="/admin/super"
+                  className="px-2 py-1 hover:bg-red-700 bg-red-600 rounded font-semibold"
+                >
                   ⚡ Super Admin
                 </Link>
               </>

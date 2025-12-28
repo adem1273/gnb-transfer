@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next';
 import API from '../utils/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
+import { ConfirmModal, LoadingButton } from '../components/ui';
+import { useToast } from '../components/ui/ToastProvider';
+import { handleError } from '../utils/errorHandler';
 
 function CampaignManagement() {
   const { t } = useTranslation();
@@ -15,6 +18,13 @@ function CampaignManagement() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   
+  // Confirmation modals
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [campaignToDelete, setCampaignToDelete] = useState(null);
+  const [deletingCampaignId, setDeletingCampaignId] = useState(null);
+
+  const { toast } = useToast();
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -34,7 +44,7 @@ function CampaignManagement() {
     active: true,
     priority: '0',
   });
-  
+
   const [routeInput, setRouteInput] = useState({ origin: '', destination: '' });
 
   useEffect(() => {
@@ -78,7 +88,9 @@ function CampaignManagement() {
         seasonMultiplier: parseFloat(formData.seasonMultiplier) || 1.0,
         maxUsage: formData.maxUsage ? parseInt(formData.maxUsage) : null,
         minPurchaseAmount: parseFloat(formData.minPurchaseAmount) || 0,
-        maxDiscountAmount: formData.maxDiscountAmount ? parseFloat(formData.maxDiscountAmount) : null,
+        maxDiscountAmount: formData.maxDiscountAmount
+          ? parseFloat(formData.maxDiscountAmount)
+          : null,
         priority: parseInt(formData.priority) || 0,
       };
 
@@ -96,7 +108,9 @@ function CampaignManagement() {
       fetchCampaigns();
     } catch (err) {
       console.error('Error saving campaign:', err);
-      setError(err.response?.data?.error || t('admin.campaigns.saveError') || 'Failed to save campaign');
+      setError(
+        err.response?.data?.error || t('admin.campaigns.saveError') || 'Failed to save campaign'
+      );
     }
   };
 
@@ -111,7 +125,7 @@ function CampaignManagement() {
       startDate: campaign.startDate.split('T')[0],
       endDate: campaign.endDate.split('T')[0],
       applicableRoutes: campaign.applicableRoutes || [],
-      applicableTours: campaign.applicableTours?.map(t => t._id || t) || [],
+      applicableTours: campaign.applicableTours?.map((t) => t._id || t) || [],
       autoGenerateCoupon: campaign.autoGenerateCoupon || false,
       couponCode: campaign.couponCode || '',
       maxUsage: campaign.maxUsage?.toString() || '',
@@ -124,19 +138,34 @@ function CampaignManagement() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm(t('admin.campaigns.deleteConfirm') || 'Are you sure you want to delete this campaign?')) {
-      return;
-    }
+  const handleDeleteClick = (campaign) => {
+    setCampaignToDelete(campaign);
+    setDeleteModalOpen(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!campaignToDelete) return;
+
+    setDeletingCampaignId(campaignToDelete._id);
     try {
-      await API.delete(`/campaigns/${id}`);
-      setSuccess(t('admin.campaigns.deleteSuccess') || 'Campaign deleted successfully');
+      await API.delete(`/campaigns/${campaignToDelete._id}`);
+      toast.success(
+        t('admin.campaigns.deleteSuccess') || `Campaign "${campaignToDelete.name}" deleted successfully`
+      );
+      setDeleteModalOpen(false);
+      setCampaignToDelete(null);
       fetchCampaigns();
     } catch (err) {
-      console.error('Error deleting campaign:', err);
-      setError(t('admin.campaigns.deleteError') || 'Failed to delete campaign');
+      const { userMessage } = handleError(err, 'deleting campaign');
+      toast.error(userMessage);
+    } finally {
+      setDeletingCampaignId(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setCampaignToDelete(null);
   };
 
   const handleToggleActive = async (campaign) => {
@@ -191,9 +220,7 @@ function CampaignManagement() {
     });
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString();
-  };
+  const formatDate = (dateString) => new Date(dateString).toLocaleDateString();
 
   const getCampaignTypeLabel = (type) => {
     const types = {
@@ -227,7 +254,9 @@ function CampaignManagement() {
           }}
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
         >
-          {showForm ? (t('common.cancel') || 'Cancel') : (t('admin.campaigns.createNew') || '+ New Campaign')}
+          {showForm
+            ? t('common.cancel') || 'Cancel'
+            : t('admin.campaigns.createNew') || '+ New Campaign'}
         </button>
       </div>
 
@@ -241,7 +270,9 @@ function CampaignManagement() {
       {showForm && (
         <div className="bg-white shadow-md rounded-lg p-6 mb-8">
           <h2 className="text-2xl font-bold mb-4">
-            {editingId ? (t('admin.campaigns.edit') || 'Edit Campaign') : (t('admin.campaigns.create') || 'Create Campaign')}
+            {editingId
+              ? t('admin.campaigns.edit') || 'Edit Campaign'
+              : t('admin.campaigns.create') || 'Create Campaign'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -269,9 +300,15 @@ function CampaignManagement() {
                   required
                 >
                   <option value="general">{t('admin.campaigns.type.general') || 'General'}</option>
-                  <option value="discount">{t('admin.campaigns.type.discount') || 'Discount'}</option>
-                  <option value="route_specific">{t('admin.campaigns.type.routeSpecific') || 'Route Specific'}</option>
-                  <option value="seasonal_multiplier">{t('admin.campaigns.type.seasonal') || 'Seasonal Multiplier'}</option>
+                  <option value="discount">
+                    {t('admin.campaigns.type.discount') || 'Discount'}
+                  </option>
+                  <option value="route_specific">
+                    {t('admin.campaigns.type.routeSpecific') || 'Route Specific'}
+                  </option>
+                  <option value="seasonal_multiplier">
+                    {t('admin.campaigns.type.seasonal') || 'Seasonal Multiplier'}
+                  </option>
                 </select>
               </div>
             </div>
@@ -299,8 +336,12 @@ function CampaignManagement() {
                     onChange={(e) => setFormData({ ...formData, discountType: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="percentage">{t('admin.campaigns.discountType.percentage') || 'Percentage (%)'}</option>
-                    <option value="fixed">{t('admin.campaigns.discountType.fixed') || 'Fixed Amount'}</option>
+                    <option value="percentage">
+                      {t('admin.campaigns.discountType.percentage') || 'Percentage (%)'}
+                    </option>
+                    <option value="fixed">
+                      {t('admin.campaigns.discountType.fixed') || 'Fixed Amount'}
+                    </option>
                   </select>
                 </div>
 
@@ -323,7 +364,8 @@ function CampaignManagement() {
             {formData.type === 'seasonal_multiplier' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('admin.campaigns.form.seasonMultiplier') || 'Season Multiplier'} (e.g., 1.2 for +20%)
+                  {t('admin.campaigns.form.seasonMultiplier') || 'Season Multiplier'} (e.g., 1.2 for
+                  +20%)
                 </label>
                 <input
                   type="number"
@@ -411,7 +453,9 @@ function CampaignManagement() {
                 <input
                   type="checkbox"
                   checked={formData.autoGenerateCoupon}
-                  onChange={(e) => setFormData({ ...formData, autoGenerateCoupon: e.target.checked })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, autoGenerateCoupon: e.target.checked })
+                  }
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label className="ml-2 block text-sm text-gray-700">
@@ -427,7 +471,9 @@ function CampaignManagement() {
                   <input
                     type="text"
                     value={formData.couponCode}
-                    onChange={(e) => setFormData({ ...formData, couponCode: e.target.value.toUpperCase() })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, couponCode: e.target.value.toUpperCase() })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="SUMMER2024"
                   />
@@ -465,8 +511,13 @@ function CampaignManagement() {
                 </div>
                 <div className="space-y-2">
                   {formData.applicableRoutes.map((route, index) => (
-                    <div key={index} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                      <span>{route.origin} → {route.destination}</span>
+                    <div
+                      key={index}
+                      className="flex justify-between items-center bg-gray-50 p-2 rounded"
+                    >
+                      <span>
+                        {route.origin} → {route.destination}
+                      </span>
                       <button
                         type="button"
                         onClick={() => handleRemoveRoute(index)}
@@ -488,7 +539,7 @@ function CampaignManagement() {
                 multiple
                 value={formData.applicableTours}
                 onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, option => option.value);
+                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
                   setFormData({ ...formData, applicableTours: selected });
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -501,7 +552,8 @@ function CampaignManagement() {
                 ))}
               </select>
               <p className="text-xs text-gray-500 mt-1">
-                {t('admin.campaigns.form.toursHelp') || 'Hold Ctrl/Cmd to select multiple. Leave empty for all tours.'}
+                {t('admin.campaigns.form.toursHelp') ||
+                  'Hold Ctrl/Cmd to select multiple. Leave empty for all tours.'}
               </p>
             </div>
 
@@ -549,7 +601,7 @@ function CampaignManagement() {
                 type="submit"
                 className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
-                {editingId ? (t('common.update') || 'Update') : (t('common.create') || 'Create')}
+                {editingId ? t('common.update') || 'Update' : t('common.create') || 'Create'}
               </button>
             </div>
           </form>
@@ -588,7 +640,8 @@ function CampaignManagement() {
             {campaigns.length === 0 ? (
               <tr>
                 <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
-                  {t('admin.campaigns.noCampaigns') || 'No campaigns found. Create your first campaign!'}
+                  {t('admin.campaigns.noCampaigns') ||
+                    'No campaigns found. Create your first campaign!'}
                 </td>
               </tr>
             ) : (
@@ -610,7 +663,9 @@ function CampaignManagement() {
                       `×${campaign.seasonMultiplier}`
                     ) : (
                       <>
-                        {campaign.discountType === 'percentage' ? `${campaign.discountValue}%` : `$${campaign.discountValue}`}
+                        {campaign.discountType === 'percentage'
+                          ? `${campaign.discountValue}%`
+                          : `$${campaign.discountValue}`}
                       </>
                     )}
                   </td>
@@ -626,27 +681,31 @@ function CampaignManagement() {
                     <button
                       onClick={() => handleToggleActive(campaign)}
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        campaign.active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
+                        campaign.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {campaign.active ? (t('common.active') || 'Active') : (t('common.inactive') || 'Inactive')}
+                      {campaign.active
+                        ? t('common.active') || 'Active'
+                        : t('common.inactive') || 'Inactive'}
                     </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
+                      type="button"
                       onClick={() => handleEdit(campaign)}
                       className="text-blue-600 hover:text-blue-900 mr-4"
                     >
                       {t('common.edit') || 'Edit'}
                     </button>
-                    <button
-                      onClick={() => handleDelete(campaign._id)}
-                      className="text-red-600 hover:text-red-900"
+                    <LoadingButton
+                      type="button"
+                      onClick={() => handleDeleteClick(campaign)}
+                      loading={deletingCampaignId === campaign._id}
+                      variant="link"
+                      className="text-red-600 hover:text-red-900 p-0"
                     >
                       {t('common.delete') || 'Delete'}
-                    </button>
+                    </LoadingButton>
                   </td>
                 </tr>
               ))
@@ -654,6 +713,20 @@ function CampaignManagement() {
           </tbody>
         </table>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        open={deleteModalOpen}
+        title={t('admin.campaigns.deleteTitle') || 'Delete Campaign'}
+        message={
+          t('admin.campaigns.deleteConfirmMessage') ||
+          `Are you sure you want to delete campaign "${campaignToDelete?.name}"? This action cannot be undone.`
+        }
+        confirmButtonText={t('common.delete') || 'Delete'}
+        cancelButtonText={t('common.cancel') || 'Cancel'}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     </div>
   );
 }

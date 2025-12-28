@@ -2,8 +2,8 @@
 import axios from 'axios';
 
 // API base URL - standardized to /api/v1
-const API_BASE_URL = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}/v1` 
+const API_BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/v1`
   : 'http://localhost:5000/api/v1';
 
 const API = axios.create({
@@ -29,17 +29,17 @@ API.interceptors.request.use(
   (config) => {
     // Try to get token from AuthContext first, fallback to localStorage
     let token = null;
-    
+
     if (authContextRef?.user?.token) {
       token = authContextRef.user.token;
     } else {
       token = localStorage.getItem('token');
     }
-    
+
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     return config;
   },
   (error) => {
@@ -53,10 +53,10 @@ API.interceptors.response.use(
   (response) => response,
   (error) => {
     if (!error.response) {
-      return Promise.reject({ 
-        message: 'Network connection error', 
+      return Promise.reject({
+        message: 'Network connection error',
         code: 'NETWORK_ERROR',
-        originalError: error 
+        originalError: error,
       });
     }
 
@@ -68,7 +68,7 @@ API.interceptors.response.use(
       // Token expired or invalid - clear auth state and redirect
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
-      
+
       // Only redirect if not already on login page
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
         window.location.href = '/login';
@@ -89,12 +89,12 @@ API.interceptors.response.use(
       method: error.config?.method,
     });
 
-    return Promise.reject({ 
-      status, 
-      message, 
+    return Promise.reject({
+      status,
+      message,
       code: `HTTP_${status}`,
-      data: data,
-      originalError: error 
+      data,
+      originalError: error,
     });
   }
 );

@@ -1,19 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useAuth } from '../context/AuthContext';
+import { ConfirmModal, LoadingButton } from '../components/ui';
+import { useToast } from '../components/ui/ToastProvider';
+import { handleError } from '../utils/errorHandler';
 
 // Sortable menu item component
 const SortableMenuItem = ({ item, index, onRemove, onUpdate }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: item.id });
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -26,7 +36,11 @@ const SortableMenuItem = ({ item, index, onRemove, onUpdate }) => {
       style={style}
       className="flex items-center gap-2 p-3 bg-white border rounded-lg mb-2"
     >
-      <div {...attributes} {...listeners} className="cursor-move p-2 text-gray-400 hover:text-gray-600">
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-move p-2 text-gray-400 hover:text-gray-600"
+      >
         ⋮⋮
       </div>
       <div className="flex-1">
@@ -49,6 +63,7 @@ const SortableMenuItem = ({ item, index, onRemove, onUpdate }) => {
 const MenuManager = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [menus, setMenus] = useState([]);
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,6 +71,11 @@ const MenuManager = () => {
   const [success, setSuccess] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingMenu, setEditingMenu] = useState(null);
+  
+  // Confirmation modals
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [menuToDelete, setMenuToDelete] = useState(null);
+  const [deletingMenuId, setDeletingMenuId] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -64,7 +84,7 @@ const MenuManager = () => {
     isActive: true,
     items: [],
   });
-  
+
   // New item form state
   const [newItem, setNewItem] = useState({
     label: '',
@@ -92,14 +112,11 @@ const MenuManager = () => {
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || '/api'}/admin/menus`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/admin/menus`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const result = await response.json();
       if (result.success) {
@@ -217,7 +234,7 @@ const MenuManager = () => {
       setFormData((prev) => {
         const oldIndex = prev.items.findIndex((item) => item.id === active.id);
         const newIndex = prev.items.findIndex((item) => item.id === over.id);
-        
+
         return {
           ...prev,
           items: arrayMove(prev.items, oldIndex, newIndex),
@@ -286,15 +303,19 @@ const MenuManager = () => {
     }
   };
 
-  const handleDeleteMenu = async (menuId) => {
-    if (!window.confirm('Are you sure you want to delete this menu?')) {
-      return;
-    }
+  const handleDeleteMenuClick = (menu) => {
+    setMenuToDelete(menu);
+    setDeleteModalOpen(true);
+  };
 
+  const handleDeleteMenuConfirm = async () => {
+    if (!menuToDelete) return;
+
+    setDeletingMenuId(menuToDelete._id);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || '/api'}/admin/menus/${menuId}`,
+        `${import.meta.env.VITE_API_URL || '/api'}/admin/menus/${menuToDelete._id}`,
         {
           method: 'DELETE',
           headers: {
@@ -305,16 +326,27 @@ const MenuManager = () => {
 
       const result = await response.json();
       if (result.success) {
-        setSuccess('Menu deleted successfully');
+        toast.success(`Menu "${menuToDelete.name}" deleted successfully`);
+        setDeleteModalOpen(false);
+        setMenuToDelete(null);
         fetchMenus();
-        setTimeout(() => setSuccess(''), 3000);
       } else {
-        setError(result.message || 'Failed to delete menu');
+        const errorMsg = result.message || 'Failed to delete menu';
+        setError(errorMsg);
+        toast.error(errorMsg);
       }
     } catch (err) {
-      setError('Network error while deleting menu');
-      console.error('Delete menu error:', err);
+      const { userMessage } = handleError(err, 'deleting menu');
+      setError(userMessage);
+      toast.error(userMessage);
+    } finally {
+      setDeletingMenuId(null);
     }
+  };
+
+  const handleDeleteMenuCancel = () => {
+    setDeleteModalOpen(false);
+    setMenuToDelete(null);
   };
 
   if (loading) {
@@ -339,17 +371,9 @@ const MenuManager = () => {
         )}
       </div>
 
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
 
-      {success && (
-        <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
-          {success}
-        </div>
-      )}
+      {success && <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">{success}</div>}
 
       {/* Menus List */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -371,17 +395,21 @@ const MenuManager = () => {
               {isAdmin && (
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={() => handleEditMenu(menu)}
                     className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded"
                   >
                     Edit
                   </button>
-                  <button
-                    onClick={() => handleDeleteMenu(menu._id)}
+                  <LoadingButton
+                    type="button"
+                    onClick={() => handleDeleteMenuClick(menu)}
+                    loading={deletingMenuId === menu._id}
+                    variant="link"
                     className="px-3 py-1 text-red-600 hover:bg-red-50 rounded"
                   >
                     Delete
-                  </button>
+                  </LoadingButton>
                 </div>
               )}
             </div>
@@ -460,7 +488,7 @@ const MenuManager = () => {
                 {/* Menu Items */}
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-3">Menu Items</h3>
-                  
+
                   {/* Add New Item Form */}
                   <div className="bg-gray-50 p-4 rounded-lg mb-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
@@ -478,7 +506,14 @@ const MenuManager = () => {
                         <label className="block text-sm font-medium mb-1">Link Type</label>
                         <select
                           value={newItem.linkType}
-                          onChange={(e) => setNewItem({ ...newItem, linkType: e.target.value, pageSlug: '', externalUrl: '' })}
+                          onChange={(e) =>
+                            setNewItem({
+                              ...newItem,
+                              linkType: e.target.value,
+                              pageSlug: '',
+                              externalUrl: '',
+                            })
+                          }
                           className="w-full p-2 border rounded"
                         >
                           <option value="page">Internal Page</option>
@@ -528,9 +563,7 @@ const MenuManager = () => {
                   {/* Sortable Items List */}
                   {formData.items.length > 0 && (
                     <div>
-                      <p className="text-sm text-gray-600 mb-2">
-                        Drag items to reorder them
-                      </p>
+                      <p className="text-sm text-gray-600 mb-2">Drag items to reorder them</p>
                       <DndContext
                         sensors={sensors}
                         collisionDetection={closestCenter}
@@ -575,6 +608,17 @@ const MenuManager = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        open={deleteModalOpen}
+        title="Delete Menu"
+        message={`Are you sure you want to delete menu "${menuToDelete?.name}"? This action cannot be undone.`}
+        confirmButtonText="Delete"
+        cancelButtonText="Cancel"
+        onConfirm={handleDeleteMenuConfirm}
+        onCancel={handleDeleteMenuCancel}
+      />
     </div>
   );
 };

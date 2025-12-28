@@ -116,7 +116,8 @@ function Services() {
   const seoData = getSEOTranslations('home', currentLang); // Using home as fallback
   const serviceSchema = generateServiceSchema({
     name: 'GNB Transfer Services',
-    description: 'Professional airport transfers, city tours, VIP transfers, and corporate travel solutions in Turkey',
+    description:
+      'Professional airport transfers, city tours, VIP transfers, and corporate travel solutions in Turkey',
     lang: currentLang,
   });
 

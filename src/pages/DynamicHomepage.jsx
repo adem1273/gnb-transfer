@@ -73,28 +73,19 @@ const ToursSection = ({ data }) => {
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-12">
-          {data.title || 'Our Tours'}
-        </h2>
+        <h2 className="text-3xl font-bold text-center mb-12">{data.title || 'Our Tours'}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {tours.slice(0, data.limit || 6).map((tour) => (
             <div key={tour._id} className="bg-white rounded-lg shadow-md overflow-hidden">
               {tour.images && tour.images[0] && (
-                <img
-                  src={tour.images[0]}
-                  alt={tour.title}
-                  className="w-full h-48 object-cover"
-                />
+                <img src={tour.images[0]} alt={tour.title} className="w-full h-48 object-cover" />
               )}
               <div className="p-4">
                 <h3 className="text-xl font-semibold mb-2">{tour.title}</h3>
                 <p className="text-gray-600 mb-4 line-clamp-2">{tour.description}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-blue-600 font-bold">${tour.price}</span>
-                  <Link
-                    to={`/tours/${tour._id}`}
-                    className="text-blue-600 hover:underline"
-                  >
+                  <Link to={`/tours/${tour._id}`} className="text-blue-600 hover:underline">
                     View Details
                   </Link>
                 </div>
@@ -127,9 +118,7 @@ const TestimonialsSection = ({ data }) => (
               )}
               <div>
                 <p className="font-semibold">{testimonial.name}</p>
-                {testimonial.role && (
-                  <p className="text-sm text-gray-500">{testimonial.role}</p>
-                )}
+                {testimonial.role && <p className="text-sm text-gray-500">{testimonial.role}</p>}
               </div>
             </div>
           </div>
@@ -195,9 +184,7 @@ const TextSection = ({ data }) => (
   <section className="py-16">
     <div className="container mx-auto px-4 max-w-4xl">
       {data.title && <h2 className="text-3xl font-bold mb-6">{data.title}</h2>}
-      <div className="prose prose-lg max-w-none">
-        {data.content}
-      </div>
+      <div className="prose prose-lg max-w-none">{data.content}</div>
     </div>
   </section>
 );
@@ -221,11 +208,7 @@ const FAQSection = ({ data }) => {
                 <span>{faq.question}</span>
                 <span className="text-2xl">{openIndex === index ? '−' : '+'}</span>
               </button>
-              {openIndex === index && (
-                <div className="p-4 pt-0 text-gray-600">
-                  {faq.answer}
-                </div>
-              )}
+              {openIndex === index && <div className="p-4 pt-0 text-gray-600">{faq.answer}</div>}
             </div>
           ))}
         </div>
@@ -260,13 +243,11 @@ const DynamicHomepage = () => {
       if (hasFetchedRef.current) {
         return;
       }
-      
+
       hasFetchedRef.current = true;
 
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL || '/api'}/home-layout`
-        );
+        const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/home-layout`);
 
         if (response.status === 404) {
           // No active layout, use fallback
@@ -312,7 +293,7 @@ const DynamicHomepage = () => {
           <title>GNB Transfer - Premium Transfer Services</title>
           <meta name="description" content="Book premium transfer services with GNB Transfer" />
         </Helmet>
-        
+
         {/* Static fallback homepage - You can import your existing Home component here */}
         <section className="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20">
           <div className="container mx-auto px-4 text-center">
@@ -334,27 +315,25 @@ const DynamicHomepage = () => {
     <div>
       <Helmet>
         <title>{layout.seo?.title || 'GNB Transfer'}</title>
-        <meta
-          name="description"
-          content={layout.seo?.description || 'Premium Transfer Services'}
-        />
+        <meta name="description" content={layout.seo?.description || 'Premium Transfer Services'} />
         {layout.seo?.keywords && layout.seo.keywords.length > 0 && (
           <meta name="keywords" content={layout.seo.keywords.join(', ')} />
         )}
-        
+
         {/* JSON-LD Structured Data */}
-        {layout.structuredData && Array.isArray(layout.structuredData) && layout.structuredData.length > 0 && (
+        {layout.structuredData &&
+          Array.isArray(layout.structuredData) &&
+          layout.structuredData.length > 0 &&
           layout.structuredData.map((schema, index) => (
             <script key={index} type="application/ld+json">
               {JSON.stringify(schema)}
             </script>
-          ))
-        )}
+          ))}
       </Helmet>
 
       {layout.sections?.map((section, index) => {
         const SectionComponent = sectionRenderers[section.type];
-        
+
         if (!SectionComponent) {
           console.warn(`Unknown section type: ${section.type}`);
           return null;

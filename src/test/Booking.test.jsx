@@ -55,15 +55,14 @@ const mockTours = [
   { _id: '2', name: 'Beach Tour', price: 150, description: 'Relaxing beach tour' },
 ];
 
-const renderBooking = () => {
-  return render(
+const renderBooking = () =>
+  render(
     <BrowserRouter>
       <AuthProvider>
         <Booking />
       </AuthProvider>
     </BrowserRouter>
   );
-};
 
 describe('Booking Component', () => {
   beforeEach(() => {
@@ -78,11 +77,11 @@ describe('Booking Component', () => {
 
   it('loads and displays tours after fetching', async () => {
     renderBooking();
-    
+
     await waitFor(() => {
       expect(API.get).toHaveBeenCalledWith('/tours');
     });
-    
+
     await waitFor(() => {
       expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
     });
@@ -90,9 +89,9 @@ describe('Booking Component', () => {
 
   it('displays error message when tours fail to load', async () => {
     API.get.mockRejectedValueOnce(new Error('Failed to fetch'));
-    
+
     renderBooking();
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('error-message')).toBeInTheDocument();
     });
@@ -100,33 +99,39 @@ describe('Booking Component', () => {
 
   it('renders booking form fields', async () => {
     renderBooking();
-    
+
     await waitFor(() => {
       expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
     });
-    
+
     // Check for basic form fields
-    expect(screen.getByLabelText(/name/i) || screen.getByPlaceholderText(/name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/email/i) || screen.getByPlaceholderText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/phone/i) || screen.getByPlaceholderText(/phone/i)).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/name/i) || screen.getByPlaceholderText(/name/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/email/i) || screen.getByPlaceholderText(/email/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/phone/i) || screen.getByPlaceholderText(/phone/i)
+    ).toBeInTheDocument();
   });
 
   it('allows filling booking form', async () => {
     renderBooking();
     const user = userEvent.setup();
-    
+
     await waitFor(() => {
       expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
     });
-    
+
     const nameInput = screen.getByLabelText(/name/i) || screen.getByPlaceholderText(/name/i);
     const emailInput = screen.getByLabelText(/email/i) || screen.getByPlaceholderText(/email/i);
     const phoneInput = screen.getByLabelText(/phone/i) || screen.getByPlaceholderText(/phone/i);
-    
+
     await user.type(nameInput, 'John Doe');
     await user.type(emailInput, 'john@example.com');
     await user.type(phoneInput, '+1234567890');
-    
+
     expect(nameInput).toHaveValue('John Doe');
     expect(emailInput).toHaveValue('john@example.com');
     expect(phoneInput).toHaveValue('+1234567890');

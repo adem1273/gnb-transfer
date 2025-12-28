@@ -89,9 +89,10 @@ function BookingFormEnhanced({ onSubmit, tours = [], initialTourId = '' }) {
   const totalSteps = 4;
 
   // Calculate total passenger count
-  const totalPassengerCount = useMemo(() => {
-    return formData.adultsCount + formData.childrenCount;
-  }, [formData.adultsCount, formData.childrenCount]);
+  const totalPassengerCount = useMemo(
+    () => formData.adultsCount + formData.childrenCount,
+    [formData.adultsCount, formData.childrenCount]
+  );
 
   // Calculate extra services total
   const extraServicesTotal = useMemo(() => {

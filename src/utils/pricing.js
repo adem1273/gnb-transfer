@@ -15,7 +15,7 @@
  * @throws {Error} If the API request fails
  */
 export async function calculateFrontendPrice(distanceMeters, vehicleType, date) {
-  const response = await fetch((import.meta.env.VITE_API_URL || '/api') + '/pricing/calc', {
+  const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/pricing/calc`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ distanceMeters, vehicleType, date }),

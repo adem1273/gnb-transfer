@@ -70,11 +70,7 @@ function ActivityLogs() {
       );
 
       // Try to detect backend export endpoint
-      const exportEndpoints = [
-        `/admin/logs/export`,
-        `/admin/logs/job`,
-        `/admin/audit-logs/export`,
-      ];
+      const exportEndpoints = [`/admin/logs/export`, `/admin/logs/job`, `/admin/audit-logs/export`];
 
       let exportSuccessful = false;
 
@@ -110,7 +106,10 @@ function ActivityLogs() {
         if (pagination.total > 5000) {
           // For large datasets, warn user and export in chunks
           console.warn(`Large dataset (${pagination.total} rows). Exporting visible rows only.`);
-          toast.warning(`Exporting ${logs.length} visible rows. Full export requires backend support.`, 8000);
+          toast.warning(
+            `Exporting ${logs.length} visible rows. Full export requires backend support.`,
+            8000
+          );
         }
 
         exportLogsAsCSV(logs);
@@ -128,9 +127,18 @@ function ActivityLogs() {
    * Fallback CSV export for visible rows
    */
   const exportLogsAsCSV = (logsData) => {
-    const headers = ['Timestamp', 'Action', 'User Name', 'User Email', 'User Role', 'Target Type', 'Target Name', 'IP Address'];
-    
-    const rows = logsData.map(log => [
+    const headers = [
+      'Timestamp',
+      'Action',
+      'User Name',
+      'User Email',
+      'User Role',
+      'Target Type',
+      'Target Name',
+      'IP Address',
+    ];
+
+    const rows = logsData.map((log) => [
       new Date(log.createdAt).toISOString(),
       log.action,
       log.user.name,
@@ -143,7 +151,7 @@ function ActivityLogs() {
 
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
+      ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

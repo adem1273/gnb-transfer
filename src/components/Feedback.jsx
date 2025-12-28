@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import API from '../utils/api';
 import { useTranslation } from 'react-i18next';
+import API from '../utils/api';
 
 function Feedback() {
   const { t } = useTranslation();

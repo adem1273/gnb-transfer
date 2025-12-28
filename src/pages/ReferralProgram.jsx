@@ -3,6 +3,8 @@ import API from '../utils/api';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/ui/ToastProvider';
+import { handleError } from '../utils/errorHandler';
 
 function ReferralProgram() {
   const [myReferral, setMyReferral] = useState(null);
@@ -11,6 +13,7 @@ function ReferralProgram() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { user } = useAuth();
+  const { toast } = useToast();
   const isAdmin = user && ['admin', 'manager'].includes(user.role);
 
   useEffect(() => {
@@ -36,16 +39,18 @@ function ReferralProgram() {
       }
 
       setLoading(false);
+      setError('');
     } catch (err) {
-      console.error(err);
-      setError('Failed to load referral data');
+      const { userMessage } = handleError(err, 'loading referral data');
+      setError(userMessage);
       setLoading(false);
+      toast.error(userMessage);
     }
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    alert('Referral code copied to clipboard!');
+    toast.success('Referral code copied to clipboard!');
   };
 
   if (loading) return <Loading message="Loading referral data..." />;

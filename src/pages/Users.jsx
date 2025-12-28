@@ -52,7 +52,7 @@ function Users() {
       setUserToDelete(null);
     } catch (err) {
       const { userMessage } = handleError(err, 'deleting user');
-      
+
       // Check for permission error
       if (err.status === 403) {
         toast.error('You do not have permission to delete users');

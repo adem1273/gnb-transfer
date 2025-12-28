@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet';
 import API from '../utils/api';
 import ImageUpload from '../components/ImageUpload';
+import { ConfirmModal, LoadingButton } from '../components/ui';
+import { useToast } from '../components/ui/ToastProvider';
+import { handleError } from '../utils/errorHandler';
 
 const SUPPORTED_LANGUAGES = ['tr', 'en', 'ar', 'ru', 'de', 'fr', 'es', 'zh', 'fa'];
 const LANGUAGE_NAMES = {
@@ -29,6 +32,7 @@ const CATEGORIES = [
 
 function BlogManagement() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,13 +40,25 @@ function BlogManagement() {
   const [editingPost, setEditingPost] = useState(null);
   const [activeTab, setActiveTab] = useState('tr');
   const [filter, setFilter] = useState({ status: '', category: '' });
+  
+  // Confirmation modals
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
+  const [deletingPostId, setDeletingPostId] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
     translations: SUPPORTED_LANGUAGES.reduce(
       (acc, lang) => ({
         ...acc,
-        [lang]: { title: '', slug: '', metaTitle: '', metaDescription: '', excerpt: '', content: '' },
+        [lang]: {
+          title: '',
+          slug: '',
+          metaTitle: '',
+          metaDescription: '',
+          excerpt: '',
+          content: '',
+        },
       }),
       {}
     ),
@@ -79,14 +95,13 @@ function BlogManagement() {
     }
   };
 
-  const generateSlug = (title) => {
-    return title
+  const generateSlug = (title) =>
+    title
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
-  };
 
   const handleTitleChange = (lang, value) => {
     setFormData((prev) => ({
@@ -142,22 +157,44 @@ function BlogManagement() {
       tags: post.tags || {},
       status: post.status || 'draft',
       ctas: post.ctas || [{ text: 'Hemen Rezervasyon Yap', url: '/booking', style: 'primary' }],
-      pricingInfo: post.pricingInfo || { startingPrice: 75, currency: '$', discountCode: 'VIP2026' },
+      pricingInfo: post.pricingInfo || {
+        startingPrice: 75,
+        currency: '$',
+        discountCode: 'VIP2026',
+      },
       whatsappNumber: post.whatsappNumber || '+905551234567',
       priority: post.priority || 0,
     });
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Bu blog yazısını silmek istediğinize emin misiniz?')) return;
+  const handleDeleteClick = (post) => {
+    setPostToDelete(post);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!postToDelete) return;
+
+    setDeletingPostId(postToDelete._id);
     try {
-      await API.delete(`/blogs/${id}`);
+      await API.delete(`/blogs/${postToDelete._id}`);
+      toast.success(t('blog.deleteSuccess') || `Blog yazısı "${postToDelete.translations?.tr?.title || 'Untitled'}" silindi`);
+      setDeleteModalOpen(false);
+      setPostToDelete(null);
       fetchPosts();
     } catch (err) {
-      setError('Blog yazısı silinemedi');
-      console.error('Error deleting post:', err);
+      const { userMessage } = handleError(err, 'deleting blog post');
+      setError(userMessage);
+      toast.error(userMessage);
+    } finally {
+      setDeletingPostId(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setPostToDelete(null);
   };
 
   const resetForm = () => {
@@ -166,7 +203,14 @@ function BlogManagement() {
       translations: SUPPORTED_LANGUAGES.reduce(
         (acc, lang) => ({
           ...acc,
-          [lang]: { title: '', slug: '', metaTitle: '', metaDescription: '', excerpt: '', content: '' },
+          [lang]: {
+            title: '',
+            slug: '',
+            metaTitle: '',
+            metaDescription: '',
+            excerpt: '',
+            content: '',
+          },
         }),
         {}
       ),
@@ -190,7 +234,9 @@ function BlogManagement() {
       archived: 'bg-gray-100 text-gray-800',
     };
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100'}`}>
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100'}`}
+      >
         {status === 'draft' ? 'Taslak' : status === 'published' ? 'Yayında' : 'Arşiv'}
       </span>
     );
@@ -341,17 +387,21 @@ function BlogManagement() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button
+                      type="button"
                       onClick={() => handleEdit(post)}
                       className="text-blue-600 hover:text-blue-800 mr-3"
                     >
                       Düzenle
                     </button>
-                    <button
-                      onClick={() => handleDelete(post._id)}
-                      className="text-red-600 hover:text-red-800"
+                    <LoadingButton
+                      type="button"
+                      onClick={() => handleDeleteClick(post)}
+                      loading={deletingPostId === post._id}
+                      variant="link"
+                      className="text-red-600 hover:text-red-800 p-0"
                     >
                       Sil
-                    </button>
+                    </LoadingButton>
                   </td>
                 </tr>
               ))}
@@ -423,9 +473,7 @@ function BlogManagement() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      URL Slug
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">URL Slug</label>
                     <input
                       type="text"
                       value={formData.translations?.[activeTab]?.slug || ''}
@@ -443,7 +491,9 @@ function BlogManagement() {
                     <input
                       type="text"
                       value={formData.translations?.[activeTab]?.metaTitle || ''}
-                      onChange={(e) => handleTranslationChange(activeTab, 'metaTitle', e.target.value)}
+                      onChange={(e) =>
+                        handleTranslationChange(activeTab, 'metaTitle', e.target.value)
+                      }
                       className="w-full px-3 py-2 border rounded-lg"
                       maxLength={70}
                     />
@@ -471,9 +521,7 @@ function BlogManagement() {
                 </div>
 
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Özet
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Özet</label>
                   <textarea
                     value={formData.translations?.[activeTab]?.excerpt || ''}
                     onChange={(e) => handleTranslationChange(activeTab, 'excerpt', e.target.value)}
@@ -503,7 +551,9 @@ function BlogManagement() {
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className="col-span-3">
                     <ImageUpload
-                      onImageUploaded={(url) => setFormData((prev) => ({ ...prev, featuredImage: url }))}
+                      onImageUploaded={(url) =>
+                        setFormData((prev) => ({ ...prev, featuredImage: url }))
+                      }
                       currentImage={formData.featuredImage}
                       label="Öne Çıkan Görsel *"
                     />
@@ -514,7 +564,9 @@ function BlogManagement() {
                     </label>
                     <select
                       value={formData.category}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, category: e.target.value }))
+                      }
                       className="w-full px-3 py-2 border rounded-lg"
                       required
                     >
@@ -526,9 +578,7 @@ function BlogManagement() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Durum
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Durum</label>
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
@@ -552,7 +602,10 @@ function BlogManagement() {
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          pricingInfo: { ...prev.pricingInfo, startingPrice: Number(e.target.value) },
+                          pricingInfo: {
+                            ...prev.pricingInfo,
+                            startingPrice: Number(e.target.value),
+                          },
                         }))
                       }
                       className="w-full px-3 py-2 border rounded-lg"
@@ -581,7 +634,9 @@ function BlogManagement() {
                     <input
                       type="text"
                       value={formData.whatsappNumber}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, whatsappNumber: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, whatsappNumber: e.target.value }))
+                      }
                       className="w-full px-3 py-2 border rounded-lg"
                       placeholder="+905551234567"
                     />
@@ -608,6 +663,20 @@ function BlogManagement() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        open={deleteModalOpen}
+        title={t('blog.deleteTitle') || 'Blog Yazısını Sil'}
+        message={
+          t('blog.deleteConfirm') ||
+          `"${postToDelete?.translations?.tr?.title || 'Untitled'}" blog yazısını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+        }
+        confirmButtonText={t('common.delete') || 'Sil'}
+        cancelButtonText={t('common.cancel') || 'İptal'}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     </div>
   );
 }

@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import API from '../utils/api';
+import { ConfirmModal, LoadingButton } from '../components/ui';
+import { useToast } from '../components/ui/ToastProvider';
+import { handleError } from '../utils/errorHandler';
 
 function CampaignRules() {
   const [campaigns, setCampaigns] = useState([]);
@@ -18,6 +21,15 @@ function CampaignRules() {
     endDate: '',
     active: true,
   });
+  
+  // Confirmation modals
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [campaignToDelete, setCampaignToDelete] = useState(null);
+  const [deletingCampaignId, setDeletingCampaignId] = useState(null);
+  const [applying, setApplying] = useState(false);
+
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchCampaigns();
@@ -28,10 +40,12 @@ function CampaignRules() {
       const response = await API.get('/admin/campaigns');
       setCampaigns(response.data.data);
       setLoading(false);
+      setError('');
     } catch (err) {
-      console.error('Error fetching campaigns:', err);
-      setError('Failed to load campaigns');
+      const { userMessage } = handleError(err, 'fetching campaigns');
+      setError(userMessage);
       setLoading(false);
+      toast.error(userMessage);
     }
   };
 
@@ -42,16 +56,19 @@ function CampaignRules() {
     try {
       if (editingId) {
         await API.patch(`/admin/campaigns/${editingId}`, formData);
+        toast.success('Campaign updated successfully');
       } else {
         await API.post('/admin/campaigns', formData);
+        toast.success('Campaign created successfully');
       }
       setShowForm(false);
       setEditingId(null);
       resetForm();
       fetchCampaigns();
     } catch (err) {
-      console.error('Error saving campaign:', err);
-      setError(err.response?.data?.error || 'Failed to save campaign');
+      const { userMessage } = handleError(err, 'saving campaign');
+      setError(userMessage);
+      toast.error(userMessage);
     }
   };
 
@@ -70,16 +87,32 @@ function CampaignRules() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this campaign?')) return;
+  const handleDeleteClick = (campaign) => {
+    setCampaignToDelete(campaign);
+    setDeleteModalOpen(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!campaignToDelete) return;
+
+    setDeletingCampaignId(campaignToDelete._id);
     try {
-      await API.delete(`/admin/campaigns/${id}`);
+      await API.delete(`/admin/campaigns/${campaignToDelete._id}`);
+      toast.success(`Campaign "${campaignToDelete.name}" deleted successfully`);
+      setDeleteModalOpen(false);
+      setCampaignToDelete(null);
       fetchCampaigns();
     } catch (err) {
-      console.error('Error deleting campaign:', err);
-      setError('Failed to delete campaign');
+      const { userMessage } = handleError(err, 'deleting campaign');
+      toast.error(userMessage);
+    } finally {
+      setDeletingCampaignId(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setCampaignToDelete(null);
   };
 
   const handleToggleActive = async (campaign) => {
@@ -87,21 +120,36 @@ function CampaignRules() {
       await API.patch(`/admin/campaigns/${campaign._id}`, {
         active: !campaign.active,
       });
+      toast.success(`Campaign ${campaign.active ? 'deactivated' : 'activated'} successfully`);
       fetchCampaigns();
     } catch (err) {
-      console.error('Error toggling campaign:', err);
-      setError('Failed to update campaign');
+      const { userMessage } = handleError(err, 'updating campaign status');
+      setError(userMessage);
+      toast.error(userMessage);
     }
   };
 
-  const handleApplyCampaigns = async () => {
+  const handleApplyCampaignsClick = () => {
+    setApplyModalOpen(true);
+  };
+
+  const handleApplyCampaignsConfirm = async () => {
+    setApplying(true);
     try {
       await API.post('/admin/campaigns/apply');
-      alert('Campaign rules applied successfully!');
+      toast.success('Campaign rules applied successfully!');
+      setApplyModalOpen(false);
     } catch (err) {
-      console.error('Error applying campaigns:', err);
-      setError('Failed to apply campaigns');
+      const { userMessage } = handleError(err, 'applying campaigns');
+      setError(userMessage);
+      toast.error(userMessage);
+    } finally {
+      setApplying(false);
     }
+  };
+
+  const handleApplyCampaignsCancel = () => {
+    setApplyModalOpen(false);
   };
 
   const resetForm = () => {
@@ -135,13 +183,17 @@ function CampaignRules() {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold">Campaign Rules</h2>
         <div className="space-x-2">
-          <button
-            onClick={handleApplyCampaigns}
+          <LoadingButton
+            type="button"
+            onClick={handleApplyCampaignsClick}
+            loading={applying}
+            variant="success"
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
             Apply Campaigns Now
-          </button>
+          </LoadingButton>
           <button
+            type="button"
             onClick={() => {
               resetForm();
               setShowForm(true);
@@ -273,12 +325,13 @@ function CampaignRules() {
               >
                 Cancel
               </button>
-              <button
+              <LoadingButton
                 type="submit"
+                loading={false}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
                 {editingId ? 'Update' : 'Create'}
-              </button>
+              </LoadingButton>
             </div>
           </form>
         </div>
@@ -317,6 +370,7 @@ function CampaignRules() {
                   </td>
                   <td className="px-4 py-3">
                     <button
+                      type="button"
                       onClick={() => handleToggleActive(campaign)}
                       className={`px-3 py-1 rounded text-sm ${
                         campaign.active
@@ -330,17 +384,21 @@ function CampaignRules() {
                   <td className="px-4 py-3">
                     <div className="flex space-x-2">
                       <button
+                        type="button"
                         onClick={() => handleEdit(campaign)}
                         className="text-blue-600 hover:text-blue-800 text-sm"
                       >
                         Edit
                       </button>
-                      <button
-                        onClick={() => handleDelete(campaign._id)}
-                        className="text-red-600 hover:text-red-800 text-sm"
+                      <LoadingButton
+                        type="button"
+                        onClick={() => handleDeleteClick(campaign)}
+                        loading={deletingCampaignId === campaign._id}
+                        variant="link"
+                        className="text-red-600 hover:text-red-800 text-sm p-0"
                       >
                         Delete
-                      </button>
+                      </LoadingButton>
                     </div>
                   </td>
                 </tr>
@@ -349,6 +407,28 @@ function CampaignRules() {
           </tbody>
         </table>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        open={deleteModalOpen}
+        title="Delete Campaign"
+        message={`Are you sure you want to delete campaign "${campaignToDelete?.name}"? This action cannot be undone.`}
+        confirmButtonText="Delete"
+        cancelButtonText="Cancel"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
+
+      {/* Apply Campaigns Confirmation Modal */}
+      <ConfirmModal
+        open={applyModalOpen}
+        title="Apply Campaign Rules"
+        message="Are you sure you want to apply all active campaign rules now? This will affect pricing for matching bookings."
+        confirmButtonText="Apply"
+        cancelButtonText="Cancel"
+        onConfirm={handleApplyCampaignsConfirm}
+        onCancel={handleApplyCampaignsCancel}
+      />
     </div>
   );
 }

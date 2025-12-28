@@ -1,13 +1,13 @@
 /**
  * Sentry Error Tracking for Frontend
- * 
+ *
  * This module initializes Sentry for the React frontend application.
  * It captures JavaScript errors, React component errors, and tracks user interactions.
- * 
+ *
  * Environment Separation:
  * - Development: Errors logged to console only (Sentry disabled)
  * - Production: Errors sent to Sentry for monitoring
- * 
+ *
  * @module config/sentry
  */
 
@@ -19,12 +19,12 @@ import * as Sentry from '@sentry/react';
 export function initSentry() {
   const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
   const environment = import.meta.env.MODE || 'development';
-  
+
   // Only enable Sentry if DSN is provided and we're not in development
   if (!sentryDsn || environment === 'development') {
-    console.info('Sentry is disabled', { 
+    console.info('Sentry is disabled', {
       reason: !sentryDsn ? 'No VITE_SENTRY_DSN provided' : 'Development environment',
-      environment 
+      environment,
     });
     return;
   }
@@ -33,14 +33,14 @@ export function initSentry() {
     Sentry.init({
       dsn: sentryDsn,
       environment,
-      
+
       // Performance Monitoring
       tracesSampleRate: environment === 'production' ? 0.1 : 1.0, // 10% in prod, 100% in staging
-      
+
       // Session Replay (optional - captures user sessions)
       replaysSessionSampleRate: 0.1, // 10% of sessions
       replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
-      
+
       // Integrations
       integrations: [
         new Sentry.BrowserTracing({
@@ -48,7 +48,7 @@ export function initSentry() {
           tracePropagationTargets: [
             'localhost',
             /^\//,
-            import.meta.env.VITE_API_URL || 'http://localhost:5000'
+            import.meta.env.VITE_API_URL || 'http://localhost:5000',
           ],
         }),
         new Sentry.Replay({
@@ -56,36 +56,38 @@ export function initSentry() {
           blockAllMedia: true, // Block media from replays
         }),
       ],
-      
+
       // Error filtering
       beforeSend(event, hint) {
         // Filter out certain errors
         const error = hint.originalException;
         if (error && error.message) {
           const message = error.message.toLowerCase();
-          
+
           // Don't send network errors to Sentry (they're usually temporary)
-          if (message.includes('network') || 
-              message.includes('failed to fetch') ||
-              message.includes('load failed')) {
+          if (
+            message.includes('network') ||
+            message.includes('failed to fetch') ||
+            message.includes('load failed')
+          ) {
             return null;
           }
-          
+
           // Don't send validation errors
           if (message.includes('validation') || message.includes('invalid')) {
             return null;
           }
         }
-        
+
         return event;
       },
-      
+
       // Release tracking
       release: import.meta.env.VITE_APP_VERSION || '1.0.0',
-      
+
       // Debug mode
       debug: environment !== 'production',
-      
+
       // Ignore certain errors
       ignoreErrors: [
         // Browser extensions
@@ -101,7 +103,7 @@ export function initSentry() {
         'Failed to fetch',
         'Load failed',
       ],
-      
+
       // Deny URLs (don't capture errors from these domains)
       denyUrls: [
         // Browser extensions
@@ -196,7 +198,7 @@ export function addBreadcrumb(message, data = {}) {
  * ErrorBoundary component for React
  * Wrap your app with this to catch React component errors
  */
-export const ErrorBoundary = Sentry.ErrorBoundary;
+export const { ErrorBoundary } = Sentry;
 
 // Export Sentry for direct use if needed
 export { Sentry };

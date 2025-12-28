@@ -7,6 +7,5 @@ export const isValidEmail = (email) => {
 };
 
 // Fiyat formatlama
-export const formatPrice = (price) => {
-  return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(price);
-};
+export const formatPrice = (price) =>
+  new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(price);
