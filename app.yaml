@@ -1,0 +1,66 @@
+# Google App Engine configuration for GNB Transfer
+# For Node.js flexible environment deployment
+# Use this for App Engine deployment (alternative to Cloud Run)
+
+runtime: nodejs20
+env: flex
+
+# Service configuration
+service: default
+
+# Scaling configuration
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 10
+  cool_down_period_sec: 180
+  cpu_utilization:
+    target_utilization: 0.8
+
+# Resource configuration
+resources:
+  cpu: 1
+  memory_gb: 2
+  disk_size_gb: 10
+
+# Network configuration
+network:
+  forwarded_ports:
+    - 8080
+
+# Health check configuration
+liveness_check:
+  path: "/api/health"
+  check_interval_sec: 30
+  timeout_sec: 4
+  failure_threshold: 2
+  success_threshold: 2
+
+readiness_check:
+  path: "/api/health"
+  check_interval_sec: 5
+  timeout_sec: 4
+  failure_threshold: 2
+  success_threshold: 2
+  app_start_timeout_sec: 300
+
+# Environment variables
+# IMPORTANT: Set sensitive values in Cloud Console or use Secret Manager
+env_variables:
+  NODE_ENV: 'production'
+  # PORT is automatically set by App Engine to 8080
+  # Add other non-sensitive environment variables here
+  # Example:
+  # CORS_ORIGINS: 'https://your-domain.com'
+
+# Runtime configuration
+entrypoint: node backend/server.mjs
+
+# Files to skip uploading (use .gcloudignore instead)
+# This is legacy but kept for reference
+skip_files:
+  - ^(.*/)?#.*#$
+  - ^(.*/)?.*~$
+  - ^(.*/)?.*\.py[co]$
+  - ^(.*/)?.*/RCS/.*$
+  - ^(.*/)?\..*$
+  - ^(.*/)?node_modules$
