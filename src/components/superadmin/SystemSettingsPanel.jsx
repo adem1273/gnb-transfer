@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import API from '../../utils/api';
 
 /**
@@ -29,33 +29,33 @@ function SystemSettingsPanel() {
 
   // Fetch current settings on mount
   useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await API.get('/v1/super-admin/system-settings');
+
+        if (response.data && response.data.data) {
+          const settingsData = response.data.data;
+          setSettings(settingsData);
+          setFormData({
+            siteStatus: settingsData.siteStatus || 'online',
+            maintenanceMessage: settingsData.maintenanceMessage || '',
+            bookingEnabled: settingsData.bookingEnabled ?? true,
+            paymentEnabled: settingsData.paymentEnabled ?? true,
+            registrationsEnabled: settingsData.registrationsEnabled ?? true,
+          });
+        }
+      } catch (err) {
+        setError(err.message || 'Failed to fetch system settings');
+        console.error('Error fetching system settings:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchSettings();
   }, []);
-
-  const fetchSettings = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await API.get('/v1/super-admin/system-settings');
-      
-      if (response.data && response.data.data) {
-        const data = response.data.data;
-        setSettings(data);
-        setFormData({
-          siteStatus: data.siteStatus || 'online',
-          maintenanceMessage: data.maintenanceMessage || '',
-          bookingEnabled: data.bookingEnabled ?? true,
-          paymentEnabled: data.paymentEnabled ?? true,
-          registrationsEnabled: data.registrationsEnabled ?? true,
-        });
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to fetch system settings');
-      console.error('Error fetching system settings:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;

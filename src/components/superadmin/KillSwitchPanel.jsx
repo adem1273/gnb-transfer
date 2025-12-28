@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import API from '../../utils/api';
 
 /**
@@ -25,23 +25,23 @@ function KillSwitchPanel() {
 
   // Fetch current system status on mount
   useEffect(() => {
+    const fetchSystemStatus = async () => {
+      try {
+        setLoading(true);
+        const response = await API.get('/v1/super-admin/system-settings');
+
+        if (response.data && response.data.data) {
+          setSiteStatus(response.data.data.siteStatus || 'online');
+        }
+      } catch (err) {
+        console.error('Error fetching system status:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchSystemStatus();
   }, []);
-
-  const fetchSystemStatus = async () => {
-    try {
-      setLoading(true);
-      const response = await API.get('/v1/super-admin/system-settings');
-      
-      if (response.data && response.data.data) {
-        setSiteStatus(response.data.data.siteStatus || 'online');
-      }
-    } catch (err) {
-      console.error('Error fetching system status:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleActivateKillSwitch = () => {
     setShowKillModal(true);
@@ -88,6 +88,7 @@ function KillSwitchPanel() {
   };
 
   const handleRestoreSystem = async () => {
+    // eslint-disable-next-line no-alert
     if (!window.confirm('Are you sure you want to restore the system to normal operation?')) {
       return;
     }

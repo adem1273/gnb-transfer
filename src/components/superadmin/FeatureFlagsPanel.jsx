@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import API from '../../utils/api';
 
 /**
@@ -25,30 +25,30 @@ function FeatureFlagsPanel() {
 
   // Fetch current feature flags on mount
   useEffect(() => {
+    const fetchFeatures = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await API.get('/v1/super-admin/system-settings');
+
+        if (response.data && response.data.data) {
+          const settingsData = response.data.data;
+          setFeatures({
+            bookingEnabled: settingsData.bookingEnabled ?? true,
+            paymentEnabled: settingsData.paymentEnabled ?? true,
+            registrationsEnabled: settingsData.registrationsEnabled ?? true,
+          });
+        }
+      } catch (err) {
+        setError(err.message || 'Failed to fetch feature flags');
+        console.error('Error fetching feature flags:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchFeatures();
   }, []);
-
-  const fetchFeatures = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await API.get('/v1/super-admin/system-settings');
-      
-      if (response.data && response.data.data) {
-        const data = response.data.data;
-        setFeatures({
-          bookingEnabled: data.bookingEnabled ?? true,
-          paymentEnabled: data.paymentEnabled ?? true,
-          registrationsEnabled: data.registrationsEnabled ?? true,
-        });
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to fetch feature flags');
-      console.error('Error fetching feature flags:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleToggleFeature = async (featureName) => {
     // Store the current value for rollback

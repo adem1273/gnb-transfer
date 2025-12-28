@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import API from '../../utils/api';
 
 /**
@@ -34,79 +34,79 @@ function AuditLogViewer() {
 
   // Fetch logs on mount and when filters/page change
   useEffect(() => {
-    fetchLogs();
-  }, [pagination.page, filters]);
-
-  const fetchLogs = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Build query params
-      const params = {
-        page: pagination.page,
-        limit: pagination.limit,
-      };
-
-      if (filters.action) params.action = filters.action;
-      if (filters.userId) params.userId = filters.userId;
-      if (filters.startDate) params.startDate = filters.startDate;
-      if (filters.endDate) params.endDate = filters.endDate;
-
-      // Try primary endpoint
-      let response;
+    const fetchLogs = async () => {
       try {
-        response = await API.get('/admin/logs', { params });
-      } catch (err) {
-        // Try fallback endpoint if primary fails with 404
-        if (err.status === 404) {
-          try {
-            response = await API.get('/v1/admin/audit-logs', { params });
-          } catch (fallbackErr) {
-            setEndpointAvailable(false);
-            throw fallbackErr;
-          }
-        } else {
-          throw err;
-        }
-      }
+        setLoading(true);
+        setError(null);
 
-      if (response.data && response.data.success) {
-        const data = response.data.data;
-        
-        // Handle different response structures
-        if (data.logs) {
-          setLogs(data.logs);
-          if (data.pagination) {
+        // Build query params
+        const params = {
+          page: pagination.page,
+          limit: pagination.limit,
+        };
+
+        if (filters.action) params.action = filters.action;
+        if (filters.userId) params.userId = filters.userId;
+        if (filters.startDate) params.startDate = filters.startDate;
+        if (filters.endDate) params.endDate = filters.endDate;
+
+        // Try primary endpoint
+        let response;
+        try {
+          response = await API.get('/admin/logs', { params });
+        } catch (err) {
+          // Try fallback endpoint if primary fails with 404
+          if (err.status === 404) {
+            try {
+              response = await API.get('/v1/admin/audit-logs', { params });
+            } catch (fallbackErr) {
+              setEndpointAvailable(false);
+              throw fallbackErr;
+            }
+          } else {
+            throw err;
+          }
+        }
+
+        if (response.data && response.data.success) {
+          const responseData = response.data.data;
+
+          // Handle different response structures
+          if (responseData.logs) {
+            setLogs(responseData.logs);
+            if (responseData.pagination) {
+              setPagination((prev) => ({
+                ...prev,
+                total: responseData.pagination.total,
+                pages: responseData.pagination.pages,
+              }));
+            }
+          } else if (responseData.items) {
+            // Alternative structure
+            setLogs(responseData.items);
             setPagination((prev) => ({
               ...prev,
-              total: data.pagination.total,
-              pages: data.pagination.pages,
+              total: responseData.total || 0,
+              pages: Math.ceil((responseData.total || 0) / prev.limit),
             }));
+          } else {
+            setLogs([]);
           }
-        } else if (data.items) {
-          // Alternative structure
-          setLogs(data.items);
-          setPagination((prev) => ({
-            ...prev,
-            total: data.total || 0,
-            pages: Math.ceil((data.total || 0) / prev.limit),
-          }));
-        } else {
-          setLogs([]);
         }
+      } catch (err) {
+        if (!endpointAvailable) {
+          setError('Audit log endpoint not available');
+        } else {
+          setError(err.message || 'Failed to fetch audit logs');
+        }
+        console.error('Error fetching audit logs:', err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      if (!endpointAvailable) {
-        setError('Audit log endpoint not available');
-      } else {
-        setError(err.message || 'Failed to fetch audit logs');
-      }
-      console.error('Error fetching audit logs:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchLogs();
+  }, [pagination.page, pagination.limit, filters, endpointAvailable]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -150,8 +150,9 @@ function AuditLogViewer() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
+    const filename = `audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
     link.setAttribute('href', url);
-    link.setAttribute('download', `audit-logs-${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', filename);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -181,7 +182,9 @@ function AuditLogViewer() {
         <h2 className="text-xl font-bold text-gray-900 mb-4">Audit Logs</h2>
         <div className="text-center py-8">
           <p className="text-gray-600">Audit log endpoint is not available</p>
-          <p className="text-sm text-gray-500 mt-2">Please ensure the backend audit log API is configured</p>
+          <p className="text-sm text-gray-500 mt-2">
+            Please ensure the backend audit log API is configured
+          </p>
         </div>
       </div>
     );
@@ -282,25 +285,35 @@ function AuditLogViewer() {
           ))}
         </div>
       ) : logs.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          No audit logs found
-        </div>
+        <div className="text-center py-8 text-gray-500">No audit logs found</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Target</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">IP</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Endpoint</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  Timestamp
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  Action
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  User
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  Target
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  IP
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  Endpoint
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {logs.map((log, index) => (
-                <tr key={log._id || index} className="hover:bg-gray-50">
+                <tr key={log.id || index} className="hover:bg-gray-50">
                   <td className="px-3 py-2 text-xs text-gray-900 whitespace-nowrap">
                     {log.createdAt ? new Date(log.createdAt).toLocaleString() : 'N/A'}
                   </td>
