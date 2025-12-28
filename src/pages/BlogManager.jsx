@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import API from '../utils/api';
 import Loading from '../components/Loading';
 import ImageUpload from '../components/ImageUpload';
+import { ConfirmModal, LoadingButton } from '../components/ui';
+import { useToast } from '../components/ui/ToastProvider';
+import { handleError } from '../utils/errorHandler';
 
 function BlogManager() {
   const [posts, setPosts] = useState([]);
@@ -11,6 +14,15 @@ function BlogManager() {
   const [showForm, setShowForm] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [filter, setFilter] = useState({ status: '', category: '' });
+  
+  // Confirmation modals
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
+  const [postToPublish, setPostToPublish] = useState(null);
+  const [deletingPostId, setDeletingPostId] = useState(null);
+  const [publishingPostId, setPublishingPostId] = useState(null);
+  
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -27,6 +39,8 @@ function BlogManager() {
     },
   });
 
+  const { toast } = useToast();
+
   useEffect(() => {
     fetchPosts();
   }, [filter]);
@@ -40,8 +54,11 @@ function BlogManager() {
 
       const response = await API.get(`/blog?${params.toString()}`);
       setPosts(response.data.data.posts || []);
+      setError('');
     } catch (err) {
-      setError('Failed to fetch posts');
+      const { userMessage } = handleError(err, 'fetching blog posts');
+      setError(userMessage);
+      toast.error(userMessage);
     } finally {
       setLoading(false);
     }
@@ -58,10 +75,10 @@ function BlogManager() {
 
       if (editingPost) {
         await API.patch(`/blog/${editingPost._id}`, payload);
-        setSuccess('Post updated successfully');
+        toast.success('Post updated successfully');
       } else {
         await API.post('/blog', payload);
-        setSuccess('Post created successfully');
+        toast.success('Post created successfully');
       }
 
       setShowForm(false);
@@ -69,28 +86,56 @@ function BlogManager() {
       resetForm();
       fetchPosts();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to save post');
+      const { userMessage } = handleError(err, 'saving post');
+      setError(userMessage);
+      toast.error(userMessage);
     }
   };
 
-  const deletePost = async (id) => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
+  const handleDeleteClick = (post) => {
+    setPostToDelete(post);
+    setDeleteModalOpen(true);
+  };
+
+  const deletePost = async () => {
+    if (!postToDelete) return;
+    
+    setDeletingPostId(postToDelete._id);
     try {
-      await API.delete(`/blog/${id}`);
-      setSuccess('Post deleted');
+      await API.delete(`/blog/${postToDelete._id}`);
+      toast.success('Post deleted successfully');
+      setDeleteModalOpen(false);
+      setPostToDelete(null);
       fetchPosts();
     } catch (err) {
-      setError('Failed to delete post');
+      const { userMessage } = handleError(err, 'deleting post');
+      toast.error(userMessage);
+    } finally {
+      setDeletingPostId(null);
     }
   };
 
-  const togglePublish = async (post) => {
+  const handlePublishClick = (post) => {
+    setPostToPublish(post);
+    setPublishModalOpen(true);
+  };
+
+  const togglePublish = async () => {
+    if (!postToPublish) return;
+    
+    setPublishingPostId(postToPublish._id);
     try {
-      await API.patch(`/blog/${post._id}/publish`, { publish: post.status !== 'published' });
-      setSuccess(post.status === 'published' ? 'Post unpublished' : 'Post published');
+      const newStatus = postToPublish.status !== 'published';
+      await API.patch(`/blog/${postToPublish._id}/publish`, { publish: newStatus });
+      toast.success(postToPublish.status === 'published' ? 'Post unpublished successfully' : 'Post published successfully');
+      setPublishModalOpen(false);
+      setPostToPublish(null);
       fetchPosts();
     } catch (err) {
-      setError('Failed to update post');
+      const { userMessage } = handleError(err, 'updating post status');
+      toast.error(userMessage);
+    } finally {
+      setPublishingPostId(null);
     }
   };
 
@@ -134,7 +179,9 @@ function BlogManager() {
       });
       setShowForm(true);
     } catch (err) {
-      setError('Failed to load post');
+      const { userMessage } = handleError(err, 'loading post');
+      setError(userMessage);
+      toast.error(userMessage);
     }
   };
 
@@ -423,23 +470,30 @@ function BlogManager() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button
+                      type="button"
                       onClick={() => editPost(post)}
                       className="text-blue-600 hover:text-blue-800 mr-2"
                     >
                       Edit
                     </button>
-                    <button
-                      onClick={() => togglePublish(post)}
-                      className="text-purple-600 hover:text-purple-800 mr-2"
+                    <LoadingButton
+                      type="button"
+                      onClick={() => handlePublishClick(post)}
+                      loading={publishingPostId === post._id}
+                      variant="secondary"
+                      className="text-purple-600 hover:text-purple-800 mr-2 px-2 py-1 text-sm"
                     >
                       {post.status === 'published' ? 'Unpublish' : 'Publish'}
-                    </button>
-                    <button
-                      onClick={() => deletePost(post._id)}
-                      className="text-red-600 hover:text-red-800"
+                    </LoadingButton>
+                    <LoadingButton
+                      type="button"
+                      onClick={() => handleDeleteClick(post)}
+                      loading={deletingPostId === post._id}
+                      variant="danger"
+                      className="text-red-600 hover:text-red-800 px-2 py-1 text-sm"
                     >
                       Delete
-                    </button>
+                    </LoadingButton>
                   </td>
                 </tr>
               ))}
@@ -454,6 +508,38 @@ function BlogManager() {
           </table>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        open={deleteModalOpen}
+        title="Delete Blog Post"
+        message={`Are you sure you want to delete "${postToDelete?.title}"? This action cannot be undone.`}
+        confirmButtonText="Delete"
+        cancelButtonText="Cancel"
+        onConfirm={deletePost}
+        onCancel={() => {
+          setDeleteModalOpen(false);
+          setPostToDelete(null);
+        }}
+      />
+
+      {/* Publish/Unpublish Confirmation Modal */}
+      <ConfirmModal
+        open={publishModalOpen}
+        title={postToPublish?.status === 'published' ? 'Unpublish Post' : 'Publish Post'}
+        message={
+          postToPublish?.status === 'published'
+            ? `Are you sure you want to unpublish "${postToPublish?.title}"? It will no longer be visible to the public.`
+            : `Are you sure you want to publish "${postToPublish?.title}"? It will be visible to the public.`
+        }
+        confirmButtonText={postToPublish?.status === 'published' ? 'Unpublish' : 'Publish'}
+        cancelButtonText="Cancel"
+        onConfirm={togglePublish}
+        onCancel={() => {
+          setPublishModalOpen(false);
+          setPostToPublish(null);
+        }}
+      />
     </div>
   );
 }

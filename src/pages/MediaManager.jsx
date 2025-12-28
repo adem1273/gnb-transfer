@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { ConfirmModal, LoadingButton } from '../components/ui';
+import { useToast } from '../components/ui/ToastProvider';
+import { handleError } from '../utils/errorHandler';
 
 const MediaManager = () => {
   const { t } = useTranslation();
@@ -15,6 +18,7 @@ const MediaManager = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [filterType, setFilterType] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -22,6 +26,7 @@ const MediaManager = () => {
     hasMore: false,
   });
 
+  const { toast } = useToast();
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 
   useEffect(() => {
@@ -55,11 +60,14 @@ const MediaManager = () => {
         setMedia(result.data.media);
         setPagination(result.data.pagination);
       } else {
-        setError(result.message || 'Failed to fetch media');
+        const errorMsg = result.message || 'Failed to fetch media';
+        setError(errorMsg);
+        toast.error(errorMsg);
       }
     } catch (err) {
-      setError('Network error while fetching media');
-      console.error('Fetch media error:', err);
+      const { userMessage } = handleError(err, 'fetching media');
+      setError(userMessage);
+      toast.error(userMessage);
     } finally {
       setLoading(false);
     }
@@ -109,6 +117,7 @@ const MediaManager = () => {
   const handleDelete = async () => {
     if (!selectedMedia) return;
 
+    setDeleting(true);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
@@ -123,15 +132,20 @@ const MediaManager = () => {
 
       const result = await response.json();
       if (result.success) {
+        toast.success(`Media "${selectedMedia.originalName}" deleted successfully`);
         setShowDeleteModal(false);
         setSelectedMedia(null);
         fetchMedia();
       } else {
-        setError(result.message || 'Delete failed');
+        const errorMsg = result.message || 'Delete failed';
+        setError(errorMsg);
+        toast.error(errorMsg);
       }
     } catch (err) {
-      setError('Network error during deletion');
-      console.error('Delete error:', err);
+      const { userMessage } = handleError(err, 'deleting media');
+      toast.error(userMessage);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -351,10 +365,11 @@ const MediaManager = () => {
           {pagination.totalPages > 1 && (
             <div className="mt-6 flex justify-center gap-2">
               <button
+                type="button"
                 onClick={() =>
                   setPagination({ ...pagination, currentPage: pagination.currentPage - 1 })
                 }
-                disabled={pagination.currentPage === 1}
+                disabled={pagination.currentPage <= 1}
                 className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
                 Previous
@@ -363,10 +378,11 @@ const MediaManager = () => {
                 Page {pagination.currentPage} of {pagination.totalPages}
               </span>
               <button
+                type="button"
                 onClick={() =>
                   setPagination({ ...pagination, currentPage: pagination.currentPage + 1 })
                 }
-                disabled={!pagination.hasMore}
+                disabled={!pagination.hasMore || pagination.currentPage >= pagination.totalPages}
                 className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
                 Next
@@ -415,15 +431,14 @@ const MediaManager = () => {
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && selectedMedia && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold mb-4">Confirm Deletion</h2>
-            <p className="mb-4">
-              Are you sure you want to delete <strong>{selectedMedia.originalName}</strong>?
-            </p>
-            {selectedMedia.usageCount > 0 && (
-              <div className="bg-yellow-50 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+      <ConfirmModal
+        open={showDeleteModal && !!selectedMedia}
+        title="Confirm Deletion"
+        message={
+          <>
+            Are you sure you want to delete <strong>{selectedMedia?.originalName}</strong>?
+            {selectedMedia?.usageCount > 0 && (
+              <div className="mt-4 bg-yellow-50 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
                 <p className="font-bold">⚠️ Warning</p>
                 <p>
                   This file is currently in use {selectedMedia.usageCount} time(s). Deletion may fail
@@ -431,23 +446,16 @@ const MediaManager = () => {
                 </p>
               </div>
             )}
-            <div className="flex gap-2">
-              <button
-                onClick={handleDelete}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
-              >
-                Delete
-              </button>
-              <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setSelectedMedia(null);
-                }}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg"
-              >
-                Cancel
-              </button>
-            </div>
+          </>
+        }
+        confirmButtonText={deleting ? 'Deleting...' : 'Delete'}
+        cancelButtonText="Cancel"
+        onConfirm={handleDelete}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setSelectedMedia(null);
+        }}
+      />
           </div>
         </div>
       )}
