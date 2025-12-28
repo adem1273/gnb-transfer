@@ -4,6 +4,7 @@ import { I18nextProvider, useTranslation } from 'react-i18next';
 import i18n from './i18n';
 import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './components/ui/ToastProvider';
 import Loading from './components/Loading';
 import ErrorMessage from './components/ErrorMessage';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -139,7 +140,8 @@ function App() {
       <I18nextProvider i18n={i18n}>
         <Router>
           <AuthProvider>
-            <Suspense fallback={<Loading />}>
+            <ToastProvider>
+              <Suspense fallback={<Loading />}>
               <Routes>
               {/* Ana Kullanıcı Rotaları */}
               <Route path="/" element={<MainLayout />}> 
@@ -208,10 +210,11 @@ function App() {
               <Route path="/driver" element={<PrivateRoute allowedRoles={['driver']}><DriverPanel /></PrivateRoute>} />
             </Routes>
           </Suspense>
-        </AuthProvider>
-      </Router>
-    </I18nextProvider>
-    </ErrorBoundary>
+        </ToastProvider>
+      </AuthProvider>
+    </Router>
+  </I18nextProvider>
+  </ErrorBoundary>
   );
 }
 

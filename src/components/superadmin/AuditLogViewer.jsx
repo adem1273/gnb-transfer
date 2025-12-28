@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import API from '../../utils/api';
+import { LoadingButton } from '../ui';
+import { useToast } from '../ui/ToastProvider';
+import { handleError } from '../../utils/errorHandler';
 
 /**
  * AuditLogViewer Component
  *
  * Displays audit logs with filtering and pagination.
  * Supports filtering by action, user, and date range.
- * Includes CSV export functionality.
+ * Includes CSV export functionality with endpoint auto-detection.
  *
  * @component
  */
@@ -14,6 +17,7 @@ function AuditLogViewer() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [exporting, setExporting] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -29,8 +33,11 @@ function AuditLogViewer() {
     endDate: '',
   });
 
-  // Endpoint availability
+  // Endpoint availability and caching
   const [endpointAvailable, setEndpointAvailable] = useState(true);
+  const [workingEndpoint, setWorkingEndpoint] = useState(null);
+
+  const { toast } = useToast();
 
   // Fetch logs on mount and when filters/page change
   useEffect(() => {
@@ -50,23 +57,51 @@ function AuditLogViewer() {
         if (filters.startDate) params.startDate = filters.startDate;
         if (filters.endDate) params.endDate = filters.endDate;
 
-        // Try primary endpoint
+        // Try endpoints in order
+        const endpoints = [
+          '/admin/logs',
+          '/admin/audit-logs',
+          '/logs',
+        ];
+
         let response;
-        try {
-          response = await API.get('/admin/logs', { params });
-        } catch (err) {
-          // Try fallback endpoint if primary fails with 404
-          if (err.status === 404) {
-            try {
-              response = await API.get('/v1/admin/audit-logs', { params });
-            } catch (fallbackErr) {
-              setEndpointAvailable(false);
-              throw fallbackErr;
-            }
-          } else {
-            throw err;
+        let foundEndpoint = workingEndpoint;
+
+        // If we have a working endpoint cached, try that first
+        if (workingEndpoint) {
+          try {
+            response = await API.get(workingEndpoint, { params });
+          } catch (err) {
+            // Cached endpoint failed, clear it and try all endpoints
+            foundEndpoint = null;
+            setWorkingEndpoint(null);
           }
         }
+
+        // If no response yet, try all endpoints
+        if (!response) {
+          for (const endpoint of endpoints) {
+            try {
+              response = await API.get(endpoint, { params });
+              foundEndpoint = endpoint;
+              setWorkingEndpoint(endpoint);
+              localStorage.setItem('auditLogEndpoint', endpoint);
+              break;
+            } catch (err) {
+              // Try next endpoint
+              continue;
+            }
+          }
+        }
+
+        if (!response) {
+          setEndpointAvailable(false);
+          console.warn('No audit log endpoint available. Tried:', endpoints);
+          setError('Audit log endpoint not available');
+          return;
+        }
+
+        setEndpointAvailable(true);
 
         if (response.data && response.data.success) {
           const responseData = response.data.data;
@@ -94,19 +129,16 @@ function AuditLogViewer() {
           }
         }
       } catch (err) {
-        if (!endpointAvailable) {
-          setError('Audit log endpoint not available');
-        } else {
-          setError(err.message || 'Failed to fetch audit logs');
-        }
-        console.error('Error fetching audit logs:', err);
+        const { userMessage } = handleError(err, 'fetching audit logs');
+        setError(userMessage);
+        toast.error(userMessage);
       } finally {
         setLoading(false);
       }
     };
 
     fetchLogs();
-  }, [pagination.page, pagination.limit, filters, endpointAvailable]);
+  }, [pagination.page, pagination.limit, filters]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -121,15 +153,71 @@ function AuditLogViewer() {
     setPagination((prev) => ({ ...prev, page: newPage }));
   };
 
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     if (logs.length === 0) {
-      alert('No logs to export');
+      toast.warning('No logs to export');
       return;
     }
 
-    // Create CSV content
+    setExporting(true);
+    try {
+      const params = new URLSearchParams(
+        Object.fromEntries(Object.entries(filters).filter(([_, v]) => v !== ''))
+      );
+
+      // Try backend export endpoints
+      const exportEndpoints = [
+        `${workingEndpoint}/export`,
+        '/admin/logs/export',
+        '/admin/audit-logs/export',
+      ];
+
+      let exportSuccessful = false;
+
+      for (const endpoint of exportEndpoints) {
+        try {
+          const response = await API.get(`${endpoint}?${params.toString()}`, {
+            responseType: 'blob',
+          });
+
+          const blob = response.data;
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+
+          toast.success('Audit logs exported successfully');
+          exportSuccessful = true;
+          break;
+        } catch (err) {
+          // Try next endpoint
+          continue;
+        }
+      }
+
+      // Fallback: export visible rows as CSV
+      if (!exportSuccessful) {
+        if (pagination.total > 5000) {
+          toast.warning(`Exporting ${logs.length} visible rows. Full export requires backend support.`, 8000);
+        }
+        exportLogsAsCSV(logs);
+        toast.success('Audit logs exported successfully');
+      }
+    } catch (err) {
+      const { userMessage } = handleError(err, 'exporting audit logs');
+      toast.error(userMessage);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const exportLogsAsCSV = (logsData) => {
     const headers = ['Timestamp', 'Action', 'User Email', 'User Name', 'Target Type', 'Target Name', 'IP Address', 'Method', 'Endpoint'];
-    const rows = logs.map((log) => [
+    const rows = logsData.map((log) => [
       log.createdAt ? new Date(log.createdAt).toISOString() : '',
       log.action || '',
       log.user?.email || '',
@@ -146,34 +234,15 @@ function AuditLogViewer() {
       ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
     ].join('\n');
 
-    // Download CSV
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    const filename = `audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const maskSensitiveData = (metadata) => {
-    if (!metadata) return '';
-    
-    try {
-      const data = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
-      
-      // Create a truncated preview
-      const preview = JSON.stringify(data, null, 2);
-      if (preview.length > 100) {
-        return preview.substring(0, 100) + '...';
-      }
-      return preview;
-    } catch (err) {
-      return '';
-    }
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
   if (!endpointAvailable) {
@@ -185,6 +254,9 @@ function AuditLogViewer() {
           <p className="text-sm text-gray-500 mt-2">
             Please ensure the backend audit log API is configured
           </p>
+          <p className="text-xs text-gray-400 mt-4">
+            Expected endpoints: /api/v1/admin/logs, /api/v1/admin/audit-logs, or /api/v1/logs
+          </p>
         </div>
       </div>
     );
@@ -194,13 +266,15 @@ function AuditLogViewer() {
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-900">Audit Logs</h2>
-        <button
+        <LoadingButton
           onClick={handleExportCSV}
+          loading={exporting}
           disabled={logs.length === 0}
-          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="primary"
+          className="text-sm"
         >
           📥 Export CSV
-        </button>
+        </LoadingButton>
       </div>
 
       {error && (
@@ -354,15 +428,17 @@ function AuditLogViewer() {
           </p>
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={() => handlePageChange(pagination.page - 1)}
-              disabled={pagination.page === 1}
+              disabled={pagination.page <= 1}
               className="px-3 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
             <button
+              type="button"
               onClick={() => handlePageChange(pagination.page + 1)}
-              disabled={pagination.page === pagination.pages}
+              disabled={pagination.page >= pagination.pages}
               className="px-3 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
