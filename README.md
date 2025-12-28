@@ -703,4 +703,89 @@ npm run seed:reset
 
 ---
 
+## 🚀 Deployment to Google Cloud
+
+GNB Transfer is ready for deployment to Google Cloud Platform (Cloud Run or App Engine).
+
+### Quick Deploy to Cloud Run
+
+```bash
+# Install gcloud CLI and authenticate
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+
+# Deploy using the deployment script
+chmod +x deploy-gcloud.sh
+./deploy-gcloud.sh production
+```
+
+### Deployment Options
+
+| Platform | Best For | Deployment Method |
+|----------|----------|-------------------|
+| **Cloud Run** | Auto-scaling, pay-per-use | `gcloud run deploy --source .` |
+| **App Engine** | Integrated GCP features | `gcloud app deploy` |
+| **Docker** | Local testing, any cloud | `docker build -t gnb-transfer .` |
+
+### Required Environment Variables
+
+For Google Cloud deployment, set these environment variables:
+
+```bash
+# Required
+MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/gnb-transfer
+JWT_SECRET=your-secure-secret-minimum-32-characters
+CORS_ORIGINS=https://your-domain.com
+
+# Payment Integration
+STRIPE_SECRET_KEY=sk_live_your_stripe_key
+
+# Optional
+OPENAI_API_KEY=sk-your-openai-key
+SENTRY_DSN=https://your-sentry-dsn
+```
+
+### Deployment Documentation
+
+- 📖 **[Complete Guide](docs/DEPLOY_GOOGLE_CLOUD.md)** - Detailed deployment instructions
+- ⚡ **[Quick Start](docs/QUICKSTART_GOOGLE_CLOUD.md)** - Fast deployment steps
+- 🐳 **[Docker Guide](DOCKER_README.md)** - Docker deployment and testing
+
+### Key Features for Cloud Deployment
+
+✅ **Multi-stage Docker build** - Optimized image size (~400MB)  
+✅ **Port 8080 support** - Google Cloud default port  
+✅ **Health checks** - Automated monitoring at `/api/health`  
+✅ **Environment variables** - Secure configuration management  
+✅ **Cloud Build integration** - Automated CI/CD with `cloudbuild.yaml`  
+✅ **Production ready** - Security headers, rate limiting, error tracking
+
+### Test Locally with Docker
+
+```bash
+# Build the Docker image
+docker build -t gnb-transfer .
+
+# Run locally
+docker run -p 8080:8080 \
+  -e MONGO_URI=your_mongodb_uri \
+  -e JWT_SECRET=your_jwt_secret \
+  gnb-transfer
+
+# Test the application
+curl http://localhost:8080/api/health
+open http://localhost:8080
+```
+
+### Cost Estimation
+
+**Google Cloud Run** (recommended for production):
+- Free tier: 2M requests/month, 360K GB-seconds
+- Typical cost: $10-50/month for moderate traffic
+- Auto-scaling: 0-100+ instances based on demand
+
+See [deployment documentation](docs/DEPLOY_GOOGLE_CLOUD.md) for detailed pricing and optimization tips.
+
+---
+
 Bu adımla, projenin en temel ve kritik sorunlarını çözmüş, eksik dosyalarını tamaml
