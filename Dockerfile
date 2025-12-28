@@ -14,7 +14,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies (including devDependencies for build)
-RUN npm ci --legacy-peer-deps
+RUN npm install --legacy-peer-deps
 
 # Copy frontend source code and configuration
 COPY src ./src
@@ -26,15 +26,12 @@ COPY postcss.config.js ./
 COPY .env.example ./
 
 # Build the frontend application
-RUN npm run build
+RUN npx vite build
 
 # ============================================================================
 # Stage 2: Production Backend with Built Frontend
 # ============================================================================
 FROM node:20-alpine
-
-# Install dumb-init for proper signal handling
-RUN apk update && apk upgrade && apk add --no-cache dumb-init
 
 WORKDIR /app
 
@@ -43,7 +40,7 @@ COPY backend/package*.json ./backend/
 
 # Install backend production dependencies
 WORKDIR /app/backend
-RUN npm ci --only=production && npm cache clean --force
+RUN npm install --only=production && npm cache clean --force
 
 # Copy backend source code
 COPY backend ./
@@ -74,9 +71,6 @@ EXPOSE 8080
 # Health check endpoint
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 8080) + '/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
-
-# Use dumb-init to handle signals properly
-ENTRYPOINT ["dumb-init", "--"]
 
 # Start the backend server (which serves the frontend static files)
 CMD ["node", "server.mjs"]
