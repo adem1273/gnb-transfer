@@ -118,6 +118,8 @@ describe('SystemSettingsPanel', () => {
     });
 
     // Manually set form state to exceed limit
+    // This simulates a potential client-side bypass or form manipulation attack
+    // Testing that server-side validation still catches the error
     const submitButton = screen.getByRole('button', { name: /Save Settings/i });
     const textarea = screen.getByLabelText(/Maintenance Message/i);
 
