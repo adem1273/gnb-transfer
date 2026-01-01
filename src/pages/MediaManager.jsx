@@ -456,9 +456,6 @@ const MediaManager = () => {
           setSelectedMedia(null);
         }}
       />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

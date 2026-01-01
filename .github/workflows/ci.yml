@@ -33,9 +33,20 @@ jobs:
       - name: Run frontend unit tests
         run: npm test
 
-      - name: Lint frontend code
+      - name: Check test coverage
+        run: npm run test:coverage
+        continue-on-error: false
+
+      - name: Upload coverage to artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-coverage
+          path: coverage
+          retention-days: 7
+
+      - name: Lint frontend code (required)
         run: npm run lint
-        continue-on-error: true
 
       - name: Build frontend
         run: npx vite build
@@ -71,9 +82,8 @@ jobs:
           cd backend
           npm ci || npm install
 
-      - name: Lint backend code
+      - name: Lint backend code (required)
         run: npm run lint --prefix backend
-        continue-on-error: true
 
       - name: Run backend tests with coverage
         run: npm run test:coverage --prefix backend --if-present
@@ -82,6 +92,18 @@ jobs:
           JWT_SECRET: test-secret-key-for-ci
           MONGO_URI: ${{ secrets.MONGO_URI_TEST || '' }}
 
+      - name: Check coverage threshold
+        run: |
+          cd backend
+          # Check if coverage directory exists
+          if [ -d "coverage" ]; then
+            echo "✓ Coverage report generated"
+            # Add coverage threshold check here in future
+          else
+            echo "⚠ Coverage report not generated"
+          fi
+        continue-on-error: true
+
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         if: always()
@@ -89,6 +111,12 @@ jobs:
           name: backend-coverage
           path: backend/coverage
           retention-days: 7
+
+      - name: Security audit
+        run: |
+          cd backend
+          npm audit --audit-level=moderate || echo "⚠ Security vulnerabilities found"
+        continue-on-error: true
 
   # E2E tests with Playwright
   e2e:

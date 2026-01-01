@@ -32,7 +32,6 @@ function FinancePanel() {
     endDate: '',
   });
   const { toast } = useToast();
-  });
 
   useEffect(() => {
     fetchFinanceData();
