@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import API from '../utils/api';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 function Pages() {
   const [pages, setPages] = useState([]);
@@ -11,6 +12,8 @@ function Pages() {
   const [showForm, setShowForm] = useState(false);
   const [editingPage, setEditingPage] = useState(null);
   const [filter, setFilter] = useState('all'); // 'all', 'published', 'draft'
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pageToDelete, setPageToDelete] = useState(null);
   const [formData, setFormData] = useState({
     slug: '',
     title: '',
@@ -49,14 +52,22 @@ function Pages() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this page?')) return;
+  const initiateDelete = (id) => {
+    setPageToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!pageToDelete) return;
     try {
-      await API.delete(`/admin/pages/${id}`);
-      setPages(pages.filter((page) => page._id !== id));
+      await API.delete(`/admin/pages/${pageToDelete}`);
+      setPages(pages.filter((page) => page._id !== pageToDelete));
     } catch (err) {
       console.error(err);
       alert('Failed to delete page');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setPageToDelete(null);
     }
   };
 
@@ -545,7 +556,7 @@ function Pages() {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(page._id)}
+                        onClick={() => initiateDelete(page._id)}
                         className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                       >
                         Delete
@@ -558,6 +569,19 @@ function Pages() {
             </tbody>
           </table>
         </div>
+
+        <ConfirmModal
+          open={deleteConfirmOpen}
+          title="Delete Page"
+          message="Are you sure you want to delete this page? This action cannot be undone."
+          confirmButtonText="Delete"
+          cancelButtonText="Cancel"
+          onConfirm={handleDelete}
+          onCancel={() => {
+            setDeleteConfirmOpen(false);
+            setPageToDelete(null);
+          }}
+        />
       </div>
     </div>
   );

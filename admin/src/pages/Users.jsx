@@ -3,11 +3,14 @@ import { Helmet } from 'react-helmet';
 import API from '../utils/api';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -24,14 +27,22 @@ function Users() {
     fetchUsers();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
+  const initiateDelete = (id) => {
+    setUserToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!userToDelete) return;
     try {
-      await API.delete(`/users/${id}`);
-      setUsers(users.filter(user => user._id !== id));
+      await API.delete(`/users/${userToDelete}`);
+      setUsers(users.filter(user => user._id !== userToDelete));
     } catch (err) {
       console.error(err);
       alert('Failed to delete user');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setUserToDelete(null);
     }
   };
 
@@ -65,7 +76,7 @@ function Users() {
                   <td className="border p-2">{user.role}</td>
                   <td className="border p-2">
                     <button
-                      onClick={() => handleDelete(user._id)}
+                      onClick={() => initiateDelete(user._id)}
                       className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                     >
                       Delete
@@ -76,6 +87,19 @@ function Users() {
             </tbody>
           </table>
         </div>
+
+        <ConfirmModal
+          open={deleteConfirmOpen}
+          title="Delete User"
+          message="Are you sure you want to delete this user? This action cannot be undone."
+          confirmButtonText="Delete"
+          cancelButtonText="Cancel"
+          onConfirm={handleDelete}
+          onCancel={() => {
+            setDeleteConfirmOpen(false);
+            setUserToDelete(null);
+          }}
+        />
       </div>
     </div>
   );
