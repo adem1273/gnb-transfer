@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import API from '../utils/api';
 import Loading from '../components/Loading';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 function ReviewManagement() {
   const [reviews, setReviews] = useState([]);
@@ -11,6 +12,8 @@ function ReviewManagement() {
   const [filter, setFilter] = useState({ status: '', rating: '' });
   const [selectedReview, setSelectedReview] = useState(null);
   const [adminResponse, setAdminResponse] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [reviewToDelete, setReviewToDelete] = useState(null);
 
   useEffect(() => {
     fetchReviews();
@@ -59,15 +62,24 @@ function ReviewManagement() {
     }
   };
 
-  const deleteReview = async (reviewId) => {
-    if (!confirm('Are you sure you want to delete this review?')) return;
+  const initiateDeleteReview = (reviewId) => {
+    setReviewToDelete(reviewId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const deleteReview = async () => {
+    if (!reviewToDelete) return;
+    
     try {
-      await API.delete(`/reviews/${reviewId}`);
+      await API.delete(`/reviews/${reviewToDelete}`);
       setSuccess('Review deleted');
       fetchReviews();
       fetchStats();
     } catch (err) {
       setError('Failed to delete review');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setReviewToDelete(null);
     }
   };
 
@@ -274,7 +286,7 @@ function ReviewManagement() {
                   Respond
                 </button>
                 <button
-                  onClick={() => deleteReview(review._id)}
+                  onClick={() => initiateDeleteReview(review._id)}
                   className="px-3 py-1 text-red-600 text-sm hover:text-red-800"
                 >
                   Delete
@@ -329,6 +341,20 @@ function ReviewManagement() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        open={deleteConfirmOpen}
+        title="Delete Review"
+        message="Are you sure you want to delete this review? This action cannot be undone."
+        confirmButtonText="Delete"
+        cancelButtonText="Cancel"
+        onConfirm={deleteReview}
+        onCancel={() => {
+          setDeleteConfirmOpen(false);
+          setReviewToDelete(null);
+        }}
+      />
     </div>
   );
 }

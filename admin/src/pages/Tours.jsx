@@ -4,6 +4,7 @@ import API from '../utils/api';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import ImageUpload from '../components/ImageUpload';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 function Tours() {
   const [tours, setTours] = useState([]);
@@ -11,6 +12,8 @@ function Tours() {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingTour, setEditingTour] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [tourToDelete, setTourToDelete] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -35,14 +38,22 @@ function Tours() {
     fetchTours();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this tour?')) return;
+  const initiateDelete = (id) => {
+    setTourToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!tourToDelete) return;
     try {
-      await API.delete(`/tours/${id}`);
-      setTours(tours.filter(tour => tour._id !== id));
+      await API.delete(`/tours/${tourToDelete}`);
+      setTours(tours.filter(tour => tour._id !== tourToDelete));
     } catch (err) {
       console.error(err);
       alert('Failed to delete tour');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setTourToDelete(null);
     }
   };
 
@@ -242,7 +253,7 @@ function Tours() {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(tour._id)}
+                      onClick={() => initiateDelete(tour._id)}
                       className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                     >
                       Delete
@@ -253,6 +264,19 @@ function Tours() {
             </tbody>
           </table>
         </div>
+
+        <ConfirmModal
+          open={deleteConfirmOpen}
+          title="Delete Tour"
+          message="Are you sure you want to delete this tour? This action cannot be undone."
+          confirmButtonText="Delete"
+          cancelButtonText="Cancel"
+          onConfirm={handleDelete}
+          onCancel={() => {
+            setDeleteConfirmOpen(false);
+            setTourToDelete(null);
+          }}
+        />
       </div>
     </div>
   );

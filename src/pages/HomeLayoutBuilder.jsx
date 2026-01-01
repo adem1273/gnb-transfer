@@ -17,6 +17,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useAuth } from '../context/AuthContext';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 // Sortable section component
 const SortableSection = ({ section, index, onRemove, onUpdate, onToggleActive }) => {
@@ -139,6 +140,8 @@ const HomeLayoutBuilder = () => {
   const [success, setSuccess] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingSection, setEditingSection] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [layoutToDelete, setLayoutToDelete] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -367,8 +370,13 @@ const HomeLayoutBuilder = () => {
     }
   };
 
-  const handleDeleteLayout = async (layoutId) => {
-    if (!confirm('Are you sure you want to delete this layout?')) return;
+  const initiateDeleteLayout = (layoutId) => {
+    setLayoutToDelete(layoutId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteLayout = async () => {
+    if (!layoutToDelete) return;
 
     setLoading(true);
     setError('');
@@ -377,7 +385,7 @@ const HomeLayoutBuilder = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || '/api'}/admin/home-layouts/${layoutId}`,
+        `${import.meta.env.VITE_API_URL || '/api'}/admin/home-layouts/${layoutToDelete}`,
         {
           method: 'DELETE',
           headers: {
@@ -393,7 +401,7 @@ const HomeLayoutBuilder = () => {
       }
 
       setSuccess('Layout deleted successfully');
-      if (currentLayout?._id === layoutId) {
+      if (currentLayout?._id === layoutToDelete) {
         setCurrentLayout(null);
         setFormData({
           name: '',
@@ -562,7 +570,7 @@ const HomeLayoutBuilder = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteLayout(layout._id);
+                      initiateDeleteLayout(layout._id);
                     }}
                     className="text-sm text-red-600 hover:underline"
                   >
@@ -782,6 +790,20 @@ const HomeLayoutBuilder = () => {
           onCancel={() => setEditingSection(null)}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        open={deleteConfirmOpen}
+        title="Delete Layout"
+        message="Are you sure you want to delete this layout? This action cannot be undone."
+        confirmButtonText="Delete"
+        cancelButtonText="Cancel"
+        onConfirm={handleDeleteLayout}
+        onCancel={() => {
+          setDeleteConfirmOpen(false);
+          setLayoutToDelete(null);
+        }}
+      />
     </div>
   );
 };
