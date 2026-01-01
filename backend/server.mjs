@@ -159,16 +159,39 @@ app.use(
       useDefaults: true,
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:'],
-        connectSrc: ["'self'", ...getAllowedCorsOrigins()],
+        scriptSrc: [
+          "'self'",
+          // Allow Google Fonts and analytics if configured
+          ...(process.env.GOOGLE_ANALYTICS_ID ? ['https://www.googletagmanager.com', 'https://www.google-analytics.com'] : []),
+        ],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'", // Required for some CSS-in-JS libraries
+          'https://fonts.googleapis.com',
+        ],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+        imgSrc: [
+          "'self'",
+          'data:',
+          'blob:',
+          'https:', // Allow images from HTTPS sources (CDNs, etc.)
+        ],
+        connectSrc: [
+          "'self'",
+          ...getAllowedCorsOrigins(),
+          ...(process.env.SENTRY_DSN ? ['https://*.sentry.io'] : []),
+        ],
+        mediaSrc: ["'self'", 'data:', 'blob:'],
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
         frameAncestors: ["'none'"],
+        formAction: ["'self'"],
+        upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
       },
     },
     hsts: false, // Will be added conditionally below
+    crossOriginEmbedderPolicy: false, // May break some external resources
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
 
@@ -193,10 +216,25 @@ app.use(helmet.referrerPolicy({ policy: 'no-referrer' }));
 
 // Additional security headers middleware
 app.use((req, res, next) => {
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  // Permissions Policy (formerly Feature Policy)
+  res.setHeader(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(self), payment=(self), usb=(), interest-cohort=()'
+  );
+
+  // Already set by helmet but double-check
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('X-XSS-Protection', '0'); // Modern browsers use CSP, disable XSS filter
+
+  // Additional security headers
+  res.setHeader('X-DNS-Prefetch-Control', 'off');
+  res.setHeader('X-Download-Options', 'noopen');
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+
+  // Clear server signature
+  res.removeHeader('X-Powered-By');
+
   next();
 });
 

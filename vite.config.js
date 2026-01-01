@@ -29,12 +29,29 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{js,jsx}'],
     exclude: ['node_modules', 'backend/**/*', 'dist'],
     coverage: {
-      reporter: ['text', 'json', 'html'],
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      reportsDirectory: './coverage',
       exclude: [
         'node_modules/',
         'src/test/',
         'backend/',
+        '**/*.config.js',
+        '**/*.config.ts',
+        '**/dist/**',
+        '**/build/**',
+        '**/__tests__/**',
+        '**/*.test.*',
+        '**/*.spec.*',
       ],
+      // Coverage thresholds - CI will fail if below these
+      statements: 70,
+      branches: 65,
+      functions: 65,
+      lines: 70,
+      // Enable detailed coverage reporting
+      all: true,
+      clean: true,
     },
   },
   server: {

@@ -1,0 +1,113 @@
+name: Bundle Size Check
+
+on:
+  pull_request:
+    branches: [master, main, develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  bundle-size:
+    name: Check Bundle Size
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build production bundle
+        run: npm run build
+        env:
+          VITE_API_URL: 'https://api.example.com'
+
+      - name: Analyze bundle size
+        run: |
+          echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get total dist size
+          TOTAL_SIZE=$(du -sh dist | cut -f1)
+          echo "**Total Build Size:** $TOTAL_SIZE" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # List largest files
+          echo "### Largest Files:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+          find dist -type f -name "*.js" -o -name "*.css" | xargs du -h | sort -rh | head -10 | while read size file; do
+            echo "| ${file#dist/} | $size |" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for Gzip files
+          if [ -d "dist" ] && find dist -name "*.gz" | grep -q .; then
+            echo "### Compressed Sizes (Gzip):" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| File | Original | Gzipped |" >> $GITHUB_STEP_SUMMARY
+            echo "|------|----------|---------|" >> $GITHUB_STEP_SUMMARY
+            find dist -name "*.js.gz" | head -5 | while read gzfile; do
+              original="${gzfile%.gz}"
+              if [ -f "$original" ]; then
+                orig_size=$(du -h "$original" | cut -f1)
+                gz_size=$(du -h "$gzfile" | cut -f1)
+                echo "| ${original#dist/} | $orig_size | $gz_size |" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+          fi
+
+      - name: Check bundle size limits
+        run: |
+          # Define bundle size limits (in MB)
+          MAX_TOTAL_SIZE=5  # 5 MB total
+          MAX_CHUNK_SIZE=1  # 1 MB per chunk
+          
+          # Get total size in MB
+          TOTAL_SIZE_MB=$(du -sm dist | cut -f1)
+          
+          echo "Total bundle size: ${TOTAL_SIZE_MB}MB"
+          
+          if [ "$TOTAL_SIZE_MB" -gt "$MAX_TOTAL_SIZE" ]; then
+            echo "::warning::Bundle size (${TOTAL_SIZE_MB}MB) exceeds limit (${MAX_TOTAL_SIZE}MB)"
+            echo "❌ Bundle size check failed" >> $GITHUB_STEP_SUMMARY
+            # Don't fail the build, just warn
+          else
+            echo "✅ Bundle size check passed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check individual JS chunks
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Chunk Size Warnings:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          find dist -name "*.js" -type f | while read file; do
+            SIZE_KB=$(du -k "$file" | cut -f1)
+            SIZE_MB=$(echo "scale=2; $SIZE_KB / 1024" | bc)
+            
+            if [ $(echo "$SIZE_MB > $MAX_CHUNK_SIZE" | bc) -eq 1 ]; then
+              echo "::warning file=${file}::Chunk size ${SIZE_MB}MB exceeds ${MAX_CHUNK_SIZE}MB"
+              echo "- ⚠️ \`${file#dist/}\` is ${SIZE_MB}MB (limit: ${MAX_CHUNK_SIZE}MB)" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+      - name: Upload bundle stats
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-stats
+          path: |
+            dist/**/*.js
+            dist/**/*.css
+            dist/**/*.js.map
+          retention-days: 7

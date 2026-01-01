@@ -83,6 +83,8 @@
     "react-leaflet": "^5.0.0",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.9.6",
+    "react-window": "^2.2.3",
+    "react-window-infinite-loader": "^2.0.0",
     "recharts": "^3.3.0",
     "redis": "^4.7.0",
     "regression": "^2.0.1",
