@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import API from '../utils/api';
 import Loading from '../components/Loading';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 function PricingManagement() {
   const [activeTab, setActiveTab] = useState('routes');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // Delete confirmation states
+  const [deletePricingConfirmOpen, setDeletePricingConfirmOpen] = useState(false);
+  const [pricingToDelete, setPricingToDelete] = useState(null);
+  const [deleteServiceConfirmOpen, setDeleteServiceConfirmOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState(null);
 
   // Base pricing state
   const [pricings, setPricings] = useState([]);
@@ -157,25 +164,41 @@ function PricingManagement() {
     }
   };
 
-  const deletePricing = async (id) => {
-    if (!confirm('Are you sure you want to delete this pricing?')) return;
+  const initiateDeletePricing = (id) => {
+    setPricingToDelete(id);
+    setDeletePricingConfirmOpen(true);
+  };
+
+  const deletePricing = async () => {
+    if (!pricingToDelete) return;
     try {
-      await API.delete(`/admin/base-pricing/${id}`);
+      await API.delete(`/admin/base-pricing/${pricingToDelete}`);
       fetchPricings();
       setSuccess('Pricing deleted');
     } catch (err) {
       setError('Failed to delete pricing');
+    } finally {
+      setDeletePricingConfirmOpen(false);
+      setPricingToDelete(null);
     }
   };
 
-  const deleteService = async (id) => {
-    if (!confirm('Are you sure you want to delete this service?')) return;
+  const initiateDeleteService = (id) => {
+    setServiceToDelete(id);
+    setDeleteServiceConfirmOpen(true);
+  };
+
+  const deleteService = async () => {
+    if (!serviceToDelete) return;
     try {
-      await API.delete(`/admin/extra-services/${id}`);
+      await API.delete(`/admin/extra-services/${serviceToDelete}`);
       fetchServices();
       setSuccess('Service deleted');
     } catch (err) {
       setError('Failed to delete service');
+    } finally {
+      setDeleteServiceConfirmOpen(false);
+      setServiceToDelete(null);
     }
   };
 
@@ -506,7 +529,7 @@ function PricingManagement() {
                         Edit
                       </button>
                       <button
-                        onClick={() => deletePricing(pricing._id)}
+                        onClick={() => initiateDeletePricing(pricing._id)}
                         className="text-red-600 hover:text-red-800"
                       >
                         Delete
@@ -684,7 +707,7 @@ function PricingManagement() {
                     Edit
                   </button>
                   <button
-                    onClick={() => deleteService(service._id)}
+                    onClick={() => initiateDeleteService(service._id)}
                     className="text-sm text-red-600 hover:text-red-800"
                   >
                     Delete
@@ -859,6 +882,34 @@ function PricingManagement() {
           </form>
         </div>
       )}
+
+      {/* Delete Pricing Confirmation Modal */}
+      <ConfirmModal
+        open={deletePricingConfirmOpen}
+        title="Delete Pricing"
+        message="Are you sure you want to delete this pricing? This action cannot be undone."
+        confirmButtonText="Delete"
+        cancelButtonText="Cancel"
+        onConfirm={deletePricing}
+        onCancel={() => {
+          setDeletePricingConfirmOpen(false);
+          setPricingToDelete(null);
+        }}
+      />
+
+      {/* Delete Service Confirmation Modal */}
+      <ConfirmModal
+        open={deleteServiceConfirmOpen}
+        title="Delete Service"
+        message="Are you sure you want to delete this service? This action cannot be undone."
+        confirmButtonText="Delete"
+        cancelButtonText="Cancel"
+        onConfirm={deleteService}
+        onCancel={() => {
+          setDeleteServiceConfirmOpen(false);
+          setServiceToDelete(null);
+        }}
+      />
     </div>
   );
 }
