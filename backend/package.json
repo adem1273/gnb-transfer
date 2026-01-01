@@ -52,7 +52,7 @@
     "mkdirp": "^3.0.1",
     "mongo-sanitize": "^1.1.0",
     "mongodb": "^7.0.0",
-    "mongoose": "^8.20.1",
+    "mongoose": "^9.1.1",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
     "node-cache": "^5.1.2",
