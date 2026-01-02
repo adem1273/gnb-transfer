@@ -196,22 +196,22 @@ describe('Super Admin Core System', () => {
 
 describe('Feature Flag Service', () => {
   it('should export required functions', async () => {
-    const service = await import('../services/featureFlagService.mjs');
+    const service = await import('../services/featureToggleService.mjs');
 
-    expect(service.isFeatureEnabled).toBeDefined();
-    expect(service.isGlobalFlagEnabled).toBeDefined();
-    expect(service.isSystemSettingEnabled).toBeDefined();
-    expect(service.getSiteStatus).toBeDefined();
-    expect(service.areBookingsEnabled).toBeDefined();
-    expect(service.arePaymentsEnabled).toBeDefined();
-    expect(service.areRegistrationsEnabled).toBeDefined();
+    expect(service.default.isEnabled).toBeDefined();
+    expect(service.default.isGlobalFlagEnabled).toBeDefined();
+    expect(service.default.isSystemSettingEnabled).toBeDefined();
+    expect(service.default.getSiteStatus).toBeDefined();
+    expect(service.default.areBookingsEnabled).toBeDefined();
+    expect(service.default.arePaymentsEnabled).toBeDefined();
+    expect(service.default.areRegistrationsEnabled).toBeDefined();
   });
 
   it('should handle errors gracefully', async () => {
-    const service = await import('../services/featureFlagService.mjs');
+    const service = await import('../services/featureToggleService.mjs');
 
     // Should return false on error, not throw
-    const result = await service.isFeatureEnabled('non-existent-feature');
+    const result = await service.default.isEnabled('non-existent-feature');
     expect(typeof result).toBe('boolean');
   });
 });
