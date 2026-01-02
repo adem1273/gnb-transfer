@@ -82,6 +82,7 @@ import publicMenuRoutes from './routes/publicMenuRoutes.mjs';
 import homeLayoutRoutes from './routes/homeLayoutRoutes.mjs';
 import publicHomeLayoutRoutes from './routes/publicHomeLayoutRoutes.mjs';
 import superAdminRoutes from './routes/superAdminRoutes.mjs';
+import rateLimitAdminRoutes from './routes/rateLimitAdminRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -292,6 +293,9 @@ app.use(`${API_V1}/admin/features`, featureToggleRoutes);
 // Super admin routes (v1)
 app.use(`${API_V1}/super-admin`, superAdminRoutes);
 
+// Rate limit admin routes (v1)
+app.use(`${API_V1}/admin/rate-limits`, rateLimitAdminRoutes);
+
 // New feature routes (v1 - protected by feature toggles)
 app.use(`${API_V1}/admin/fleet`, fleetRoutes);
 app.use(`${API_V1}/admin/drivers`, driverStatsRoutes);
@@ -351,6 +355,8 @@ app.use(`${API_V1}/blogs`, blogRoutes);
 
 // Legacy routes (for backward compatibility)
 // These will be deprecated in future versions
+// Rate limit admin routes (legacy - for backward compatibility with existing integrations)
+app.use('/api/admin/rate-limits', rateLimitAdminRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tours', tourRoutes);
