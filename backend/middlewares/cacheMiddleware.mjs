@@ -12,6 +12,11 @@ import { get, set, deletePattern, invalidateTag, getStats } from '../utils/cache
 import logger from '../config/logger.mjs';
 
 /**
+ * Check if status code indicates success (2xx range)
+ */
+const isSuccessStatusCode = (statusCode) => statusCode >= 200 && statusCode < 300;
+
+/**
  * Cache response middleware
  * @param {number} ttlSeconds - Cache TTL in seconds (default: 300 = 5 minutes)
  * @param {Object} options - Additional options
@@ -65,7 +70,7 @@ export const cacheResponse = (ttlSeconds = 300, options = {}) => {
       // Override json method to cache response
       res.json = (data) => {
         // Only cache successful responses
-        if (res.statusCode >= 200 && res.statusCode < 300) {
+        if (isSuccessStatusCode(res.statusCode)) {
           set(cacheKey, data, ttlSeconds, tags).catch((err) => {
             logger.error('Failed to cache response', {
               key: cacheKey,
@@ -97,7 +102,7 @@ export const clearCacheOnMutation = (patterns) => {
 
     res.json = async (data) => {
       // Clear cache patterns on successful mutations
-      if (res.statusCode >= 200 && res.statusCode < 300) {
+      if (isSuccessStatusCode(res.statusCode)) {
         try {
           for (const pattern of patterns) {
             await deletePattern(pattern);
@@ -131,7 +136,7 @@ export const clearCacheByTags = (tags) => {
     const originalJson = res.json.bind(res);
 
     res.json = async (data) => {
-      if (res.statusCode >= 200 && res.statusCode < 300) {
+      if (isSuccessStatusCode(res.statusCode)) {
         try {
           for (const tag of tags) {
             await invalidateTag(tag);

@@ -21,7 +21,6 @@ import { responseMiddleware } from './middlewares/response.mjs';
 import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
 import { errorHandler } from './middlewares/errorHandler.mjs';
 import { getCacheStats } from './middlewares/cache.mjs';
-import { initRedis, getRedisStats } from './services/cacheService.mjs';
 import { initializeRedis, getRedisStats as getNewRedisStats } from './config/redis.mjs';
 import { getStats as getCacheUtilStats } from './utils/cache.mjs';
 import { requestLogger, errorLogger } from './middlewares/logging.mjs';

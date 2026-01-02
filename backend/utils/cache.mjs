@@ -29,6 +29,10 @@ const metrics = {
 // Cache key prefix
 const KEY_PREFIX = 'gnb:cache:';
 const TAG_PREFIX = 'gnb:tag:';
+const TAG_TTL_BUFFER = 60; // Tag expires 60 seconds after cache entry
+
+// Cleanup configuration
+const CLEANUP_INTERVAL_MS = parseInt(process.env.CACHE_CLEANUP_INTERVAL_MS || '120000', 10);
 
 /**
  * Generate cache key with prefix
@@ -39,6 +43,29 @@ const getCacheKey = (key) => `${KEY_PREFIX}${key}`;
  * Generate tag key with prefix
  */
 const getTagKey = (tag) => `${TAG_PREFIX}${tag}`;
+
+/**
+ * Check if status code indicates success (2xx range)
+ */
+const isSuccessStatusCode = (statusCode) => statusCode >= 200 && statusCode < 300;
+
+/**
+ * Convert Redis-style pattern to a matcher function
+ * Redis patterns use * to match any characters (including /),
+ * which differs from file glob patterns.
+ */
+const matchesRedisPattern = (key, pattern) => {
+  // Convert Redis pattern to regex:
+  // * matches any characters (including /)
+  // ? matches exactly one character
+  const regexPattern = pattern
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&') // Escape special regex chars except * and ?
+    .replace(/\*/g, '.*') // * -> .* (match any characters)
+    .replace(/\?/g, '.'); // ? -> . (match one character)
+
+  const regex = new RegExp(`^${regexPattern}$`);
+  return regex.test(key);
+};
 
 /**
  * Cleanup expired entries from memory cache
@@ -61,8 +88,7 @@ const cleanupExpiredMemoryCache = () => {
   }
 };
 
-// Run cleanup every 2 minutes
-const CLEANUP_INTERVAL_MS = 120000;
+// Run cleanup using configured interval
 let cleanupInterval = setInterval(cleanupExpiredMemoryCache, CLEANUP_INTERVAL_MS);
 cleanupInterval.unref(); // Don't block process exit
 
@@ -146,7 +172,7 @@ export const set = async (key, value, ttlSeconds = 300, tags = []) => {
         for (const tag of tags) {
           const tagKey = getTagKey(tag);
           multi.sadd(tagKey, cacheKey);
-          multi.expire(tagKey, ttlSeconds + 60); // Tag expires slightly later
+          multi.expire(tagKey, ttlSeconds + TAG_TTL_BUFFER); // Tag expires slightly later
         }
         
         await multi.exec();
@@ -245,13 +271,9 @@ export const deletePattern = async (pattern) => {
     }
 
     // Fallback to memory cache
-    const regex = new RegExp(
-      '^' + fullPattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.') + '$'
-    );
-    
     let deleted = 0;
     for (const key of memoryCache.keys()) {
-      if (regex.test(key)) {
+      if (matchesRedisPattern(key, fullPattern)) {
         memoryCache.delete(key);
         memoryCacheTTL.delete(key);
         memoryCacheTags.delete(key);
