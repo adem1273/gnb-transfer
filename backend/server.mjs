@@ -355,6 +355,7 @@ app.use(`${API_V1}/blogs`, blogRoutes);
 
 // Legacy routes (for backward compatibility)
 // These will be deprecated in future versions
+// Rate limit admin routes (legacy - for backward compatibility with existing integrations)
 app.use('/api/admin/rate-limits', rateLimitAdminRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);

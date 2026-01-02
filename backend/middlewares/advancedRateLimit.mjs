@@ -10,6 +10,17 @@
  * - Bot detection
  * - Request size limits
  * - Whitelist support
+ * 
+ * Usage:
+ *   // Apply globally (recommended)
+ *   app.use(advancedRateLimiter);
+ * 
+ *   // Apply to specific routes
+ *   app.use('/api/sensitive', advancedRateLimiter, routes);
+ * 
+ *   // Create custom endpoint limiter
+ *   const customLimiter = createEndpointLimiter(10, 300); // 10 req per 5 min
+ *   app.use('/api/custom', customLimiter, routes);
  */
 
 import { getRedisClient, isRedisConnected } from '../config/redis.mjs';
@@ -143,8 +154,9 @@ async function consumeTokens(key, limit, windowSeconds) {
     // Count requests in current window
     pipeline.zcard(key);
     
-    // Add current request timestamp
-    pipeline.zadd(key, now, `${now}-${Math.random()}`);
+    // Add current request timestamp with unique identifier
+    const requestId = `${now}-${Math.random()}`;
+    pipeline.zadd(key, now, requestId);
     
     // Set expiration on the key
     pipeline.expire(key, windowSeconds);
@@ -156,7 +168,7 @@ async function consumeTokens(key, limit, windowSeconds) {
     
     if (count >= limit) {
       // Remove the request we just added since we're over the limit
-      await redis.zrem(key, `${now}-${Math.random()}`);
+      await redis.zrem(key, requestId);
       
       // Get TTL for reset time
       const ttl = await redis.ttl(key);
