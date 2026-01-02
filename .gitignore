@@ -46,6 +46,9 @@ deployment-*.log
 backups/
 *.archive
 *.dump
+*.tar.gz.enc
+*.metadata.json
+.last_backup_timestamp
 
 # SSL certificates (use generate-ssl-certs.sh to create)
 ssl-certs/*.pem
