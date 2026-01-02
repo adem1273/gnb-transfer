@@ -67,3 +67,6 @@ playwright-report/
 playwright/.cache/
 *.mp4
 *.webm
+
+# Load test results
+scripts/load-test-results/*.log

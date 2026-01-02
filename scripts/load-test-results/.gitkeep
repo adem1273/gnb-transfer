@@ -1,0 +1,4 @@
+# Load Test Results Directory
+# 
+# This directory is used by test-rate-limits.sh to store test results.
+# Results are organized by timestamp.
