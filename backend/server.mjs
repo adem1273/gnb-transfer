@@ -91,6 +91,7 @@ import { initCampaignScheduler } from './services/campaignScheduler.mjs';
 import { initDynamicPricing } from './services/dynamicPricingService.mjs';
 import { initWeeklyReportScheduler } from './services/weeklyReportService.mjs';
 import { initSitemapScheduler } from './services/sitemapService.mjs';
+import { initializeMetricsSocket, closeMetricsSocket } from './services/metricsSocketService.mjs';
 
 // Get __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -650,6 +651,14 @@ const server = app.listen(PORT, HOST, () => {
   console.log(`✓ Port ${PORT} bound successfully`);
   console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log('===================================\n');
+  
+  // Initialize Socket.IO for real-time metrics
+  try {
+    initializeMetricsSocket(server);
+    logger.info('Real-time metrics socket initialized');
+  } catch (error) {
+    logger.error('Failed to initialize metrics socket:', { error: error.message });
+  }
 });
 
 // Graceful shutdown handler
@@ -669,6 +678,9 @@ const gracefulShutdown = async (signal) => {
     logger.info('HTTP server closed');
 
     try {
+      // Close Socket.IO metrics service
+      closeMetricsSocket();
+      
       // Close BullMQ queues and workers
       const { closeQueues } = await import('./config/queues.mjs');
       const { closeWorkers } = await import('./queues/workerManager.mjs');

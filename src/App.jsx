@@ -73,6 +73,7 @@ const CampaignManagement = lazy(() => import('./pages/CampaignManagement'));
 const MediaManager = lazy(() => import('./pages/MediaManager'));
 const MenuManager = lazy(() => import('./pages/MenuManager'));
 const HomeLayoutBuilder = lazy(() => import('./pages/HomeLayoutBuilder'));
+const PerformanceMetrics = lazy(() => import('./pages/PerformanceMetrics'));
 
 // Lazy load optional components (only load when needed)
 const LiveChat = lazy(() => import('./components/LiveChat'));
@@ -222,6 +223,7 @@ function App() {
                     <Route path="media" element={<MediaManager />} />
                     <Route path="menus" element={<MenuManager />} />
                     <Route path="homepage-builder" element={<HomeLayoutBuilder />} />
+                    <Route path="metrics" element={<PerformanceMetrics />} />
 
                     {/* Super Admin Route */}
                     <Route path="super" element={<SuperAdmin />} />

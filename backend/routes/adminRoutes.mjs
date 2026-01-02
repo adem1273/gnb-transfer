@@ -16,6 +16,8 @@ import logger from '../config/logger.mjs';
 import { PAGINATION } from '../constants/limits.mjs';
 import { getStats as getCacheStats, clear as clearCache } from '../utils/cache.mjs';
 import { getRedisStats } from '../config/redis.mjs';
+import { getMetrics, getContentType } from '../services/metricsService.mjs';
+import client from 'prom-client';
 
 const router = express.Router();
 
@@ -1127,5 +1129,230 @@ router.post('/cache/clear', requireAuth(['admin']), logAdminAction('cache.clear'
     return res.apiError('Failed to clear cache', 500);
   }
 });
+
+/**
+ * @route   GET /api/admin/metrics
+ * @desc    Get real-time performance metrics (Prometheus metrics aggregated)
+ * @access  Private (admin only)
+ */
+router.get('/metrics', requireAuth(['admin']), async (req, res) => {
+  try {
+    const { timeRange = '5m' } = req.query;
+    
+    // Get raw Prometheus metrics
+    const metricsText = await getMetrics();
+    
+    // Parse Prometheus metrics into structured data
+    const metrics = parsePrometheusMetrics(metricsText);
+    
+    // Calculate aggregated stats based on time range
+    const aggregated = aggregateMetrics(metrics, timeRange);
+    
+    // Get cache stats
+    const cacheStats = getCacheStats();
+    const redisStats = getRedisStats();
+    
+    // Calculate cache hit ratio
+    const totalCacheOps = cacheStats.hits + cacheStats.misses;
+    const cacheHitRatio = totalCacheOps > 0 ? (cacheStats.hits / totalCacheOps) * 100 : 0;
+    
+    return res.apiSuccess({
+      timestamp: new Date().toISOString(),
+      timeRange,
+      performance: {
+        avgResponseTime: aggregated.avgResponseTime,
+        requestRate: aggregated.requestRate,
+        errorRate: aggregated.errorRate,
+        activeConnections: aggregated.activeConnections,
+      },
+      cache: {
+        hitRatio: cacheHitRatio,
+        hits: cacheStats.hits,
+        misses: cacheStats.misses,
+        keys: cacheStats.keys,
+        redis: redisStats,
+      },
+      database: {
+        queryCount: aggregated.dbQueryCount,
+        avgQueryTime: aggregated.avgDbQueryTime,
+        slowQueries: aggregated.slowQueries,
+      },
+      system: {
+        cpu: aggregated.cpuUsage,
+        memory: aggregated.memoryUsage,
+      },
+      requests: aggregated.requestsByEndpoint,
+      slowEndpoints: aggregated.slowEndpoints,
+      queue: aggregated.queueStats,
+    }, 'Metrics retrieved successfully');
+  } catch (error) {
+    logger.error('Error fetching metrics:', { error: error.message, stack: error.stack });
+    return res.apiError('Failed to fetch metrics', 500);
+  }
+});
+
+/**
+ * Helper function to parse Prometheus metrics text format
+ */
+function parsePrometheusMetrics(metricsText) {
+  const metrics = {};
+  const lines = metricsText.split('\n');
+  
+  for (const line of lines) {
+    if (line.startsWith('#') || !line.trim()) continue;
+    
+    const match = line.match(/^([a-zA-Z_:][a-zA-Z0-9_:]*){([^}]*)} (.+)$/);
+    if (match) {
+      const [, name, labelsStr, value] = match;
+      const labels = {};
+      
+      // Parse labels
+      const labelPairs = labelsStr.match(/(\w+)="([^"]*)"/g) || [];
+      for (const pair of labelPairs) {
+        const [key, val] = pair.split('=');
+        labels[key] = val.replace(/"/g, '');
+      }
+      
+      if (!metrics[name]) metrics[name] = [];
+      metrics[name].push({ labels, value: parseFloat(value) });
+    } else {
+      // Metric without labels
+      const simpleMatch = line.match(/^([a-zA-Z_:][a-zA-Z0-9_:]*) (.+)$/);
+      if (simpleMatch) {
+        const [, name, value] = simpleMatch;
+        if (!metrics[name]) metrics[name] = [];
+        metrics[name].push({ labels: {}, value: parseFloat(value) });
+      }
+    }
+  }
+  
+  return metrics;
+}
+
+/**
+ * Helper function to aggregate metrics based on time range
+ */
+function aggregateMetrics(metrics, timeRange) {
+  // Extract key metrics from parsed Prometheus data
+  const httpDurations = metrics.http_request_duration_seconds || [];
+  const httpRequests = metrics.http_requests_total || [];
+  const dbDurations = metrics.db_operation_duration_seconds || [];
+  const activeConns = metrics.active_connections || [];
+  const errors = metrics.errors_total || [];
+  const queueJobs = {
+    waiting: metrics.queue_jobs_waiting || [],
+    active: metrics.queue_jobs_active || [],
+    failed: metrics.queue_jobs_failed || [],
+    processed: metrics.queue_jobs_processed_total || [],
+  };
+  
+  // Calculate average response time
+  let totalDuration = 0;
+  let durationCount = 0;
+  for (const metric of httpDurations) {
+    if (metric.labels.route && metric.value) {
+      totalDuration += metric.value;
+      durationCount++;
+    }
+  }
+  const avgResponseTime = durationCount > 0 ? (totalDuration / durationCount) * 1000 : 0; // Convert to ms
+  
+  // Calculate request rate (requests per second)
+  const totalRequests = httpRequests.reduce((sum, m) => sum + (m.value || 0), 0);
+  // Assuming metrics cover a certain period, calculate rate
+  const requestRate = totalRequests / 60; // Rough estimate: requests per second over last minute
+  
+  // Calculate error rate
+  const totalErrors = errors.reduce((sum, m) => sum + (m.value || 0), 0);
+  const errorRate = totalRequests > 0 ? (totalErrors / totalRequests) * 100 : 0;
+  
+  // Get active connections
+  const activeConnections = activeConns.length > 0 ? activeConns[0].value : 0;
+  
+  // Database metrics
+  let totalDbDuration = 0;
+  let dbQueryCount = 0;
+  const slowQueries = [];
+  
+  for (const metric of dbDurations) {
+    if (metric.labels.operation) {
+      totalDbDuration += metric.value;
+      dbQueryCount++;
+      
+      if (metric.value > 0.1) { // Queries taking more than 100ms
+        slowQueries.push({
+          operation: metric.labels.operation,
+          collection: metric.labels.collection,
+          duration: (metric.value * 1000).toFixed(2),
+        });
+      }
+    }
+  }
+  
+  const avgDbQueryTime = dbQueryCount > 0 ? (totalDbDuration / dbQueryCount) * 1000 : 0;
+  
+  // Get system metrics (from default metrics)
+  const cpuUsage = getMetricValue(metrics, 'process_cpu_user_seconds_total') || 0;
+  const memoryUsage = getMetricValue(metrics, 'process_resident_memory_bytes') / (1024 * 1024) || 0; // MB
+  
+  // Group requests by endpoint
+  const requestsByEndpoint = {};
+  for (const metric of httpRequests) {
+    const route = metric.labels.route || 'unknown';
+    requestsByEndpoint[route] = (requestsByEndpoint[route] || 0) + metric.value;
+  }
+  
+  // Find slow endpoints
+  const endpointDurations = {};
+  for (const metric of httpDurations) {
+    const route = metric.labels.route || 'unknown';
+    if (!endpointDurations[route]) {
+      endpointDurations[route] = { total: 0, count: 0 };
+    }
+    endpointDurations[route].total += metric.value;
+    endpointDurations[route].count += 1;
+  }
+  
+  const slowEndpoints = Object.entries(endpointDurations)
+    .map(([route, data]) => ({
+      route,
+      avgDuration: (data.total / data.count) * 1000,
+      requestCount: data.count,
+    }))
+    .filter(e => e.avgDuration > 100) // Endpoints with avg response > 100ms
+    .sort((a, b) => b.avgDuration - a.avgDuration)
+    .slice(0, 10);
+  
+  // Queue stats
+  const queueStats = {
+    waiting: queueJobs.waiting.reduce((sum, m) => sum + m.value, 0),
+    active: queueJobs.active.reduce((sum, m) => sum + m.value, 0),
+    failed: queueJobs.failed.reduce((sum, m) => sum + m.value, 0),
+    processed: queueJobs.processed.reduce((sum, m) => sum + m.value, 0),
+  };
+  
+  return {
+    avgResponseTime: avgResponseTime.toFixed(2),
+    requestRate: requestRate.toFixed(2),
+    errorRate: errorRate.toFixed(2),
+    activeConnections,
+    dbQueryCount,
+    avgDbQueryTime: avgDbQueryTime.toFixed(2),
+    slowQueries: slowQueries.slice(0, 10),
+    cpuUsage: cpuUsage.toFixed(2),
+    memoryUsage: memoryUsage.toFixed(2),
+    requestsByEndpoint,
+    slowEndpoints,
+    queueStats,
+  };
+}
+
+/**
+ * Helper to get a single metric value
+ */
+function getMetricValue(metrics, name) {
+  const metric = metrics[name];
+  return metric && metric.length > 0 ? metric[0].value : 0;
+}
 
 export default router;
