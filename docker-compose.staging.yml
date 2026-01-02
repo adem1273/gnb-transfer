@@ -1,0 +1,327 @@
+version: '3.8'
+
+services:
+  # MongoDB Replica Set - Primary Node
+  mongodb-primary:
+    image: mongo:7
+    container_name: gnb-mongodb-primary
+    restart: unless-stopped
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-changeme123}
+      MONGO_INITDB_DATABASE: gnb-transfer-staging
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_primary_data:/data/db
+      - mongodb_primary_config:/data/configdb
+    networks:
+      - gnb-staging-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB Replica Set - Secondary Node 1
+  mongodb-secondary1:
+    image: mongo:7
+    container_name: gnb-mongodb-secondary1
+    restart: unless-stopped
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-changeme123}
+    volumes:
+      - mongodb_secondary1_data:/data/db
+      - mongodb_secondary1_config:/data/configdb
+    networks:
+      - gnb-staging-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB Replica Set - Secondary Node 2
+  mongodb-secondary2:
+    image: mongo:7
+    container_name: gnb-mongodb-secondary2
+    restart: unless-stopped
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-changeme123}
+    volumes:
+      - mongodb_secondary2_data:/data/db
+      - mongodb_secondary2_config:/data/configdb
+    networks:
+      - gnb-staging-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB Replica Set Initialization
+  mongodb-setup:
+    image: mongo:7
+    container_name: gnb-mongodb-setup
+    depends_on:
+      mongodb-primary:
+        condition: service_healthy
+      mongodb-secondary1:
+        condition: service_healthy
+      mongodb-secondary2:
+        condition: service_healthy
+    networks:
+      - gnb-staging-network
+    environment:
+      MONGO_PASSWORD: ${MONGO_PASSWORD:-changeme123}
+    command: >
+      bash -c "
+        echo 'Waiting for MongoDB nodes to be ready...' &&
+        sleep 10 &&
+        mongosh --host mongodb-primary:27017 -u admin -p ${MONGO_PASSWORD:-changeme123} --authenticationDatabase admin --eval '
+          rs.initiate({
+            _id: \"rs0\",
+            members: [
+              { _id: 0, host: \"mongodb-primary:27017\", priority: 2 },
+              { _id: 1, host: \"mongodb-secondary1:27017\", priority: 1 },
+              { _id: 2, host: \"mongodb-secondary2:27017\", priority: 1 }
+            ]
+          })
+        ' &&
+        echo 'Replica set initialized successfully'
+      "
+    restart: "no"
+
+  # Redis Master
+  redis-master:
+    image: redis:7-alpine
+    container_name: gnb-redis-master
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redispass123}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_master_data:/data
+    networks:
+      - gnb-staging-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-redispass123}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Replica
+  redis-replica:
+    image: redis:7-alpine
+    container_name: gnb-redis-replica
+    restart: unless-stopped
+    command: redis-server --appendonly yes --slaveof redis-master 6379 --masterauth ${REDIS_PASSWORD:-redispass123} --requirepass ${REDIS_PASSWORD:-redispass123}
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    volumes:
+      - redis_replica_data:/data
+    networks:
+      - gnb-staging-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-redispass123}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API (Production Build)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: staging
+    container_name: gnb-backend-staging
+    restart: unless-stopped
+    environment:
+      NODE_ENV: staging
+      PORT: 5000
+      MONGO_URI: mongodb://admin:${MONGO_PASSWORD:-changeme123}@mongodb-primary:27017,mongodb-secondary1:27017,mongodb-secondary2:27017/gnb-transfer-staging?replicaSet=rs0&authSource=admin
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redispass123}@redis-master:6379
+      CACHE_ENABLED: "true"
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-staging}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:3000,http://localhost:5173,http://frontend,http://nginx}
+      # Optional services
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-}
+      EMAIL_USER: ${EMAIL_USER:-}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD:-}
+      # Logging
+      LOG_LEVEL: info
+      ENABLE_FILE_LOGGING: "true"
+    depends_on:
+      mongodb-primary:
+        condition: service_healthy
+      mongodb-secondary1:
+        condition: service_healthy
+      mongodb-secondary2:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+      mongodb-setup:
+        condition: service_completed_successfully
+    networks:
+      - gnb-staging-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    volumes:
+      - backend_logs:/app/logs
+      - backend_uploads:/app/uploads
+    labels:
+      - "prometheus.scrape=true"
+      - "prometheus.port=5000"
+      - "prometheus.path=/metrics"
+
+  # Frontend Web Application (Vite Production Build)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: staging
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:5000/api}
+    container_name: gnb-frontend-staging
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://nginx/api}
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - gnb-staging-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Nginx Reverse Proxy with SSL stub
+  nginx:
+    image: nginx:alpine
+    container_name: gnb-nginx-staging
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-staging.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl-certs:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - gnb-staging-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Prometheus for Metrics Collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: gnb-prometheus-staging
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts:/etc/prometheus/alerts:ro
+      - prometheus_data:/prometheus
+    networks:
+      - gnb-staging-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Grafana for Visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: gnb-grafana-staging
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin123}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3001}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - gnb-staging-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  gnb-staging-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+volumes:
+  # MongoDB volumes
+  mongodb_primary_data:
+    driver: local
+  mongodb_primary_config:
+    driver: local
+  mongodb_secondary1_data:
+    driver: local
+  mongodb_secondary1_config:
+    driver: local
+  mongodb_secondary2_data:
+    driver: local
+  mongodb_secondary2_config:
+    driver: local
+  
+  # Redis volumes
+  redis_master_data:
+    driver: local
+  redis_replica_data:
+    driver: local
+  
+  # Application volumes
+  backend_logs:
+    driver: local
+  backend_uploads:
+    driver: local
+  nginx_logs:
+    driver: local
+  
+  # Monitoring volumes
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local

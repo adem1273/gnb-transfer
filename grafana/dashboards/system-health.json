@@ -1,0 +1,212 @@
+{
+  "dashboard": {
+    "title": "GNB Transfer - System Health",
+    "tags": ["gnb-transfer", "staging", "health"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Service Status",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "up{job=\"backend\"}",
+            "legendFormat": "Backend",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"type": "value", "value": "0", "text": "DOWN", "color": "red"},
+              {"type": "value", "value": "1", "text": "UP", "color": "green"}
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 1, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "CPU Usage",
+        "type": "graph",
+        "gridPos": {"x": 6, "y": 0, "w": 9, "h": 4},
+        "targets": [
+          {
+            "expr": "process_cpu_usage_percent{job=\"backend\"}",
+            "legendFormat": "CPU %",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "percent", "min": 0, "max": 100},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Memory Usage",
+        "type": "graph",
+        "gridPos": {"x": 15, "y": 0, "w": 9, "h": 4},
+        "targets": [
+          {
+            "expr": "process_memory_usage_bytes{job=\"backend\"} / 1024 / 1024",
+            "legendFormat": "Heap Used (MB)",
+            "refId": "A"
+          },
+          {
+            "expr": "process_memory_total_bytes{job=\"backend\"} / 1024 / 1024",
+            "legendFormat": "Heap Total (MB)",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "mbytes", "min": 0},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Database Status",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 4, "w": 4, "h": 3},
+        "targets": [
+          {
+            "expr": "mongodb_up{job=\"mongodb\"}",
+            "legendFormat": "MongoDB",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"type": "value", "value": "0", "text": "DOWN", "color": "red"},
+              {"type": "value", "value": "1", "text": "UP", "color": "green"}
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 1, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Redis Status",
+        "type": "stat",
+        "gridPos": {"x": 4, "y": 4, "w": 4, "h": 3},
+        "targets": [
+          {
+            "expr": "redis_connected{job=\"backend\"}",
+            "legendFormat": "Redis",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"type": "value", "value": "0", "text": "DOWN", "color": "red"},
+              {"type": "value", "value": "1", "text": "UP", "color": "green"}
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 1, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Uptime",
+        "type": "stat",
+        "gridPos": {"x": 8, "y": 4, "w": 4, "h": 3},
+        "targets": [
+          {
+            "expr": "process_uptime_seconds{job=\"backend\"}",
+            "legendFormat": "Uptime",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 300, "color": "yellow"},
+                {"value": 3600, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Disk Usage",
+        "type": "gauge",
+        "gridPos": {"x": 12, "y": 4, "w": 6, "h": 3},
+        "targets": [
+          {
+            "expr": "(disk_usage_bytes / disk_total_bytes) * 100",
+            "legendFormat": "Disk %",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 70, "color": "yellow"},
+                {"value": 85, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Network I/O",
+        "type": "graph",
+        "gridPos": {"x": 18, "y": 4, "w": 6, "h": 3},
+        "targets": [
+          {
+            "expr": "rate(network_bytes_sent_total[5m])",
+            "legendFormat": "Sent",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(network_bytes_received_total[5m])",
+            "legendFormat": "Received",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "Bps"},
+          {"format": "short"}
+        ]
+      }
+    ],
+    "schemaVersion": 36,
+    "version": 1,
+    "uid": "system-health"
+  }
+}

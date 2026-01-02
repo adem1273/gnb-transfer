@@ -1,0 +1,269 @@
+{
+  "dashboard": {
+    "title": "GNB Transfer - Business Metrics",
+    "tags": ["gnb-transfer", "staging", "business"],
+    "timezone": "browser",
+    "refresh": "1m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Bookings Today",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "sum(increase(bookings_total{job=\"backend\"}[24h]))",
+            "legendFormat": "Bookings",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "blue"},
+                {"value": 100, "color": "green"},
+                {"value": 500, "color": "yellow"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Booking Success Rate (%)",
+        "type": "gauge",
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "(sum(rate(bookings_success_total{job=\"backend\"}[5m])) / sum(rate(bookings_total{job=\"backend\"}[5m]))) * 100",
+            "legendFormat": "Success Rate",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 90, "color": "yellow"},
+                {"value": 95, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Revenue Today (€)",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "sum(increase(revenue_total_euros{job=\"backend\"}[24h]))",
+            "legendFormat": "Revenue",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyEUR",
+            "decimals": 2,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "blue"},
+                {"value": 1000, "color": "green"},
+                {"value": 10000, "color": "yellow"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Active Users (Last Hour)",
+        "type": "stat",
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "sum(active_users{job=\"backend\"})",
+            "legendFormat": "Users",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Bookings Over Time",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 6},
+        "targets": [
+          {
+            "expr": "sum(rate(bookings_total{job=\"backend\"}[5m])) * 60",
+            "legendFormat": "Bookings/min",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(rate(bookings_success_total{job=\"backend\"}[5m])) * 60",
+            "legendFormat": "Successful/min",
+            "refId": "B"
+          },
+          {
+            "expr": "sum(rate(bookings_failed_total{job=\"backend\"}[5m])) * 60",
+            "legendFormat": "Failed/min",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "min": 0},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Revenue Trend",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 6},
+        "targets": [
+          {
+            "expr": "sum(rate(revenue_total_euros{job=\"backend\"}[5m])) * 3600",
+            "legendFormat": "Revenue/hour",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "currencyEUR", "min": 0},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Payment Success Rate (%)",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 10, "w": 8, "h": 5},
+        "targets": [
+          {
+            "expr": "(sum(rate(payment_success_total{job=\"backend\"}[5m])) / sum(rate(payment_attempts_total{job=\"backend\"}[5m]))) * 100",
+            "legendFormat": "Success Rate",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "percent", "min": 0, "max": 100},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Top 5 Routes by Bookings",
+        "type": "table",
+        "gridPos": {"x": 8, "y": 10, "w": 8, "h": 5},
+        "targets": [
+          {
+            "expr": "topk(5, sum(increase(bookings_by_route{job=\"backend\"}[24h])) by (route))",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "User Registrations",
+        "type": "graph",
+        "gridPos": {"x": 16, "y": 10, "w": 8, "h": 5},
+        "targets": [
+          {
+            "expr": "sum(rate(user_registrations_total{job=\"backend\"}[5m])) * 60",
+            "legendFormat": "Registrations/min",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "min": 0},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Average Booking Value (€)",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 15, "w": 6, "h": 3},
+        "targets": [
+          {
+            "expr": "sum(rate(revenue_total_euros{job=\"backend\"}[5m])) / sum(rate(bookings_success_total{job=\"backend\"}[5m]))",
+            "legendFormat": "Avg Value",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyEUR",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 11,
+        "title": "Cancellation Rate (%)",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 15, "w": 6, "h": 3},
+        "targets": [
+          {
+            "expr": "(sum(rate(bookings_cancelled_total{job=\"backend\"}[5m])) / sum(rate(bookings_total{job=\"backend\"}[5m]))) * 100",
+            "legendFormat": "Cancellations",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 5, "color": "yellow"},
+                {"value": 10, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "Customer Retention Rate (30d)",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 15, "w": 6, "h": 3},
+        "targets": [
+          {
+            "expr": "(sum(repeat_customers{job=\"backend\"}) / sum(total_customers{job=\"backend\"})) * 100",
+            "legendFormat": "Retention",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 20, "color": "yellow"},
+                {"value": 40, "color": "green"}
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "schemaVersion": 36,
+    "version": 1,
+    "uid": "business-metrics"
+  }
+}

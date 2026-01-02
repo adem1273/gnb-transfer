@@ -1,0 +1,74 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'gnb-transfer-staging'
+    environment: 'staging'
+
+# Alertmanager configuration (optional)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - 'alertmanager:9093'
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - '/etc/prometheus/alerts/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Backend API metrics
+  - job_name: 'backend'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['backend:5000']
+        labels:
+          service: 'backend-api'
+          environment: 'staging'
+    # Relabel to add instance information
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'backend-api'
+
+  # Node exporter for system metrics (if available)
+  - job_name: 'node'
+    static_configs:
+      - targets: []
+        # Add node_exporter targets if deployed
+        # - 'node-exporter:9100'
+
+  # MongoDB exporter (optional - requires mongodb_exporter)
+  - job_name: 'mongodb'
+    static_configs:
+      - targets: []
+        # Add mongodb_exporter targets if deployed
+        # - 'mongodb-exporter:9216'
+
+  # Redis exporter (optional - requires redis_exporter)
+  - job_name: 'redis'
+    static_configs:
+      - targets: []
+        # Add redis_exporter targets if deployed
+        # - 'redis-exporter:9121'
+
+  # Nginx exporter (optional - requires nginx-prometheus-exporter)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: []
+        # Add nginx_exporter targets if deployed
+        # - 'nginx-exporter:9113'
+
+  # Docker container metrics (cAdvisor)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: []
+        # Add cAdvisor targets if deployed
+        # - 'cadvisor:8080'

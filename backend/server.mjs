@@ -32,6 +32,7 @@ import {
 } from './services/metricsService.mjs';
 import { metricsMiddleware } from './middlewares/prometheusMiddleware.mjs';
 import { DATABASE } from './constants/limits.mjs';
+import { performHealthCheck, performReadinessCheck } from './services/healthCheckService.mjs';
 
 import userRoutes from './routes/userRoutes.mjs';
 import tourRoutes from './routes/tourRoutes.mjs';
@@ -406,37 +407,15 @@ app.use('/api/tracking', adTrackingRoutes);
 app.use('/api/campaigns', campaignRoutes);
 
 // Health check endpoint (registered before other routes)
+// Comprehensive health check for all system dependencies
 app.get('/api/health', async (req, res) => {
-  let dbConnected = false;
-  try {
-    await mongoose.connection.db.admin().ping();
-    dbConnected = true;
-  } catch (err) {
-    dbConnected = false;
-  }
-
-  const health = {
-    status: dbConnected ? 'healthy' : 'degraded',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    services: {
-      database: {
-        connected: dbConnected,
-        state: ['disconnected', 'connected', 'connecting', 'disconnecting'][
-          mongoose.connection.readyState
-        ],
-      },
-      cache: getCacheStats(),
-      redis: getRedisStats(),
-    },
-    memory: {
-      heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
-      heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB',
-    },
-  };
-
-  return res.status(dbConnected ? 200 : 503).json({ success: dbConnected, data: health });
+  const health = await performHealthCheck();
+  const statusCode = health.status === 'healthy' ? 200 : 503;
+  
+  return res.status(statusCode).json({ 
+    success: health.status === 'healthy', 
+    data: health 
+  });
 });
 
 // Legacy health check (for backward compatibility)
@@ -456,30 +435,14 @@ app.get('/health', async (req, res) => {
   }, 'Server is running');
 });
 
-// Readiness check endpoint
+// Readiness check endpoint for container orchestration
 app.get('/api/ready', async (req, res) => {
-  const isReady =
-    mongoose.connection.readyState === 1 && // DB connected
-    process.uptime() > 5; // Server running for at least 5 seconds
-
-  if (isReady) {
-    return res.apiSuccess(
-      {
-        status: 'ready',
-        timestamp: new Date().toISOString(),
-        database: 'connected',
-        uptime: process.uptime(),
-      },
-      'Server is ready'
-    );
-  }
-  return res.status(503).json({
-    success: false,
-    error: 'Service not ready',
-    details: {
-      database: mongoose.connection.readyState === 1 ? 'connected' : 'not connected',
-      uptime: process.uptime(),
-    },
+  const readiness = await performReadinessCheck();
+  const statusCode = readiness.ready ? 200 : 503;
+  
+  return res.status(statusCode).json({
+    success: readiness.ready,
+    data: readiness,
   });
 });
 
