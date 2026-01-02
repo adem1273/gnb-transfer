@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import {
   LineChart,
@@ -16,10 +16,10 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import API from '../utils/api';
-import Loading from '../components/Loading';
-import ErrorMessage from '../components/ErrorMessage';
+// import Loading from '../components/Loading';
+// import ErrorMessage from '../components/ErrorMessage';
 
-const COLORS = ['#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6'];
+// const COLORS = ['#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6'];
 const TIME_RANGES = [
   { value: '5m', label: 'Last 5 Minutes' },
   { value: '30m', label: 'Last 30 Minutes' },
@@ -37,13 +37,69 @@ function PerformanceMetrics() {
   const socketRef = useRef(null);
   const pollingIntervalRef = useRef(null);
 
+  // Fetch metrics from API
+  const fetchMetrics = useCallback(async () => {
+    try {
+      const response = await API.get(`/admin/metrics?timeRange=${timeRange}`);
+      const { data } = response.data;
+      setMetrics(data);
+      setLoading(false);
+      setError('');
+
+      // Add to historical data
+      setHistoricalData((prev) => {
+        const newData = [
+          ...prev,
+          {
+            time: new Date(data.timestamp).toLocaleTimeString(),
+            responseTime: parseFloat(data.performance.avgResponseTime),
+            requestRate: parseFloat(data.performance.requestRate),
+            errorRate: parseFloat(data.performance.errorRate),
+            cacheHitRatio: parseFloat(data.cache.hitRatio),
+            activeConnections: data.performance.activeConnections,
+            cpuUsage: parseFloat(data.system.cpu),
+            memoryUsage: parseFloat(data.system.memory),
+          },
+        ];
+        return newData.slice(-20);
+      });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to fetch metrics:', err);
+      setError('Failed to fetch metrics data');
+      setLoading(false);
+    }
+  }, [timeRange]);
+
+  // Polling fallback
+  const startPolling = useCallback(() => {
+    if (pollingIntervalRef.current) return; // Already polling
+
+    // eslint-disable-next-line no-console
+    console.log('Starting polling fallback');
+    fetchMetrics(); // Fetch immediately
+
+    pollingIntervalRef.current = setInterval(() => {
+      if (autoRefresh) {
+        fetchMetrics();
+      }
+    }, 5000);
+  }, [autoRefresh, fetchMetrics]);
+
+  const stopPolling = useCallback(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  }, []);
+
   // Initialize Socket.IO connection
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       setError('Authentication required');
       setLoading(false);
-      return;
+      return undefined;
     }
 
     // Try Socket.IO first
@@ -62,10 +118,11 @@ function PerformanceMetrics() {
       socketRef.current = socket;
 
       socket.on('connect', () => {
+        // eslint-disable-next-line no-console
         console.log('Connected to metrics socket');
         setConnected(true);
         setError('');
-        
+
         // Subscribe to metrics updates
         socket.emit('metrics:subscribe', { updateInterval: 5000 });
       });
@@ -73,47 +130,53 @@ function PerformanceMetrics() {
       socket.on('metrics:update', (data) => {
         setMetrics(data);
         setLoading(false);
-        
+
         // Add to historical data for charts
         setHistoricalData((prev) => {
-          const newData = [...prev, {
-            time: new Date(data.timestamp).toLocaleTimeString(),
-            responseTime: parseFloat(data.performance.avgResponseTime),
-            requestRate: parseFloat(data.performance.requestRate),
-            errorRate: parseFloat(data.performance.errorRate),
-            cacheHitRatio: parseFloat(data.cache.hitRatio),
-            activeConnections: data.performance.activeConnections,
-            cpuUsage: parseFloat(data.system.cpu),
-            memoryUsage: parseFloat(data.system.memory),
-          }];
-          
+          const newData = [
+            ...prev,
+            {
+              time: new Date(data.timestamp).toLocaleTimeString(),
+              responseTime: parseFloat(data.performance.avgResponseTime),
+              requestRate: parseFloat(data.performance.requestRate),
+              errorRate: parseFloat(data.performance.errorRate),
+              cacheHitRatio: parseFloat(data.cache.hitRatio),
+              activeConnections: data.performance.activeConnections,
+              cpuUsage: parseFloat(data.system.cpu),
+              memoryUsage: parseFloat(data.system.memory),
+            },
+          ];
+
           // Keep only last 20 data points
           return newData.slice(-20);
         });
       });
 
-      socket.on('metrics:error', (error) => {
-        console.error('Metrics error:', error);
-        setError(error.message || 'Failed to fetch metrics');
+      socket.on('metrics:error', (metricsError) => {
+        // eslint-disable-next-line no-console
+        console.error('Metrics error:', metricsError);
+        setError(metricsError.message || 'Failed to fetch metrics');
       });
 
       socket.on('disconnect', () => {
+        // eslint-disable-next-line no-console
         console.log('Disconnected from metrics socket');
         setConnected(false);
-        
+
         // Fallback to polling if socket disconnects
         startPolling();
       });
 
       socket.on('connect_error', (err) => {
+        // eslint-disable-next-line no-console
         console.error('Socket connection error:', err);
         setConnected(false);
-        
+
         // Fallback to polling
         startPolling();
       });
-
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Socket.IO initialization failed:', err);
       // Fallback to polling
       startPolling();
@@ -126,57 +189,7 @@ function PerformanceMetrics() {
       }
       stopPolling();
     };
-  }, []);
-
-  // Polling fallback
-  const startPolling = useCallback(() => {
-    if (pollingIntervalRef.current) return; // Already polling
-
-    console.log('Starting polling fallback');
-    fetchMetrics(); // Fetch immediately
-    
-    pollingIntervalRef.current = setInterval(() => {
-      if (autoRefresh) {
-        fetchMetrics();
-      }
-    }, 5000);
-  }, [autoRefresh]);
-
-  const stopPolling = useCallback(() => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-  }, []);
-
-  const fetchMetrics = async () => {
-    try {
-      const response = await API.get(`/admin/metrics?timeRange=${timeRange}`);
-      const data = response.data.data;
-      setMetrics(data);
-      setLoading(false);
-      setError('');
-      
-      // Add to historical data
-      setHistoricalData((prev) => {
-        const newData = [...prev, {
-          time: new Date(data.timestamp).toLocaleTimeString(),
-          responseTime: parseFloat(data.performance.avgResponseTime),
-          requestRate: parseFloat(data.performance.requestRate),
-          errorRate: parseFloat(data.performance.errorRate),
-          cacheHitRatio: parseFloat(data.cache.hitRatio),
-          activeConnections: data.performance.activeConnections,
-          cpuUsage: parseFloat(data.system.cpu),
-          memoryUsage: parseFloat(data.system.memory),
-        }];
-        return newData.slice(-20);
-      });
-    } catch (err) {
-      console.error('Failed to fetch metrics:', err);
-      setError('Failed to fetch metrics data');
-      setLoading(false);
-    }
-  };
+  }, [startPolling, stopPolling]);
 
   const handleRefresh = () => {
     setLoading(true);
@@ -188,11 +201,25 @@ function PerformanceMetrics() {
   };
 
   if (loading) {
-    return <Loading message="Loading performance metrics..." />;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto" />
+          <p className="mt-4 text-gray-600">Loading performance metrics...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <ErrorMessage message={error} />;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
+          <h2 className="text-red-800 font-bold text-lg mb-2">Error</h2>
+          <p className="text-red-600">{error}</p>
+        </div>
+      </div>
+    );
   }
 
   if (!metrics) {
@@ -214,14 +241,14 @@ function PerformanceMetrics() {
             Real-time monitoring • Updated every 5 seconds
           </p>
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
           {/* Connection Status */}
           <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
-            <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`} />
-            <span className="text-sm font-medium">
-              {connected ? 'Live' : 'Polling'}
-            </span>
+            <div
+              className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`}
+            />
+            <span className="text-sm font-medium">{connected ? 'Live' : 'Polling'}</span>
           </div>
 
           {/* Time Range Selector */}
@@ -297,8 +324,15 @@ function PerformanceMetrics() {
           <LineChart data={historicalData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
-            <YAxis yAxisId="left" label={{ value: 'Response Time (ms)', angle: -90, position: 'insideLeft' }} />
-            <YAxis yAxisId="right" orientation="right" label={{ value: 'Request Rate', angle: 90, position: 'insideRight' }} />
+            <YAxis
+              yAxisId="left"
+              label={{ value: 'Response Time (ms)', angle: -90, position: 'insideLeft' }}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              label={{ value: 'Request Rate', angle: 90, position: 'insideRight' }}
+            />
             <Tooltip />
             <Legend />
             <Line
@@ -352,7 +386,9 @@ function PerformanceMetrics() {
             </div>
             <div>
               <p className="text-gray-600">Hit Ratio</p>
-              <p className="text-lg font-bold text-green-600">{metrics.cache.hitRatio.toFixed(1)}%</p>
+              <p className="text-lg font-bold text-green-600">
+                {metrics.cache.hitRatio.toFixed(1)}%
+              </p>
             </div>
           </div>
         </div>
@@ -381,7 +417,9 @@ function PerformanceMetrics() {
               <div className="w-full bg-gray-200 rounded-full h-4">
                 <div
                   className="bg-green-500 h-4 rounded-full transition-all"
-                  style={{ width: `${Math.min((parseFloat(metrics.system.memory) / 512) * 100, 100)}%` }}
+                  style={{
+                    width: `${Math.min((parseFloat(metrics.system.memory) / 512) * 100, 100)}%`,
+                  }}
                 />
               </div>
             </div>
