@@ -77,7 +77,7 @@ jobs:
           if [ "${{ github.event.inputs.is_pre_deployment }}" = "true" ]; then
             echo "retention=90" >> $GITHUB_OUTPUT
             echo "category=pre-deployment" >> $GITHUB_OUTPUT
-          elif [ "$(echo $GITHUB_OUTPUT | grep 'type=full')" ]; then
+          elif grep -q 'type=full' "$GITHUB_OUTPUT"; then
             echo "retention=30" >> $GITHUB_OUTPUT
             echo "category=daily" >> $GITHUB_OUTPUT
           else
@@ -101,7 +101,7 @@ jobs:
           LATEST_BACKUP=$(ls -t backup/*.tar.gz* | head -1)
           BACKUP_NAME=$(basename "$LATEST_BACKUP" .tar.gz.enc)
           BACKUP_NAME=$(basename "$BACKUP_NAME" .tar.gz)
-          TIMESTAMP=$(echo "$BACKUP_NAME" | grep -oP '\d{8}_\d{6}')
+          TIMESTAMP=$(echo "$BACKUP_NAME" | grep -oE '[0-9]{8}_[0-9]{6}')
           
           echo "filename=${BACKUP_NAME}" >> $GITHUB_OUTPUT
           echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
@@ -148,7 +148,7 @@ jobs:
           # Cleanup daily backups older than 30 days
           DAILY_CUTOFF=$(date -d '30 days ago' +%Y%m%d)
           aws s3 ls s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/daily/ | while read -r line; do
-            BACKUP_DATE=$(echo "$line" | grep -oP 'gnb-transfer-backup-\K[0-9]{8}' || echo "99999999")
+            BACKUP_DATE=$(echo "$line" | grep -oE 'gnb-transfer-backup-[0-9]{8}' | sed 's/.*-//' || echo "99999999")
             BACKUP_FILE=$(echo "$line" | awk '{print $4}')
             if [ "$BACKUP_DATE" -lt "$DAILY_CUTOFF" ] && [ -n "$BACKUP_FILE" ]; then
               echo "Deleting old daily backup: $BACKUP_FILE"
@@ -159,7 +159,7 @@ jobs:
           # Cleanup hourly backups older than 7 days
           HOURLY_CUTOFF=$(date -d '7 days ago' +%Y%m%d)
           aws s3 ls s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/hourly/ 2>/dev/null | while read -r line; do
-            BACKUP_DATE=$(echo "$line" | grep -oP 'gnb-transfer-backup-\K[0-9]{8}' || echo "99999999")
+            BACKUP_DATE=$(echo "$line" | grep -oE 'gnb-transfer-backup-[0-9]{8}' | sed 's/.*-//' || echo "99999999")
             BACKUP_FILE=$(echo "$line" | awk '{print $4}')
             if [ "$BACKUP_DATE" -lt "$HOURLY_CUTOFF" ] && [ -n "$BACKUP_FILE" ]; then
               echo "Deleting old hourly backup: $BACKUP_FILE"
@@ -204,7 +204,7 @@ jobs:
           # Cleanup daily backups older than 30 days
           DAILY_CUTOFF=$(date -d '30 days ago' +%Y%m%d)
           gsutil ls "gs://${{ secrets.GCS_BACKUP_BUCKET }}/mongodb/daily/" | while read -r file; do
-            BACKUP_DATE=$(echo "$file" | grep -oP 'gnb-transfer-backup-\K[0-9]{8}' || echo "99999999")
+            BACKUP_DATE=$(echo "$file" | grep -oE 'gnb-transfer-backup-[0-9]{8}' | sed 's/.*-//' || echo "99999999")
             if [ "$BACKUP_DATE" -lt "$DAILY_CUTOFF" ]; then
               echo "Deleting old daily backup: $file"
               gsutil rm "$file"
@@ -214,7 +214,7 @@ jobs:
           # Cleanup hourly backups older than 7 days
           HOURLY_CUTOFF=$(date -d '7 days ago' +%Y%m%d)
           gsutil ls "gs://${{ secrets.GCS_BACKUP_BUCKET }}/mongodb/hourly/" 2>/dev/null | while read -r file; do
-            BACKUP_DATE=$(echo "$file" | grep -oP 'gnb-transfer-backup-\K[0-9]{8}' || echo "99999999")
+            BACKUP_DATE=$(echo "$file" | grep -oE 'gnb-transfer-backup-[0-9]{8}' | sed 's/.*-//' || echo "99999999")
             if [ "$BACKUP_DATE" -lt "$HOURLY_CUTOFF" ]; then
               echo "Deleting old hourly backup: $file"
               gsutil rm "$file"

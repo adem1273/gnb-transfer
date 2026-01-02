@@ -312,11 +312,11 @@ cleanup_old_backups() {
     local CUTOFF_DATE=$(date -d "$RETENTION_DAYS days ago" +%Y%m%d 2>/dev/null || date -v-${RETENTION_DAYS}d +%Y%m%d)
     local DELETED_COUNT=0
     
-    # Find and delete old backups
+    # Cleanup old backups
     for file in "$OUTPUT_DIR"/gnb-transfer-backup-*.tar.gz* "$OUTPUT_DIR"/gnb-transfer-backup-*.metadata.json; do
         if [[ -f "$file" ]]; then
             # Extract date from filename
-            local FILE_DATE=$(echo "$file" | grep -oP 'gnb-transfer-backup-\K[0-9]{8}' || echo "99999999")
+            local FILE_DATE=$(echo "$file" | grep -oE 'gnb-transfer-backup-[0-9]{8}' | sed 's/.*-//' || echo "99999999")
             
             if [[ "$FILE_DATE" -lt "$CUTOFF_DATE" ]]; then
                 log_info "Deleting old backup: $file"

@@ -231,29 +231,41 @@ verify_checksum() {
     fi
 }
 
+# Decrypt backup file if needed
+decrypt_if_needed() {
+    local WORKING_FILE="$1"
+    local OUTPUT_FILE="$2"
+    
+    if [[ "$DECRYPT_BACKUP" != true ]]; then
+        echo "$WORKING_FILE"
+        return
+    fi
+    
+    if [[ -f "$OUTPUT_FILE" ]]; then
+        echo "$OUTPUT_FILE"
+        return
+    fi
+    
+    log_info "Decrypting backup..."
+    openssl enc -aes-256-cbc -d -pbkdf2 \
+        -in "$WORKING_FILE" \
+        -out "$OUTPUT_FILE" \
+        -pass pass:"$ENCRYPTION_KEY"
+    
+    if [[ ! -f "$OUTPUT_FILE" ]]; then
+        log_error "Decryption failed"
+        exit 1
+    fi
+    
+    echo "$OUTPUT_FILE"
+}
+
 # Verify archive structure
 verify_archive_structure() {
     log_info "Verifying archive structure..."
     
-    local WORKING_FILE="$BACKUP_FILE"
-    
-    # Decrypt if needed
-    if [[ "$DECRYPT_BACKUP" == true ]]; then
-        log_info "Decrypting backup for structure verification..."
-        local DECRYPTED_FILE="$TEMP_DIR/$(basename "${BACKUP_FILE%.enc}")"
-        
-        openssl enc -aes-256-cbc -d -pbkdf2 \
-            -in "$BACKUP_FILE" \
-            -out "$DECRYPTED_FILE" \
-            -pass pass:"$ENCRYPTION_KEY"
-        
-        if [[ ! -f "$DECRYPTED_FILE" ]]; then
-            log_error "Decryption failed"
-            exit 1
-        fi
-        
-        WORKING_FILE="$DECRYPTED_FILE"
-    fi
+    local DECRYPTED_FILE="$TEMP_DIR/$(basename "${BACKUP_FILE%.enc}")"
+    local WORKING_FILE=$(decrypt_if_needed "$BACKUP_FILE" "$DECRYPTED_FILE")
     
     # Test archive integrity
     log_info "Testing archive integrity..."
@@ -286,22 +298,8 @@ perform_test_restore() {
     
     log_info "Performing test restore..."
     
-    local WORKING_FILE="$BACKUP_FILE"
-    
-    # Decrypt if needed
-    if [[ "$DECRYPT_BACKUP" == true ]]; then
-        log_info "Decrypting backup for test restore..."
-        local DECRYPTED_FILE="$TEMP_DIR/$(basename "${BACKUP_FILE%.enc}")"
-        
-        if [[ ! -f "$DECRYPTED_FILE" ]]; then
-            openssl enc -aes-256-cbc -d -pbkdf2 \
-                -in "$BACKUP_FILE" \
-                -out "$DECRYPTED_FILE" \
-                -pass pass:"$ENCRYPTION_KEY"
-        fi
-        
-        WORKING_FILE="$DECRYPTED_FILE"
-    fi
+    local DECRYPTED_FILE="$TEMP_DIR/$(basename "${BACKUP_FILE%.enc}")"
+    local WORKING_FILE=$(decrypt_if_needed "$BACKUP_FILE" "$DECRYPTED_FILE")
     
     # Extract archive
     log_info "Extracting backup archive..."

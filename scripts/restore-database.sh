@@ -269,7 +269,8 @@ perform_restore() {
     # Add point-in-time recovery if specified
     if [[ -n "$POINT_IN_TIME" ]]; then
         log_info "Restoring to point-in-time: $POINT_IN_TIME"
-        RESTORE_ARGS="$RESTORE_ARGS --oplogReplay --oplogLimit=$POINT_IN_TIME"
+        # Note: Modern mongorestore auto-detects oplog files
+        RESTORE_ARGS="$RESTORE_ARGS --oplogFile=$(find "$BACKUP_DIR" -name "oplog.bson*" | head -1)"
     fi
     
     # Perform mongorestore
