@@ -447,8 +447,36 @@ router.get('/permissions', requireAuth(), async (req, res) => {
  */
 router.get('/', requireAuth(['admin']), async (req, res) => {
   try {
-    const users = await User.find().select('-password').limit(100);
-    return res.apiSuccess(users, 'Users retrieved successfully');
+    // Use lean() for read-only query, add pagination
+    const { page = 1, limit = 50, role } = req.query;
+    const pageNum = Math.max(1, parseInt(page, 10));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)));
+    const skip = (pageNum - 1) * limitNum;
+
+    const filter = {};
+    if (role) {
+      filter.role = role;
+    }
+
+    const [users, total] = await Promise.all([
+      User.find(filter)
+        .select('-password -__v')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
+      User.countDocuments(filter)
+    ]);
+
+    return res.apiSuccess({
+      users,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        pages: Math.ceil(total / limitNum)
+      }
+    }, 'Users retrieved successfully');
   } catch (error) {
     return res.apiError(`Failed to retrieve users: ${error.message}`, 500);
   }

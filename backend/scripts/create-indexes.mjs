@@ -25,6 +25,8 @@ import BlogPost from '../models/BlogPost.mjs';
 import Review from '../models/Review.mjs';
 import Driver from '../models/Driver.mjs';
 import Vehicle from '../models/Vehicle.mjs';
+import Coupon from '../models/Coupon.mjs';
+import Page from '../models/Page.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -244,7 +246,7 @@ async function main() {
     console.log('✓ Connected to database\n');
     
     // Models to process
-    const models = [User, Booking, Tour, BlogPost, Review, Driver, Vehicle];
+    const models = [User, Booking, Tour, BlogPost, Review, Driver, Vehicle, Coupon, Page];
     
     let totalCreated = 0;
     let totalDropped = 0;
