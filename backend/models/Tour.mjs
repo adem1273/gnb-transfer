@@ -3,6 +3,8 @@
  */
 
 import mongoose from 'mongoose';
+import { invalidateTag } from '../utils/cache.mjs';
+import logger from '../config/logger.mjs';
 
 const tourSchema = new mongoose.Schema(
   {
@@ -79,6 +81,52 @@ tourSchema.index({ isCampaign: 1, price: -1 });
 tourSchema.index({ price: 1 }); // Price range queries
 tourSchema.index({ duration: 1 }); // Duration-based filtering
 tourSchema.index({ createdAt: -1 }); // Recent tours
+
+// Cache invalidation hooks
+tourSchema.post('save', async function(doc) {
+  try {
+    await invalidateTag('tours');
+    logger.debug('Tour cache invalidated after save', { tourId: doc._id });
+  } catch (error) {
+    logger.error('Failed to invalidate tour cache', { error: error.message });
+  }
+});
+
+tourSchema.post('findOneAndUpdate', async function(doc) {
+  try {
+    await invalidateTag('tours');
+    logger.debug('Tour cache invalidated after update');
+  } catch (error) {
+    logger.error('Failed to invalidate tour cache', { error: error.message });
+  }
+});
+
+tourSchema.post('findOneAndDelete', async function(doc) {
+  try {
+    await invalidateTag('tours');
+    logger.debug('Tour cache invalidated after delete');
+  } catch (error) {
+    logger.error('Failed to invalidate tour cache', { error: error.message });
+  }
+});
+
+tourSchema.post('deleteOne', async function() {
+  try {
+    await invalidateTag('tours');
+    logger.debug('Tour cache invalidated after deleteOne');
+  } catch (error) {
+    logger.error('Failed to invalidate tour cache', { error: error.message });
+  }
+});
+
+tourSchema.post('deleteMany', async function() {
+  try {
+    await invalidateTag('tours');
+    logger.debug('Tour cache invalidated after deleteMany');
+  } catch (error) {
+    logger.error('Failed to invalidate tour cache', { error: error.message });
+  }
+});
 
 const Tour = mongoose.models.Tour || mongoose.model('Tour', tourSchema);
 

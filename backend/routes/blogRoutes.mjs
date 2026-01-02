@@ -9,15 +9,16 @@ import express from 'express';
 import BlogPost from '../models/BlogPost.mjs';
 import { requireAuth, optionalAuth } from '../middlewares/auth.mjs';
 import logger from '../config/logger.mjs';
+import { cacheResponse, clearCacheByTags } from '../middlewares/cacheMiddleware.mjs';
 
 const router = express.Router();
 
 /**
  * @route   GET /api/blog
- * @desc    Get all blog posts (published for public, all for admin)
+ * @desc    Get all blog posts (published for public, all for admin) - Cached 1 hour
  * @access  Public / Private
  */
-router.get('/', optionalAuth, async (req, res) => {
+router.get('/', optionalAuth, cacheResponse(3600, { tags: ['blog', 'blog:list'] }), async (req, res) => {
   try {
     const { page = 1, limit = 10, category, status, language = 'en', tag } = req.query;
     const isAdmin = req.user && ['admin', 'manager'].includes(req.user.role);
@@ -71,10 +72,10 @@ router.get('/', optionalAuth, async (req, res) => {
 
 /**
  * @route   GET /api/blog/categories
- * @desc    Get all blog categories with post counts
+ * @desc    Get all blog categories with post counts - Cached 1 hour
  * @access  Public
  */
-router.get('/categories', async (req, res) => {
+router.get('/categories', cacheResponse(3600, { tags: ['blog', 'blog:categories'] }), async (req, res) => {
   try {
     const categories = await BlogPost.aggregate([
       { $match: { status: 'published' } },

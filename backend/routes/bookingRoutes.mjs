@@ -18,6 +18,7 @@ import Tour from '../models/Tour.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import { strictRateLimiter } from '../middlewares/rateLimiter.mjs';
 import { cacheMiddleware, clearCache } from '../middlewares/cache.mjs';
+import { cacheResponse, clearCacheByTags } from '../middlewares/cacheMiddleware.mjs';
 import { sanitizeRequest } from '../middlewares/sanitize.mjs';
 import {
   createBookingSchema,
@@ -152,7 +153,7 @@ router.post('/', strictRateLimiter, validateZod(createBookingSchema, 'body'), as
 
 /**
  * @route   GET /api/bookings
- * @desc    Get all bookings with tour details
+ * @desc    Get all bookings with tour details - Cached 5 minutes per user
  * @access  Private (admin only)
  * @headers Authorization: Bearer <token>
  * @returns {array} - Array of booking objects with populated tour information
@@ -163,7 +164,7 @@ router.post('/', strictRateLimiter, validateZod(createBookingSchema, 'body'), as
  * - Limited to 200 results to prevent performance issues
  * - Cached for 5 minutes (admin data changes frequently)
  */
-router.get('/', requireAuth(['admin']), cacheMiddleware(300), async (req, res) => {
+router.get('/', requireAuth(['admin']), cacheResponse(300, { tags: ['bookings', 'bookings:list'], varyByUser: true }), async (req, res) => {
   try {
     const bookings = await Booking.find()
       .populate('tour', 'title price duration')

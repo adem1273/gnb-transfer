@@ -7,6 +7,8 @@
  */
 
 import mongoose from 'mongoose';
+import { invalidateTag } from '../utils/cache.mjs';
+import logger from '../config/logger.mjs';
 
 // Passenger schema for ministry-required passenger name collection
 const passengerSchema = new mongoose.Schema({
@@ -277,6 +279,52 @@ bookingSchema.virtual('tourIdVirtual').set(function(value) {
 // Include virtuals in JSON/Object output
 bookingSchema.set('toJSON', { virtuals: true });
 bookingSchema.set('toObject', { virtuals: true });
+
+// Cache invalidation hooks
+bookingSchema.post('save', async function(doc) {
+  try {
+    await invalidateTag('bookings');
+    logger.debug('Booking cache invalidated after save', { bookingId: doc._id });
+  } catch (error) {
+    logger.error('Failed to invalidate booking cache', { error: error.message });
+  }
+});
+
+bookingSchema.post('findOneAndUpdate', async function(doc) {
+  try {
+    await invalidateTag('bookings');
+    logger.debug('Booking cache invalidated after update');
+  } catch (error) {
+    logger.error('Failed to invalidate booking cache', { error: error.message });
+  }
+});
+
+bookingSchema.post('findOneAndDelete', async function(doc) {
+  try {
+    await invalidateTag('bookings');
+    logger.debug('Booking cache invalidated after delete');
+  } catch (error) {
+    logger.error('Failed to invalidate booking cache', { error: error.message });
+  }
+});
+
+bookingSchema.post('deleteOne', async function() {
+  try {
+    await invalidateTag('bookings');
+    logger.debug('Booking cache invalidated after deleteOne');
+  } catch (error) {
+    logger.error('Failed to invalidate booking cache', { error: error.message });
+  }
+});
+
+bookingSchema.post('deleteMany', async function() {
+  try {
+    await invalidateTag('bookings');
+    logger.debug('Booking cache invalidated after deleteMany');
+  } catch (error) {
+    logger.error('Failed to invalidate booking cache', { error: error.message });
+  }
+});
 
 const Booking = mongoose.models.Booking || mongoose.model('Booking', bookingSchema);
 
