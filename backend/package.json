@@ -16,7 +16,11 @@
     "seed": "node scripts/seed.mjs",
     "seed:users": "node scripts/seed.mjs --users",
     "seed:tours": "node scripts/seed.mjs --tours",
-    "seed:reset": "node scripts/seed.mjs --reset"
+    "seed:reset": "node scripts/seed.mjs --reset",
+    "db:indexes": "node scripts/create-indexes.mjs",
+    "db:indexes:dry-run": "node scripts/create-indexes.mjs --dry-run",
+    "db:indexes:drop-unused": "node scripts/create-indexes.mjs --drop-unused",
+    "db:test-performance": "node scripts/test-query-performance.mjs"
   },
   "keywords": [
     "gnb",

@@ -107,9 +107,9 @@ const pageSchema = new mongoose.Schema(
 );
 
 // Indexes for efficient queries
-pageSchema.index({ slug: 1 });
-pageSchema.index({ published: 1, createdAt: -1 });
-pageSchema.index({ createdAt: -1 });
+pageSchema.index({ slug: 1 }, { unique: true }); // SEO-friendly URLs
+pageSchema.index({ published: 1, createdAt: -1 }); // Published pages chronologically
+pageSchema.index({ createdAt: -1 }); // Admin page listing
 
 /**
  * Instance method: Check if page is published

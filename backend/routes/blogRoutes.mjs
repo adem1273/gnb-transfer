@@ -46,12 +46,14 @@ router.get('/', optionalAuth, cacheResponse(3600, { tags: ['blog', 'blog:list'] 
 
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
 
+    // Use lean() for read-only query and select only needed fields
     const posts = await BlogPost.find(filter)
       .populate('author', 'name')
-      .select('-content -translations.content')
+      .select('-content -translations.content -__v')
       .sort({ publishedAt: -1, createdAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit, 10));
+      .limit(parseInt(limit, 10))
+      .lean();
 
     const total = await BlogPost.countDocuments(filter);
 

@@ -92,10 +92,13 @@ const driverSchema = new mongoose.Schema(
 );
 
 // Indexes
-driverSchema.index({ email: 1 });
-driverSchema.index({ licenseNumber: 1 });
-driverSchema.index({ status: 1 });
-driverSchema.index({ rating: -1 });
+driverSchema.index({ email: 1 }, { unique: true });
+driverSchema.index({ licenseNumber: 1 }, { unique: true });
+driverSchema.index({ status: 1, rating: -1 }); // Active drivers by rating
+driverSchema.index({ user: 1 }); // User reference lookup
+driverSchema.index({ vehicleAssigned: 1 }); // Vehicle assignment queries
+driverSchema.index({ licenseExpiry: 1 }); // License expiry checks
+driverSchema.index({ rating: -1, status: 1 }); // Top-rated active drivers
 
 // Virtual for checking if license is expired
 driverSchema.virtual('isLicenseValid').get(function () {

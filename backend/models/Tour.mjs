@@ -14,6 +14,13 @@ const tourSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
+    slug: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      lowercase: true,
+    },
     title_ar: { type: String, trim: true },
     title_ru: { type: String, trim: true },
     title_es: { type: String, trim: true },
@@ -33,6 +40,17 @@ const tourSchema = new mongoose.Schema(
     description_hi: { type: String, trim: true },
     description_de: { type: String, trim: true },
     description_it: { type: String, trim: true },
+    category: {
+      type: String,
+      enum: ['transfer', 'tour', 'vip', 'airport', 'city', 'excursion', 'package'],
+      default: 'transfer',
+      index: true,
+    },
+    active: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
     price: {
       type: Number,
       required: [true, 'Tour price is required'],
@@ -71,16 +89,33 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+// Pre-save hook to auto-generate slug from title
+tourSchema.pre('save', function (next) {
+  // Generate or update slug when title is modified
+  if (this.isModified('title')) {
+    this.slug = this.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+      .substring(0, 100);
+  }
+  next();
+});
+
 // Text index on title and description for search functionality
 tourSchema.index({ title: 'text', description: 'text' });
 
-// Compound index for campaign tours
-tourSchema.index({ isCampaign: 1, price: -1 });
+// Compound index for active tours by category and price
+tourSchema.index({ active: 1, category: 1, price: -1 });
+tourSchema.index({ active: 1, isCampaign: 1, price: -1 }); // Active campaign tours
 
 // Additional performance indexes for filtering and sorting
 tourSchema.index({ price: 1 }); // Price range queries
 tourSchema.index({ duration: 1 }); // Duration-based filtering
 tourSchema.index({ createdAt: -1 }); // Recent tours
+tourSchema.index({ slug: 1 }, { unique: true, sparse: true }); // SEO-friendly URLs
 
 // Cache invalidation hooks
 tourSchema.post('save', async function(doc) {

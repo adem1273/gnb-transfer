@@ -87,8 +87,9 @@ const couponSchema = new mongoose.Schema(
 
 // Indexes for performance
 couponSchema.index({ code: 1 }, { unique: true });
-couponSchema.index({ active: 1, validUntil: 1 });
+couponSchema.index({ active: 1, validFrom: 1, validUntil: 1 }); // Active valid coupons
 couponSchema.index({ createdAt: -1 });
+couponSchema.index({ applicableTours: 1 }); // Tour-specific coupons
 
 // Virtual for checking if coupon is currently valid
 couponSchema.virtual('isValid').get(function () {

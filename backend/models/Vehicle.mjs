@@ -101,9 +101,12 @@ const vehicleSchema = new mongoose.Schema(
 );
 
 // Indexes
-vehicleSchema.index({ plateNumber: 1 });
-vehicleSchema.index({ status: 1 });
-vehicleSchema.index({ type: 1 });
+vehicleSchema.index({ plateNumber: 1 }, { unique: true });
+vehicleSchema.index({ status: 1, type: 1 }); // Available vehicles by type
+vehicleSchema.index({ currentDriver: 1 }); // Driver-vehicle assignment
+vehicleSchema.index({ insuranceExpiry: 1 }); // Insurance renewal tracking
+vehicleSchema.index({ registrationExpiry: 1 }); // Registration renewal tracking
+vehicleSchema.index({ type: 1, capacity: 1, status: 1 }); // Vehicle search by type and capacity
 
 // Virtual for checking if insurance is valid
 vehicleSchema.virtual('isInsuranceValid').get(function () {

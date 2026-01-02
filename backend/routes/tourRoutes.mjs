@@ -18,7 +18,11 @@ const router = express.Router();
  */
 router.get('/', cacheResponse(300, { tags: ['tours', 'tours:list'] }), async (req, res) => {
   try {
-    const tours = await Tour.find().sort({ createdAt: -1 });
+    // Use lean() for read-only query (20-30% faster)
+    const tours = await Tour.find({ active: true })
+      .select('-__v')
+      .sort({ createdAt: -1 })
+      .lean();
     return res.apiSuccess(tours, 'Tours retrieved successfully');
   } catch (error) {
     return res.apiError(`Failed to retrieve tours: ${error.message}`, 500);
@@ -30,7 +34,12 @@ router.get('/', cacheResponse(300, { tags: ['tours', 'tours:list'] }), async (re
  */
 router.get('/campaigns', cacheResponse(300, { tags: ['tours', 'tours:campaigns'] }), async (req, res) => {
   try {
-    const campaignTours = await Tour.find({ isCampaign: true }).sort({ discount: -1 });
+    // Use lean() for read-only query and limit fields
+    // Select only essential fields, excluding translation fields to reduce payload
+    const campaignTours = await Tour.find({ isCampaign: true, active: true })
+      .select('title description slug price duration discount isCampaign image category createdAt')
+      .sort({ discount: -1 })
+      .lean();
     return res.apiSuccess(campaignTours, 'Campaign tours retrieved successfully');
   } catch (error) {
     return res.apiError(`Failed to fetch campaign tours: ${error.message}`, 500);
@@ -81,7 +90,10 @@ router.get('/most-popular', cacheResponse(300, { tags: ['tours', 'tours:popular'
  */
 router.get('/:id', validateMongoId, cacheResponse(900), async (req, res) => {
   try {
-    const tour = await Tour.findById(req.params.id);
+    // Use lean() for read-only query
+    const tour = await Tour.findById(req.params.id)
+      .select('-__v')
+      .lean();
     if (!tour) {
       return res.apiError('Tour not found', 404);
     }
@@ -96,7 +108,10 @@ router.get('/:id', validateMongoId, cacheResponse(900), async (req, res) => {
  */
 router.get('/:id/discounted-price', validateMongoId, cacheResponse(900), async (req, res) => {
   try {
-    const tour = await Tour.findById(req.params.id);
+    // Only select needed fields for price calculation
+    const tour = await Tour.findById(req.params.id)
+      .select('price discount')
+      .lean();
     if (!tour) {
       return res.apiError('Tour not found', 404);
     }
