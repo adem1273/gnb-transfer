@@ -35,8 +35,9 @@ router.get('/', cacheResponse(300, { tags: ['tours', 'tours:list'] }), async (re
 router.get('/campaigns', cacheResponse(300, { tags: ['tours', 'tours:campaigns'] }), async (req, res) => {
   try {
     // Use lean() for read-only query and limit fields
+    // Select only essential fields, excluding translation fields to reduce payload
     const campaignTours = await Tour.find({ isCampaign: true, active: true })
-      .select('-__v -description_ar -description_ru -description_es -description_zh -description_hi -description_de -description_it')
+      .select('title description slug price duration discount isCampaign image category createdAt')
       .sort({ discount: -1 })
       .lean();
     return res.apiSuccess(campaignTours, 'Campaign tours retrieved successfully');

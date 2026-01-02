@@ -91,12 +91,14 @@ const tourSchema = new mongoose.Schema(
 
 // Pre-save hook to auto-generate slug from title
 tourSchema.pre('save', function (next) {
-  if (this.isModified('title') && !this.slug) {
+  // Generate or update slug when title is modified
+  if (this.isModified('title')) {
     this.slug = this.title
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
       .substring(0, 100);
   }
   next();

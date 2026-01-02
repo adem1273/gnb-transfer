@@ -193,12 +193,12 @@ router.get('/', requireAuth(['admin']), cacheResponse(300, { tags: ['bookings', 
       filter.status = status;
     }
 
-    // Use lean() for better performance on read-only query
+    // Use lean() for read-only query and select only needed fields
     const [bookings, total] = await Promise.all([
       Booking.find(filter)
         .populate('tour', 'title price duration')
         .populate('user', 'name email')
-        .select('-__v -tourId') // Exclude unnecessary fields
+        .select('-__v') // Exclude internal version field; tourId redundant with populated tour
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)
