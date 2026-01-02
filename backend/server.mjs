@@ -552,6 +552,15 @@ await connectDB();
 // Initialize Redis cache with new configuration
 initializeRedis();
 
+// Initialize BullMQ queues and workers
+import { initializeQueues } from './config/queues.mjs';
+import { initializeWorkers } from './queues/workerManager.mjs';
+
+if (process.env.QUEUE_ENABLED !== 'false') {
+  initializeQueues();
+  initializeWorkers();
+}
+
 // Initialize feature toggles
 import featureToggleService from './services/featureToggleService.mjs';
 
@@ -656,6 +665,13 @@ const gracefulShutdown = async (signal) => {
     logger.info('HTTP server closed');
 
     try {
+      // Close BullMQ queues and workers
+      const { closeQueues } = await import('./config/queues.mjs');
+      const { closeWorkers } = await import('./queues/workerManager.mjs');
+      await closeWorkers();
+      await closeQueues();
+      logger.info('BullMQ queues and workers closed');
+
       // Close database connection
       if (mongoose.connection.readyState !== 0) {
         await mongoose.disconnect();
