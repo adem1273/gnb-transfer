@@ -1,0 +1,7 @@
+# DO NOT COMMIT ACTUAL CERTIFICATES
+# This file is tracked to ensure the directory exists
+# Generate certificates using: ../scripts/generate-ssl-certs.sh
+
+# Expected files:
+# - cert.pem (SSL certificate)
+# - key.pem (Private key)

@@ -1,0 +1,227 @@
+{
+  "dashboard": {
+    "title": "GNB Transfer - API Performance",
+    "tags": ["gnb-transfer", "staging", "api", "performance"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Request Rate (req/s)",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 6},
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{job=\"backend\"}[5m])) by (method, route)",
+            "legendFormat": "{{method}} {{route}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "reqps", "min": 0},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Response Time (p50, p95, p99)",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 6},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"backend\"}[5m])) by (le, route))",
+            "legendFormat": "p50 {{route}}",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"backend\"}[5m])) by (le, route))",
+            "legendFormat": "p95 {{route}}",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"backend\"}[5m])) by (le, route))",
+            "legendFormat": "p99 {{route}}",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "min": 0},
+          {"format": "short"}
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [0.2], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["B", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "handler": 1,
+          "name": "Slow API Response (p95 > 200ms)",
+          "noDataState": "no_data"
+        }
+      },
+      {
+        "id": 3,
+        "title": "Error Rate (%)",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 6, "w": 8, "h": 5},
+        "targets": [
+          {
+            "expr": "(sum(rate(http_requests_total{job=\"backend\",status=~\"4..\"}[5m])) / sum(rate(http_requests_total{job=\"backend\"}[5m]))) * 100",
+            "legendFormat": "4xx Errors",
+            "refId": "A"
+          },
+          {
+            "expr": "(sum(rate(http_requests_total{job=\"backend\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"backend\"}[5m]))) * 100",
+            "legendFormat": "5xx Errors",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "percent", "min": 0, "max": 100},
+          {"format": "short"}
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [1], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["B", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "handler": 1,
+          "name": "High Error Rate (> 1%)",
+          "noDataState": "no_data"
+        }
+      },
+      {
+        "id": 4,
+        "title": "Status Code Distribution",
+        "type": "piechart",
+        "gridPos": {"x": 8, "y": 6, "w": 8, "h": 5},
+        "targets": [
+          {
+            "expr": "sum(increase(http_requests_total{job=\"backend\"}[5m])) by (status)",
+            "legendFormat": "{{status}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Top 10 Slowest Endpoints",
+        "type": "table",
+        "gridPos": {"x": 16, "y": 6, "w": 8, "h": 5},
+        "targets": [
+          {
+            "expr": "topk(10, histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"backend\"}[5m])) by (le, route, method)))",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Database Query Performance",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 11, "w": 12, "h": 5},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(database_query_duration_seconds_bucket{job=\"backend\"}[5m])) by (le, operation))",
+            "legendFormat": "p95 {{operation}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "min": 0},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Cache Hit Rate (%)",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 11, "w": 12, "h": 5},
+        "targets": [
+          {
+            "expr": "(sum(rate(cache_hits_total{job=\"backend\"}[5m])) / sum(rate(cache_requests_total{job=\"backend\"}[5m]))) * 100",
+            "legendFormat": "Hit Rate",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "percent", "min": 0, "max": 100},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Active Requests",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 16, "w": 6, "h": 3},
+        "targets": [
+          {
+            "expr": "http_requests_active{job=\"backend\"}",
+            "legendFormat": "Active",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 50, "color": "yellow"},
+                {"value": 100, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Rate Limit Hits",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 16, "w": 6, "h": 3},
+        "targets": [
+          {
+            "expr": "sum(rate(rate_limit_hits_total{job=\"backend\"}[5m]))",
+            "legendFormat": "Rate Limit Hits/s",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Request Size (bytes)",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 16, "w": 12, "h": 3},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_size_bytes_bucket{job=\"backend\"}[5m])) by (le))",
+            "legendFormat": "p95",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "bytes"},
+          {"format": "short"}
+        ]
+      }
+    ],
+    "schemaVersion": 36,
+    "version": 1,
+    "uid": "api-performance"
+  }
+}

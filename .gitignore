@@ -9,6 +9,7 @@ frontend/node_modules/
 .env.*
 !.env.example
 !.env.gcloud.example
+!.env.staging.example
 backend/.env
 backend/.env.*
 !backend/.env.example
@@ -39,6 +40,28 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 backend/logs/
+deployment-*.log
+
+# Backups
+backups/
+*.archive
+*.dump
+
+# SSL certificates (use generate-ssl-certs.sh to create)
+ssl-certs/*.pem
+ssl-certs/*.key
+ssl-certs/*.crt
+ssl-certs/*.csr
+!ssl-certs/README.md
+
+# Monitoring data
+prometheus_data/
+grafana_data/
+
+# Load test results
+k6-tests/results/
+results/
+*.json.gz
 
 # OS files
 .DS_Store

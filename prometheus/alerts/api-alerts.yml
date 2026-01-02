@@ -1,0 +1,205 @@
+groups:
+  - name: api_alerts
+    interval: 30s
+    rules:
+      # High Error Rate Alert
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+          component: backend
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 1%)"
+
+      # Slow API Response Time
+      - alert: SlowAPIResponse
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route)
+          ) > 0.2
+        for: 10m
+        labels:
+          severity: warning
+          component: backend
+        annotations:
+          summary: "Slow API response time detected"
+          description: "95th percentile response time for {{ $labels.route }} is {{ $value }}s (threshold: 200ms)"
+
+      # Very Slow API Response Time
+      - alert: VerySlowAPIResponse
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route)
+          ) > 1.0
+        for: 5m
+        labels:
+          severity: critical
+          component: backend
+        annotations:
+          summary: "Very slow API response time detected"
+          description: "95th percentile response time for {{ $labels.route }} is {{ $value }}s (threshold: 1s)"
+
+      # High API Request Rate
+      - alert: HighAPIRequestRate
+        expr: |
+          sum(rate(http_requests_total[5m])) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: backend
+        annotations:
+          summary: "High API request rate"
+          description: "Request rate is {{ $value }} req/s (threshold: 1000 req/s)"
+
+  - name: cache_alerts
+    interval: 30s
+    rules:
+      # High Cache Miss Rate
+      - alert: HighCacheMissRate
+        expr: |
+          (
+            sum(rate(cache_misses_total[5m]))
+            /
+            sum(rate(cache_requests_total[5m]))
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "High cache miss rate detected"
+          description: "Cache miss rate is {{ $value | humanizePercentage }} (threshold: 50%)"
+
+      # Redis Connection Down
+      - alert: RedisConnectionDown
+        expr: redis_connected == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis connection is down"
+          description: "Redis has been disconnected for more than 2 minutes"
+
+  - name: database_alerts
+    interval: 30s
+    rules:
+      # Database Connection Issues
+      - alert: DatabaseConnectionDown
+        expr: mongodb_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "MongoDB connection is down"
+          description: "MongoDB has been disconnected for more than 2 minutes"
+
+      # Slow Database Queries
+      - alert: SlowDatabaseQueries
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(database_query_duration_seconds_bucket[5m])) by (le, operation)
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "95th percentile query time for {{ $labels.operation }} is {{ $value }}s (threshold: 500ms)"
+
+  - name: system_alerts
+    interval: 30s
+    rules:
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            process_memory_usage_bytes
+            /
+            system_memory_total_bytes
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value | humanizePercentage }} (threshold: 90%)"
+
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: process_cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% (threshold: 80%)"
+
+      # Service Down
+      - alert: ServiceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Service is down"
+          description: "{{ $labels.job }} has been down for more than 2 minutes"
+
+      # High Disk Usage
+      - alert: HighDiskUsage
+        expr: |
+          (
+            disk_usage_bytes
+            /
+            disk_total_bytes
+          ) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High disk usage detected"
+          description: "Disk usage is {{ $value | humanizePercentage }} (threshold: 85%)"
+
+  - name: business_alerts
+    interval: 60s
+    rules:
+      # High Booking Failure Rate
+      - alert: HighBookingFailureRate
+        expr: |
+          (
+            sum(rate(bookings_failed_total[10m]))
+            /
+            sum(rate(bookings_total[10m]))
+          ) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "High booking failure rate"
+          description: "Booking failure rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+
+      # Payment Processing Issues
+      - alert: PaymentProcessingIssues
+        expr: |
+          sum(rate(payment_failures_total[10m])) > 10
+        for: 5m
+        labels:
+          severity: critical
+          component: business
+        annotations:
+          summary: "Payment processing issues detected"
+          description: "Payment failure rate is {{ $value }} failures/min"
