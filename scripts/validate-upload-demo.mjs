@@ -117,7 +117,7 @@ async function runDemo() {
   testCase(
     'TEST 6: Verify no local storage',
     'Check backend and frontend directories for uploaded image files',
-    '✓ No .jpg, .png, or .webp files found in backend/ (excluding tests and static assets)\n  ✓ No uploaded images found in frontend/src or admin/src\n  ✓ All images stored in Cloudinary only'
+    '✓ No .jpg, .png, or .webp files found in backend/ (excluding tests and static assets)\n  ✓ No uploaded images found in frontend/src\n  ✓ All images stored in Cloudinary only'
   );
   
   section('IMPLEMENTATION VERIFICATION');

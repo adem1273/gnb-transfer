@@ -1,5 +1,6 @@
 import NodeCache from 'node-cache';
 import FeatureToggle from '../models/FeatureToggle.mjs';
+import GlobalSettings from '../models/GlobalSettings.mjs';
 import logger from '../config/logger.mjs';
 
 /**
@@ -157,6 +158,117 @@ class FeatureToggleService {
    */
   clearCache() {
     this.cache.del(this.CACHE_KEY);
+  }
+
+  /**
+   * Check if a global feature flag is enabled in GlobalSettings
+   * 
+   * @param {string} flagName - Global flag name (e.g., 'enableBookings')
+   * @returns {Promise<boolean>} - True if enabled, false if disabled or error
+   */
+  async isGlobalFlagEnabled(flagName) {
+    try {
+      const settings = await GlobalSettings.getGlobalSettings();
+      if (!settings || !settings.featureFlags) {
+        return true; // Default to enabled if settings don't exist (backward compatibility)
+      }
+      // Return true if flag is not set (backward compatibility) or explicitly true
+      const flagValue = settings.featureFlags.get(flagName);
+      return flagValue === undefined || flagValue === true;
+    } catch (error) {
+      logger.error(`Error checking global flag ${flagName}:`, error);
+      return true; // Default to enabled on error (fail open for backward compatibility)
+    }
+  }
+
+  /**
+   * Check system settings flags (bookingEnabled, paymentEnabled, etc.)
+   * 
+   * @param {string} settingName - Setting name (e.g., 'bookingEnabled')
+   * @returns {Promise<boolean>} - True if enabled, false otherwise
+   */
+  async isSystemSettingEnabled(settingName) {
+    try {
+      const settings = await GlobalSettings.getGlobalSettings();
+      if (!settings) {
+        return false;
+      }
+      return settings[settingName] === true;
+    } catch (error) {
+      logger.error(`Error checking system setting ${settingName}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Get site status
+   * 
+   * @returns {Promise<{status: string, message: string}>}
+   */
+  async getSiteStatus() {
+    try {
+      const settings = await GlobalSettings.getGlobalSettings();
+      if (!settings) {
+        return { status: 'online', message: '' };
+      }
+      return {
+        status: settings.siteStatus || 'online',
+        message: settings.maintenanceMessage || '',
+      };
+    } catch (error) {
+      logger.error('Error getting site status:', error);
+      return { status: 'online', message: '' };
+    }
+  }
+
+  /**
+   * Check if bookings are enabled (combines both flags)
+   * 
+   * @returns {Promise<boolean>}
+   */
+  async areBookingsEnabled() {
+    try {
+      const [systemEnabled, flagEnabled] = await Promise.all([
+        this.isSystemSettingEnabled('bookingEnabled'),
+        this.isGlobalFlagEnabled('enableBookings'),
+      ]);
+      return systemEnabled && flagEnabled;
+    } catch (error) {
+      logger.error('Error checking if bookings enabled:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if payments are enabled (combines both flags)
+   * 
+   * @returns {Promise<boolean>}
+   */
+  async arePaymentsEnabled() {
+    try {
+      const [systemEnabled, flagEnabled] = await Promise.all([
+        this.isSystemSettingEnabled('paymentEnabled'),
+        this.isGlobalFlagEnabled('enablePayments'),
+      ]);
+      return systemEnabled && flagEnabled;
+    } catch (error) {
+      logger.error('Error checking if payments enabled:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if registrations are enabled
+   * 
+   * @returns {Promise<boolean>}
+   */
+  async areRegistrationsEnabled() {
+    try {
+      return await this.isSystemSettingEnabled('registrationsEnabled');
+    } catch (error) {
+      logger.error('Error checking if registrations enabled:', error);
+      return false;
+    }
   }
 }
 

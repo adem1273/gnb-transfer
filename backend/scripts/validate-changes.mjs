@@ -118,8 +118,6 @@ async function runValidation() {
   checkFileExists('src/utils/api.js', 'Frontend API config');
   checkFileExists('src/utils/auth.js', 'Frontend auth utilities');
   checkFileExists('src/context/AuthContext.jsx', 'Auth context');
-  checkFileExists('admin/src/utils/api.js', 'Admin API config');
-  checkFileExists('admin/src/utils/auth.js', 'Admin auth utilities');
 
   // 2. Check test files created
   logTest('Test Infrastructure');
@@ -131,32 +129,25 @@ async function runValidation() {
   // 3. Check no hardcoded URLs
   logTest('API Configuration');
   checkNoHardcodedUrl('src/utils/api.js', 'Frontend API');
-  checkNoHardcodedUrl('admin/src/utils/api.js', 'Admin API');
 
   // 4. Check environment variable usage
   logTest('Environment Variables');
   checkFileContent('src/utils/api.js', 'import.meta.env.VITE_API_URL', 'Frontend uses VITE_API_URL');
-  checkFileContent('admin/src/utils/api.js', 'VITE_API_URL', 'Admin uses VITE_API_URL');
 
   // 5. Check logout implementation
   logTest('Logout Implementation');
   checkFileContent('src/utils/auth.js', 'logout', 'Frontend has logout function');
   checkFileContent('src/utils/auth.js', '/auth/logout', 'Frontend calls backend logout');
-  checkFileContent('admin/src/utils/auth.js', 'logout', 'Admin has logout function');
-  checkFileContent('admin/src/utils/auth.js', '/auth/logout', 'Admin calls backend logout');
 
   // 6. Check token management
   logTest('Token Management');
   checkFileContent('src/utils/auth.js', 'refreshToken', 'Frontend manages refresh tokens');
-  checkFileContent('admin/src/utils/auth.js', 'adminRefreshToken', 'Admin manages refresh tokens');
   checkFileContent('src/context/AuthContext.jsx', 'setRefreshToken', 'AuthContext uses refresh tokens');
 
   // 7. Check 401 handling
   logTest('Token Expiration Handling');
   checkFileContent('src/utils/api.js', 'status === 401', 'Frontend intercepts 401 errors');
   checkFileContent('src/utils/api.js', 'localStorage.removeItem', 'Frontend clears tokens on 401');
-  checkFileContent('admin/src/utils/api.js', 'status === 401', 'Admin intercepts 401 errors');
-  checkFileContent('admin/src/utils/api.js', 'localStorage.removeItem', 'Admin clears tokens on 401');
 
   // 8. Check .env.example updates
   logTest('Environment Configuration');
