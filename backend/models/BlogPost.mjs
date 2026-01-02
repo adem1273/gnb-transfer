@@ -144,11 +144,16 @@ const blogPostSchema = new mongoose.Schema(
 
 // Indexes
 blogPostSchema.index({ slug: 1 }, { unique: true });
-blogPostSchema.index({ status: 1, publishedAt: -1 });
-blogPostSchema.index({ category: 1, status: 1 });
-blogPostSchema.index({ tags: 1 });
-blogPostSchema.index({ 'seo.focusKeyword': 1 });
-blogPostSchema.index({ language: 1, status: 1 });
+blogPostSchema.index({ status: 1, publishedAt: -1 }); // Published posts chronologically
+blogPostSchema.index({ category: 1, status: 1, publishedAt: -1 }); // Category browsing
+blogPostSchema.index({ language: 1, status: 1, publishedAt: -1 }); // Multi-language support
+blogPostSchema.index({ tags: 1, status: 1 }); // Tag filtering
+blogPostSchema.index({ author: 1, status: 1 }); // Author posts
+blogPostSchema.index({ 'seo.focusKeyword': 1 }); // SEO queries
+blogPostSchema.index({ createdAt: -1 }); // Recent posts (all statuses)
+
+// Text index for search functionality
+blogPostSchema.index({ title: 'text', excerpt: 'text', 'seo.metaTitle': 'text' });
 
 // Pre-save hook to generate slug
 blogPostSchema.pre('save', function (next) {

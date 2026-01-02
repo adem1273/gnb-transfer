@@ -164,16 +164,57 @@ router.post('/', strictRateLimiter, validateZod(createBookingSchema, 'body'), as
  * - Limited to 200 results to prevent performance issues
  * - Cached for 5 minutes (admin data changes frequently)
  */
+/**
+ * @route   GET /api/bookings
+ * @desc    Get all bookings with tour details - Cached 5 minutes per user
+ * @access  Private (admin only)
+ * @headers Authorization: Bearer <token>
+ * @query   {number} [page=1] - Page number for pagination
+ * @query   {number} [limit=50] - Results per page (max 200)
+ * @query   {string} [status] - Filter by booking status
+ * @returns {object} - Paginated bookings with tour details
+ *
+ * Features:
+ * - Populates tour details (title, price, duration)
+ * - Sorted by creation date (newest first)
+ * - Supports pagination and status filtering
+ * - Cached for 5 minutes (admin data changes frequently)
+ */
 router.get('/', requireAuth(['admin']), cacheResponse(300, { tags: ['bookings', 'bookings:list'], varyByUser: true }), async (req, res) => {
   try {
-    const bookings = await Booking.find()
-      .populate('tour', 'title price duration')
-      .populate('tourId', 'title price duration')
-      .sort({ createdAt: -1 })
-      .limit(200)
-      .lean();
+    const { page = 1, limit = 50, status } = req.query;
+    const pageNum = Math.max(1, parseInt(page, 10));
+    const limitNum = Math.min(200, Math.max(1, parseInt(limit, 10)));
+    const skip = (pageNum - 1) * limitNum;
 
-    return res.apiSuccess(bookings, 'Bookings retrieved successfully');
+    // Build filter
+    const filter = {};
+    if (status) {
+      filter.status = status;
+    }
+
+    // Use lean() for better performance on read-only query
+    const [bookings, total] = await Promise.all([
+      Booking.find(filter)
+        .populate('tour', 'title price duration')
+        .populate('user', 'name email')
+        .select('-__v -tourId') // Exclude unnecessary fields
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
+      Booking.countDocuments(filter)
+    ]);
+
+    return res.apiSuccess({
+      bookings,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        pages: Math.ceil(total / limitNum)
+      }
+    }, 'Bookings retrieved successfully');
   } catch (error) {
     return res.apiError(`Failed to retrieve bookings: ${error.message}`, 500);
   }
@@ -205,7 +246,12 @@ router.get('/calendar', requireAuth(['admin', 'manager']), async (req, res) => {
       if (endDate) filter.date.$lte = new Date(endDate);
     }
 
-    const bookings = await Booking.find(filter).populate('tour', 'title name').sort({ date: 1 });
+    // Use lean() for read-only query and select only needed fields
+    const bookings = await Booking.find(filter)
+      .populate('tour', 'title')
+      .select('name date time status tour')
+      .sort({ date: 1 })
+      .lean();
 
     // Format for calendar
     const calendarEvents = bookings.map((booking) => {

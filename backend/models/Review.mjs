@@ -116,12 +116,14 @@ const reviewSchema = new mongoose.Schema(
 );
 
 // Indexes
-reviewSchema.index({ rating: -1 });
-reviewSchema.index({ createdAt: -1 });
-reviewSchema.index({ user: 1 });
-reviewSchema.index({ driver: 1 });
-reviewSchema.index({ status: 1, showOnHomepage: 1 });
-reviewSchema.index({ reviewToken: 1 }, { sparse: true });
+reviewSchema.index({ booking: 1 }, { unique: true }); // One review per booking
+reviewSchema.index({ user: 1, createdAt: -1 }); // User reviews
+reviewSchema.index({ driver: 1, status: 1 }); // Driver reviews
+reviewSchema.index({ status: 1, showOnHomepage: 1, createdAt: -1 }); // Homepage reviews
+reviewSchema.index({ rating: -1, status: 1 }); // Top-rated reviews
+reviewSchema.index({ createdAt: -1 }); // Recent reviews
+reviewSchema.index({ reviewToken: 1 }, { sparse: true }); // Token lookup
+reviewSchema.index({ status: 1, rating: -1 }); // Status and rating queries
 
 // Virtual for average rating
 reviewSchema.virtual('averageDetailedRating').get(function () {

@@ -107,7 +107,10 @@ const userSchema = new mongoose.Schema(
 // Performance indexes
 userSchema.index({ email: 1 }); // Email lookup optimization (unique already creates index)
 userSchema.index({ role: 1 }); // Role-based queries
+userSchema.index({ createdAt: -1 }); // Recent users, sorting
+userSchema.index({ isCorporate: 1, role: 1 }); // Corporate user queries
 userSchema.index({ 'preferences.language': 1 }); // Language-based filtering
+userSchema.index({ resetPasswordToken: 1 }, { sparse: true }); // Password reset token lookup
 
 /**
  * Pre-save middleware to hash password

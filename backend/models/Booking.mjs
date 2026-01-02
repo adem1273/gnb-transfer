@@ -226,12 +226,19 @@ bookingSchema.index({ email: 1 });
 bookingSchema.index({ tourId: 1, status: 1 });
 
 // Additional performance indexes
-bookingSchema.index({ date: 1 }); // Date-based queries
+bookingSchema.index({ date: 1, status: 1 }); // Date-based queries with status filter
 bookingSchema.index({ createdAt: -1 }); // Recent bookings
-bookingSchema.index({ tour: 1, date: 1 }); // Tour availability queries
+bookingSchema.index({ tour: 1, date: 1, status: 1 }); // Tour availability queries
 bookingSchema.index({ user: 1, createdAt: -1 }); // User booking history
-bookingSchema.index({ driver: 1 }); // Driver assignment queries
-bookingSchema.index({ vehicle: 1 }); // Vehicle assignment queries
+bookingSchema.index({ driver: 1, date: 1 }); // Driver assignment queries by date
+bookingSchema.index({ vehicle: 1, date: 1 }); // Vehicle assignment queries by date
+bookingSchema.index({ status: 1, date: -1 }); // Admin dashboard queries
+
+// Compound index for payment analytics
+bookingSchema.index({ paymentMethod: 1, status: 1, createdAt: -1 });
+
+// Compound index for booking reports
+bookingSchema.index({ date: 1, tour: 1, status: 1 });
 
 // Pre-save hook to generate WhatsApp link
 bookingSchema.pre('save', function(next) {
