@@ -18,8 +18,13 @@ import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { DriverLocation } from './models/DriverLocation.mjs';
 import { getJwtSecret } from './config/env.mjs';
+import { socketRateLimiter } from './middlewares/socketRateLimiter.mjs';
+import { initializeRedis } from './config/redis.mjs';
 
 dotenv.config();
+
+// Initialize Redis for rate limiting
+initializeRedis();
 
 const app = express();
 const http = createServer(app);
@@ -35,6 +40,12 @@ const io = new Server(http, {
     credentials: true 
   } 
 });
+
+/**
+ * Socket.IO rate limiting middleware
+ * Limits connections per IP (5 connections per minute)
+ */
+io.use(socketRateLimiter);
 
 /**
  * Socket.IO authentication middleware
