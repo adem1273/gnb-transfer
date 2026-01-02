@@ -38,8 +38,9 @@ Built with modern web technologies and best practices, GNB Transfer provides a c
 
 ### Technical Features
 - **Production Security**: JWT auth with refresh tokens, rate limiting, CORS, Helmet
+- **Background Job Queues**: BullMQ with Redis for async processing (exports, emails, AI)
 - **Error Tracking**: Sentry integration for both frontend and backend
-- **Monitoring**: Health checks, Winston logging with daily rotation
+- **Monitoring**: Health checks, Winston logging, Prometheus metrics
 - **Cloud Ready**: Optimized for Google Cloud Run, App Engine, Docker
 - **Database Seeding**: Sample data scripts for quick development setup
 - **Automated Testing**: Unit tests (Vitest/Jest), E2E tests (Playwright)
@@ -77,6 +78,9 @@ Built with modern web technologies and best practices, GNB Transfer provides a c
 | **Winston** | Logging with rotation |
 | **Cloudinary** | Image upload and storage |
 | **PDFKit** | Invoice generation |
+| **BullMQ** | Background job queues |
+| **Redis** | Queue and cache storage |
+| **Prometheus** | Metrics and monitoring |
 
 ### DevOps & Deployment
 - **Docker**: Multi-stage builds for production
@@ -122,6 +126,38 @@ GNB Transfer supports 9 languages with complete translations:
 - ✅ Live Chat & AI Assistant
 - ✅ Error Messages & Notifications
 - ✅ Legal Pages (Privacy, Terms, KVKK)
+
+---
+
+## 🔄 Background Job Queue System
+
+GNB Transfer uses **BullMQ** with **Redis** for robust background job processing:
+
+### Queues
+- **Export Queue**: CSV/PDF generation for large datasets
+- **Email Queue**: Asynchronous email sending with retry logic
+- **AI Queue**: OpenAI API calls and ML processing
+- **Scheduled Queue**: Recurring tasks (campaigns, sitemap updates)
+
+### Features
+- ✅ **Automatic Retry**: Exponential backoff for failed jobs
+- ✅ **Job Progress Tracking**: Real-time progress updates
+- ✅ **Admin Dashboard**: Monitor queues, view jobs, retry/cancel operations
+- ✅ **Prometheus Metrics**: Queue depth, processing rate, failure rate
+- ✅ **Graceful Degradation**: Automatic fallback to synchronous execution
+- ✅ **Rate Limiting**: Prevent queue flooding and API throttling
+- ✅ **Priority Queues**: Critical jobs processed first
+
+### Admin Interface
+Access at `/admin/jobs` to:
+- View real-time queue statistics
+- Monitor job status (waiting, active, completed, failed)
+- Retry failed jobs
+- Pause/resume queues
+- Clean old completed jobs
+- View detailed job logs and errors
+
+See [docs/JOB_QUEUE.md](docs/JOB_QUEUE.md) for complete documentation.
 
 ---
 

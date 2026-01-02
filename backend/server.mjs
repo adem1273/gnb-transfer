@@ -84,6 +84,7 @@ import homeLayoutRoutes from './routes/homeLayoutRoutes.mjs';
 import publicHomeLayoutRoutes from './routes/publicHomeLayoutRoutes.mjs';
 import superAdminRoutes from './routes/superAdminRoutes.mjs';
 import rateLimitAdminRoutes from './routes/rateLimitAdminRoutes.mjs';
+import jobQueueRoutes from './routes/jobQueueRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -296,6 +297,9 @@ app.use(`${API_V1}/super-admin`, superAdminRoutes);
 
 // Rate limit admin routes (v1)
 app.use(`${API_V1}/admin/rate-limits`, rateLimitAdminRoutes);
+
+// Job queue management routes (v1 - admin only)
+app.use(`${API_V1}/admin/jobs`, jobQueueRoutes);
 
 // New feature routes (v1 - protected by feature toggles)
 app.use(`${API_V1}/admin/fleet`, fleetRoutes);
@@ -552,6 +556,15 @@ await connectDB();
 // Initialize Redis cache with new configuration
 initializeRedis();
 
+// Initialize BullMQ queues and workers
+import { initializeQueues } from './config/queues.mjs';
+import { initializeWorkers } from './queues/workerManager.mjs';
+
+if (process.env.QUEUE_ENABLED !== 'false') {
+  initializeQueues();
+  initializeWorkers();
+}
+
 // Initialize feature toggles
 import featureToggleService from './services/featureToggleService.mjs';
 
@@ -656,6 +669,13 @@ const gracefulShutdown = async (signal) => {
     logger.info('HTTP server closed');
 
     try {
+      // Close BullMQ queues and workers
+      const { closeQueues } = await import('./config/queues.mjs');
+      const { closeWorkers } = await import('./queues/workerManager.mjs');
+      await closeWorkers();
+      await closeQueues();
+      logger.info('BullMQ queues and workers closed');
+
       // Close database connection
       if (mongoose.connection.readyState !== 0) {
         await mongoose.disconnect();
