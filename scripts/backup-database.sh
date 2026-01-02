@@ -289,7 +289,7 @@ generate_metadata() {
   "md5_checksum": "$MD5_CHECKSUM",
   "sha256_checksum": "$SHA256_CHECKSUM",
   "duration_seconds": $DURATION,
-  "mongo_version": "$(mongodump --version | head -1)",
+  "mongo_version": "$(mongodump --version 2>&1 | head -1 || echo 'unknown')",
   "hostname": "$(hostname)",
   "retention_days": $RETENTION_DAYS
 }

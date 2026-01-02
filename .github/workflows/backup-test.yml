@@ -39,8 +39,13 @@ jobs:
       - name: List and download latest S3 backup
         if: secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != ''
         run: |
-          # Get the latest backup from S3
-          LATEST_BACKUP=$(aws s3 ls s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/ | sort | tail -1 | awk '{print $4}')
+          # Get the latest daily full backup from S3
+          LATEST_BACKUP=$(aws s3 ls s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/daily/ | grep 'gnb-transfer-backup' | sort | tail -1 | awk '{print $4}')
+          
+          if [ -z "$LATEST_BACKUP" ]; then
+            echo "No daily backups found in S3, checking all backups..."
+            LATEST_BACKUP=$(aws s3 ls s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/ --recursive | grep 'gnb-transfer-backup' | sort | tail -1 | awk '{print $4}')
+          fi
           
           if [ -z "$LATEST_BACKUP" ]; then
             echo "No backups found in S3"
@@ -50,9 +55,15 @@ jobs:
           echo "Latest backup: $LATEST_BACKUP"
           
           mkdir -p test-restore
-          aws s3 cp "s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/$LATEST_BACKUP" "test-restore/$LATEST_BACKUP"
           
-          echo "BACKUP_FILE=test-restore/$LATEST_BACKUP" >> $GITHUB_ENV
+          # Download from the appropriate path
+          if [[ "$LATEST_BACKUP" == *"/"* ]]; then
+            aws s3 cp "s3://${{ secrets.S3_BACKUP_BUCKET }}/$LATEST_BACKUP" "test-restore/$(basename $LATEST_BACKUP)"
+          else
+            aws s3 cp "s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/$LATEST_BACKUP" "test-restore/$LATEST_BACKUP"
+          fi
+          
+          echo "BACKUP_FILE=test-restore/$(basename $LATEST_BACKUP)" >> $GITHUB_ENV
 
       - name: Download latest backup from artifacts
         if: secrets.AWS_ACCESS_KEY_ID == '' || secrets.AWS_SECRET_ACCESS_KEY == ''

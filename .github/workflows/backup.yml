@@ -178,13 +178,14 @@ jobs:
 
       - name: Upload to Google Cloud Storage
         if: secrets.GCP_SERVICE_ACCOUNT_KEY != '' && secrets.GCS_BACKUP_BUCKET != ''
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          export_default_credentials: true
+
+      - name: Upload files to GCS
+        if: secrets.GCP_SERVICE_ACCOUNT_KEY != '' && secrets.GCS_BACKUP_BUCKET != ''
         run: |
-          # Install gsutil if not available
-          if ! command -v gsutil &> /dev/null; then
-            curl https://sdk.cloud.google.com | bash
-            exec -l $SHELL
-          fi
-          
           # Upload backup files with metadata
           for file in backup/*.tar.gz* backup/*.metadata.json; do
             if [ -f "$file" ]; then

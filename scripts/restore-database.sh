@@ -270,7 +270,12 @@ perform_restore() {
     if [[ -n "$POINT_IN_TIME" ]]; then
         log_info "Restoring to point-in-time: $POINT_IN_TIME"
         # Note: Modern mongorestore auto-detects oplog files
-        RESTORE_ARGS="$RESTORE_ARGS --oplogFile=$(find "$BACKUP_DIR" -name "oplog.bson*" | head -1)"
+        local OPLOG_FILE=$(find "$BACKUP_DIR" -name "oplog.bson*" | head -1)
+        if [[ -n "$OPLOG_FILE" && -f "$OPLOG_FILE" ]]; then
+            RESTORE_ARGS="$RESTORE_ARGS --oplogFile=$OPLOG_FILE"
+        else
+            log_warning "No oplog file found, point-in-time recovery not available"
+        fi
     fi
     
     # Perform mongorestore
