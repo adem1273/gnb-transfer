@@ -84,6 +84,7 @@ import homeLayoutRoutes from './routes/homeLayoutRoutes.mjs';
 import publicHomeLayoutRoutes from './routes/publicHomeLayoutRoutes.mjs';
 import superAdminRoutes from './routes/superAdminRoutes.mjs';
 import rateLimitAdminRoutes from './routes/rateLimitAdminRoutes.mjs';
+import jobQueueRoutes from './routes/jobQueueRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -296,6 +297,9 @@ app.use(`${API_V1}/super-admin`, superAdminRoutes);
 
 // Rate limit admin routes (v1)
 app.use(`${API_V1}/admin/rate-limits`, rateLimitAdminRoutes);
+
+// Job queue management routes (v1 - admin only)
+app.use(`${API_V1}/admin/jobs`, jobQueueRoutes);
 
 // New feature routes (v1 - protected by feature toggles)
 app.use(`${API_V1}/admin/fleet`, fleetRoutes);
