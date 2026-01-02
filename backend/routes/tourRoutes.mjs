@@ -14,9 +14,9 @@ import { cacheResponse, clearCacheOnMutation } from '../middlewares/cacheMiddlew
 const router = express.Router();
 
 /**
- * GET /api/tours - Get all tours (cached for 10 minutes)
+ * GET /api/tours - Get all tours (cached for 5 minutes with tags)
  */
-router.get('/', cacheResponse(600), async (req, res) => {
+router.get('/', cacheResponse(300, { tags: ['tours', 'tours:list'] }), async (req, res) => {
   try {
     const tours = await Tour.find().sort({ createdAt: -1 });
     return res.apiSuccess(tours, 'Tours retrieved successfully');
@@ -26,9 +26,9 @@ router.get('/', cacheResponse(600), async (req, res) => {
 });
 
 /**
- * GET /api/tours/campaigns - Get campaign tours (cached for 15 minutes)
+ * GET /api/tours/campaigns - Get campaign tours (cached for 5 minutes with tags)
  */
-router.get('/campaigns', cacheResponse(900), async (req, res) => {
+router.get('/campaigns', cacheResponse(300, { tags: ['tours', 'tours:campaigns'] }), async (req, res) => {
   try {
     const campaignTours = await Tour.find({ isCampaign: true }).sort({ discount: -1 });
     return res.apiSuccess(campaignTours, 'Campaign tours retrieved successfully');
@@ -38,9 +38,9 @@ router.get('/campaigns', cacheResponse(900), async (req, res) => {
 });
 
 /**
- * GET /api/tours/most-popular - Get most popular tours (cached for 30 minutes)
+ * GET /api/tours/most-popular - Get most popular tours (cached for 5 minutes with tags)
  */
-router.get('/most-popular', cacheResponse(1800), async (req, res) => {
+router.get('/most-popular', cacheResponse(300, { tags: ['tours', 'tours:popular'] }), async (req, res) => {
   try {
     const mostPopularTours = await Booking.aggregate([
       { $match: { status: { $in: ['confirmed', 'completed', 'paid'] } } },

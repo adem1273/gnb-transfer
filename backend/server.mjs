@@ -21,7 +21,8 @@ import { responseMiddleware } from './middlewares/response.mjs';
 import { globalRateLimiter } from './middlewares/rateLimiter.mjs';
 import { errorHandler } from './middlewares/errorHandler.mjs';
 import { getCacheStats } from './middlewares/cache.mjs';
-import { initRedis, getRedisStats } from './services/cacheService.mjs';
+import { initializeRedis, getRedisStats as getNewRedisStats } from './config/redis.mjs';
+import { getStats as getCacheUtilStats } from './utils/cache.mjs';
 import { requestLogger, errorLogger } from './middlewares/logging.mjs';
 import { requestIdMiddleware } from './middlewares/requestId.mjs';
 import { getMetrics, trackError } from './middlewares/metrics.mjs';
@@ -579,8 +580,8 @@ mongoose.connection.on('error', (err) => {
 
 await connectDB();
 
-// Initialize Redis cache
-initRedis();
+// Initialize Redis cache with new configuration
+initializeRedis();
 
 // Initialize feature toggles
 import featureToggleService from './services/featureToggleService.mjs';

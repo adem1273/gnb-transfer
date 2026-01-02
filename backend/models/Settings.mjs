@@ -6,6 +6,8 @@
  */
 
 import mongoose from 'mongoose';
+import { invalidateTag } from '../utils/cache.mjs';
+import logger from '../config/logger.mjs';
 
 const exchangeRateSchema = new mongoose.Schema(
   {
@@ -189,6 +191,25 @@ settingsSchema.statics.convertCurrency = async function (amount, fromCurrency, t
 
   return Math.round(targetAmount * 100) / 100;
 };
+
+// Cache invalidation hooks
+settingsSchema.post('save', async function(doc) {
+  try {
+    await invalidateTag('settings');
+    logger.debug('Settings cache invalidated after save');
+  } catch (error) {
+    logger.error('Failed to invalidate settings cache', { error: error.message });
+  }
+});
+
+settingsSchema.post('findOneAndUpdate', async function(doc) {
+  try {
+    await invalidateTag('settings');
+    logger.debug('Settings cache invalidated after update');
+  } catch (error) {
+    logger.error('Failed to invalidate settings cache', { error: error.message });
+  }
+});
 
 const Settings = mongoose.models.Settings || mongoose.model('Settings', settingsSchema);
 

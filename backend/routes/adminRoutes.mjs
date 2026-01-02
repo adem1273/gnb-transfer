@@ -14,6 +14,8 @@ import { clearModuleCache } from '../middlewares/moduleGuard.mjs';
 import { applyCampaignRules } from '../services/campaignScheduler.mjs';
 import logger from '../config/logger.mjs';
 import { PAGINATION } from '../constants/limits.mjs';
+import { getStats as getCacheStats, clear as clearCache } from '../utils/cache.mjs';
+import { getRedisStats } from '../config/redis.mjs';
 
 const router = express.Router();
 
@@ -65,13 +67,21 @@ router.get('/stats', requireAuth(['admin', 'manager']), async (req, res) => {
     const pendingBookings = statsResult.pendingBookings[0]?.count || 0;
     const totalRevenue = statsResult.totalRevenue[0]?.revenue || 0;
 
+    // Get cache statistics
+    const cacheStats = getCacheStats();
+    const redisStats = getRedisStats();
+
     return res.apiSuccess({
       totalUsers,
       totalTours,
       totalBookings,
       todayBookings,
       pendingBookings,
-      totalRevenue: Math.round(totalRevenue * 100) / 100 // Round to 2 decimal places
+      totalRevenue: Math.round(totalRevenue * 100) / 100, // Round to 2 decimal places
+      cache: {
+        ...cacheStats,
+        redis: redisStats,
+      },
     }, 'Statistics retrieved successfully');
   } catch (error) {
     logger.error('Error fetching admin stats:', { error: error.message, stack: error.stack });
@@ -1076,5 +1086,46 @@ router.patch(
     }
   }
 );
+
+/**
+ * @route   GET /api/admin/cache/stats
+ * @desc    Get detailed cache statistics
+ * @access  Private (admin only)
+ */
+router.get('/cache/stats', requireAuth(['admin']), async (req, res) => {
+  try {
+    const cacheStats = getCacheStats();
+    const redisStats = getRedisStats();
+
+    return res.apiSuccess({
+      cache: cacheStats,
+      redis: redisStats,
+      timestamp: new Date().toISOString(),
+    }, 'Cache statistics retrieved successfully');
+  } catch (error) {
+    logger.error('Error fetching cache stats:', { error: error.message });
+    return res.apiError('Failed to fetch cache statistics', 500);
+  }
+});
+
+/**
+ * @route   POST /api/admin/cache/clear
+ * @desc    Clear all cache entries
+ * @access  Private (admin only)
+ */
+router.post('/cache/clear', requireAuth(['admin']), logAdminAction('cache.clear'), async (req, res) => {
+  try {
+    await clearCache();
+    logger.info('Cache cleared by admin', { adminId: req.user._id });
+    
+    return res.apiSuccess({
+      message: 'Cache cleared successfully',
+      timestamp: new Date().toISOString(),
+    }, 'Cache cleared successfully');
+  } catch (error) {
+    logger.error('Error clearing cache:', { error: error.message });
+    return res.apiError('Failed to clear cache', 500);
+  }
+});
 
 export default router;

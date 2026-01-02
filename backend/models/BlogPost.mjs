@@ -6,6 +6,8 @@
  */
 
 import mongoose from 'mongoose';
+import { invalidateTag } from '../utils/cache.mjs';
+import logger from '../config/logger.mjs';
 
 const blogPostSchema = new mongoose.Schema(
   {
@@ -204,6 +206,52 @@ blogPostSchema.statics.incrementViews = function (postId) {
 // Include virtuals
 blogPostSchema.set('toJSON', { virtuals: true });
 blogPostSchema.set('toObject', { virtuals: true });
+
+// Cache invalidation hooks
+blogPostSchema.post('save', async function(doc) {
+  try {
+    await invalidateTag('blog');
+    logger.debug('Blog cache invalidated after save', { blogId: doc._id });
+  } catch (error) {
+    logger.error('Failed to invalidate blog cache', { error: error.message });
+  }
+});
+
+blogPostSchema.post('findOneAndUpdate', async function(doc) {
+  try {
+    await invalidateTag('blog');
+    logger.debug('Blog cache invalidated after update');
+  } catch (error) {
+    logger.error('Failed to invalidate blog cache', { error: error.message });
+  }
+});
+
+blogPostSchema.post('findOneAndDelete', async function(doc) {
+  try {
+    await invalidateTag('blog');
+    logger.debug('Blog cache invalidated after delete');
+  } catch (error) {
+    logger.error('Failed to invalidate blog cache', { error: error.message });
+  }
+});
+
+blogPostSchema.post('deleteOne', async function() {
+  try {
+    await invalidateTag('blog');
+    logger.debug('Blog cache invalidated after deleteOne');
+  } catch (error) {
+    logger.error('Failed to invalidate blog cache', { error: error.message });
+  }
+});
+
+blogPostSchema.post('deleteMany', async function() {
+  try {
+    await invalidateTag('blog');
+    logger.debug('Blog cache invalidated after deleteMany');
+  } catch (error) {
+    logger.error('Failed to invalidate blog cache', { error: error.message });
+  }
+});
 
 const BlogPost = mongoose.models.BlogPost || mongoose.model('BlogPost', blogPostSchema);
 

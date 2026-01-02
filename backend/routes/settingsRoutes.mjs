@@ -9,6 +9,7 @@ import express from 'express';
 import Settings from '../models/Settings.mjs';
 import { requireAuth } from '../middlewares/auth.mjs';
 import logger from '../config/logger.mjs';
+import { cacheResponse, clearCacheByTags } from '../middlewares/cacheMiddleware.mjs';
 
 const router = express.Router();
 
@@ -29,10 +30,10 @@ router.get('/', requireAuth(['admin', 'superadmin']), async (req, res) => {
 
 /**
  * @route   GET /api/admin/settings/public
- * @desc    Get public settings (currency, pricing info for frontend)
+ * @desc    Get public settings (currency, pricing info for frontend) - Cached 1 hour
  * @access  Public
  */
-router.get('/public', async (req, res) => {
+router.get('/public', cacheResponse(3600, { tags: ['settings', 'settings:public'] }), async (req, res) => {
   try {
     const settings = await Settings.getGlobalSettings();
 
@@ -70,7 +71,7 @@ router.get('/public', async (req, res) => {
  * @desc    Update global settings
  * @access  Private (superadmin only)
  */
-router.patch('/', requireAuth(['admin', 'superadmin']), async (req, res) => {
+router.patch('/', requireAuth(['admin', 'superadmin']), clearCacheByTags(['settings']), async (req, res) => {
   try {
     const allowedSections = [
       'company',
