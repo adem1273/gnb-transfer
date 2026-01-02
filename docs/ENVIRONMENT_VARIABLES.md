@@ -106,13 +106,22 @@ Located in `backend/.env` file (copy from `backend/.env.example`)
 |----------|-------------|---------|----------|
 | `RATE_LIMIT_WINDOW_MS` | Rate limit window (ms) | `900000` (15 min) | No |
 | `RATE_LIMIT_MAX_REQUESTS` | Max requests per window | `100` | No |
+| `RATE_LIMIT_WHITELIST` | Comma-separated IPs to whitelist | `192.168.1.1,10.0.0.1` | No |
+| `SKIP_RATE_LIMIT` | Skip rate limiting (dev only) | `true`, `false` | No |
+| `TRUST_PROXY` | Trust proxy headers | `true`, `false`, `1`, `2` | Recommended* |
 
-### Cache Configuration
+*`TRUST_PROXY` should be set to `true` or `1` in production when behind a reverse proxy (nginx, CloudFlare, load balancer)
+
+### Cache & Redis Configuration
 
 | Variable | Description | Example | Required |
 |----------|-------------|---------|----------|
+| `REDIS_URL` | Redis connection URL | `redis://localhost:6379` | Recommended* |
+| `CACHE_ENABLED` | Enable caching | `true`, `false` | No |
 | `CACHE_TTL` | Cache time-to-live (seconds) | `3600` (1 hour) | No |
 | `CACHE_CHECK_PERIOD` | Cache cleanup period (seconds) | `600` (10 min) | No |
+
+*`REDIS_URL` is required for distributed rate limiting and caching in production
 
 ### File Upload
 
