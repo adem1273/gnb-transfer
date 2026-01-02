@@ -1,0 +1,273 @@
+name: Backup Restore Test
+
+# Weekly automated backup restore test to ensure backups are valid
+# Validates that we can successfully restore from backups
+
+on:
+  schedule:
+    # Run every Sunday at 4 AM UTC
+    - cron: '0 4 * * 0'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: read
+
+jobs:
+  test-backup-restore:
+    name: Test Backup Restore
+    runs-on: ubuntu-latest
+    if: secrets.MONGO_URI != ''
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install MongoDB tools
+        run: |
+          wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-database-tools jq
+
+      - name: Download latest backup from S3
+        if: secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: List and download latest S3 backup
+        if: secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != ''
+        run: |
+          # Get the latest daily full backup from S3
+          LATEST_BACKUP=$(aws s3 ls s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/daily/ | grep 'gnb-transfer-backup' | sort | tail -1 | awk '{print $4}')
+          
+          if [ -z "$LATEST_BACKUP" ]; then
+            echo "No daily backups found in S3, checking all backups..."
+            LATEST_BACKUP=$(aws s3 ls s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/ --recursive | grep 'gnb-transfer-backup' | sort | tail -1 | awk '{print $4}')
+          fi
+          
+          if [ -z "$LATEST_BACKUP" ]; then
+            echo "No backups found in S3"
+            exit 1
+          fi
+          
+          echo "Latest backup: $LATEST_BACKUP"
+          
+          mkdir -p test-restore
+          
+          # Download from the appropriate path
+          if [[ "$LATEST_BACKUP" == *"/"* ]]; then
+            aws s3 cp "s3://${{ secrets.S3_BACKUP_BUCKET }}/$LATEST_BACKUP" "test-restore/$(basename $LATEST_BACKUP)"
+          else
+            aws s3 cp "s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/$LATEST_BACKUP" "test-restore/$LATEST_BACKUP"
+          fi
+          
+          echo "BACKUP_FILE=test-restore/$(basename $LATEST_BACKUP)" >> $GITHUB_ENV
+
+      - name: Download latest backup from artifacts
+        if: secrets.AWS_ACCESS_KEY_ID == '' || secrets.AWS_SECRET_ACCESS_KEY == ''
+        uses: actions/download-artifact@v6
+        with:
+          pattern: mongodb-backup-*
+          merge-multiple: true
+          path: test-restore/
+
+      - name: Set backup file from artifacts
+        if: secrets.AWS_ACCESS_KEY_ID == '' || secrets.AWS_SECRET_ACCESS_KEY == ''
+        run: |
+          LATEST_FILE=$(ls -t test-restore/*.tar.gz* | head -1)
+          echo "BACKUP_FILE=$LATEST_FILE" >> $GITHUB_ENV
+
+      - name: Verify backup integrity
+        run: |
+          chmod +x scripts/verify-backup.sh
+          
+          VERIFY_ARGS="--backup-file $BACKUP_FILE"
+          
+          if [[ "$BACKUP_FILE" == *.enc ]]; then
+            VERIFY_ARGS="$VERIFY_ARGS --decrypt"
+          fi
+          
+          scripts/verify-backup.sh $VERIFY_ARGS
+        env:
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+
+      - name: Setup test MongoDB instance
+        run: |
+          # Start MongoDB in Docker for testing
+          docker run -d \
+            --name test-mongodb \
+            -p 27017:27017 \
+            -e MONGO_INITDB_ROOT_USERNAME=testuser \
+            -e MONGO_INITDB_ROOT_PASSWORD=testpass \
+            mongo:7.0
+          
+          # Wait for MongoDB to be ready
+          sleep 10
+          
+          # Test connection
+          docker exec test-mongodb mongosh \
+            --username testuser \
+            --password testpass \
+            --authenticationDatabase admin \
+            --eval "db.version()"
+          
+          echo "TEST_MONGO_URI=mongodb://testuser:testpass@localhost:27017/gnb_test?authSource=admin" >> $GITHUB_ENV
+
+      - name: Test backup restore
+        run: |
+          chmod +x scripts/restore-database.sh
+          
+          RESTORE_ARGS="--backup-file $BACKUP_FILE --validate"
+          
+          if [[ "$BACKUP_FILE" == *.enc ]]; then
+            RESTORE_ARGS="$RESTORE_ARGS --decrypt"
+          fi
+          
+          scripts/restore-database.sh $RESTORE_ARGS
+        env:
+          MONGO_URI: ${{ env.TEST_MONGO_URI }}
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+
+      - name: Verify restored data
+        run: |
+          # Count documents in collections
+          docker exec test-mongodb mongosh \
+            "$TEST_MONGO_URI" \
+            --quiet \
+            --eval "
+              db.getCollectionNames().forEach(function(collection) {
+                var count = db[collection].countDocuments();
+                print(collection + ': ' + count + ' documents');
+              });
+            "
+
+      - name: Cleanup test MongoDB
+        if: always()
+        run: |
+          docker stop test-mongodb || true
+          docker rm test-mongodb || true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-test-results-${{ github.run_number }}
+          path: |
+            test-restore/*.log
+          retention-days: 7
+
+      - name: Send success notification
+        if: success() && (secrets.SLACK_WEBHOOK_URL != '' || secrets.DISCORD_WEBHOOK_URL != '')
+        run: |
+          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "text": "✅ Backup Restore Test Successful",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*GNB Transfer Backup Restore Test Passed*\n\nWeekly backup restore test completed successfully. Backups are verified and can be restored."
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "fields": [
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Test Date:* '"$(date -u '+%Y-%m-%d %H:%M:%S UTC')"'"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Status:* Passed ✓"
+                      }
+                    ]
+                  }
+                ]
+              }'
+          fi
+          
+          if [ -n "${{ secrets.DISCORD_WEBHOOK_URL }}" ]; then
+            curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "embeds": [{
+                  "title": "✅ Backup Restore Test Successful",
+                  "description": "Weekly backup restore test completed successfully. Backups are verified and can be restored.",
+                  "color": 3066993,
+                  "fields": [
+                    {
+                      "name": "Test Date",
+                      "value": "'"$(date -u '+%Y-%m-%d %H:%M:%S UTC')"'",
+                      "inline": true
+                    },
+                    {
+                      "name": "Status",
+                      "value": "Passed ✓",
+                      "inline": true
+                    }
+                  ]
+                }]
+              }'
+          fi
+
+      - name: Send failure notification
+        if: failure() && (secrets.SLACK_WEBHOOK_URL != '' || secrets.DISCORD_WEBHOOK_URL != '')
+        run: |
+          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "text": "🚨 Backup Restore Test Failed",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*GNB Transfer Backup Restore Test Failed*\n\n⚠️ CRITICAL: Weekly backup restore test has failed. Backups may not be restorable. Immediate attention required!"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "fields": [
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Test Date:* '"$(date -u '+%Y-%m-%d %H:%M:%S UTC')"'"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Workflow:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                      }
+                    ]
+                  }
+                ]
+              }'
+          fi
+          
+          if [ -n "${{ secrets.DISCORD_WEBHOOK_URL }}" ]; then
+            curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "embeds": [{
+                  "title": "🚨 Backup Restore Test Failed",
+                  "description": "⚠️ CRITICAL: Weekly backup restore test has failed. Backups may not be restorable. Immediate attention required!",
+                  "color": 15158332,
+                  "fields": [
+                    {
+                      "name": "Test Date",
+                      "value": "'"$(date -u '+%Y-%m-%d %H:%M:%S UTC')"'",
+                      "inline": true
+                    },
+                    {
+                      "name": "Workflow",
+                      "value": "[View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                      "inline": true
+                    }
+                  ]
+                }]
+              }'
+          fi

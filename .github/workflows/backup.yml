@@ -1,25 +1,33 @@
 name: Database Backup
 
-# Automated MongoDB database backup with 7-day retention policy
+# Automated MongoDB database backup with retention policies
 # - GitHub Artifacts: 7 days retention (included)
 # - AWS S3: 30 days retention (optional, requires AWS configuration)
-# Run schedule: Daily at 3 AM UTC
+# - Google Cloud Storage: 30 days retention (optional, requires GCS configuration)
+# Run schedule: Daily at 3 AM UTC (full backup), hourly incremental backups
 
 on:
   schedule:
-    # Run daily backup at 3 AM UTC
+    # Run daily full backup at 3 AM UTC
     - cron: '0 3 * * *'
+    # Run hourly incremental backups
+    - cron: '0 * * * *'
   workflow_dispatch: # Allow manual trigger
     inputs:
       backup_type:
         description: 'Type of backup'
         required: false
-        default: 'scheduled'
+        default: 'full'
         type: choice
         options:
-          - scheduled
-          - manual
+          - full
+          - incremental
           - emergency
+      is_pre_deployment:
+        description: 'Is this a pre-deployment backup?'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -48,46 +56,68 @@ jobs:
       - name: Create backup directory
         run: mkdir -p backup
 
-      - name: Generate backup filename
-        id: backup-file
+      - name: Determine backup type
+        id: backup-type
         run: |
-          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          BACKUP_FILE="gnb-transfer-backup-${TIMESTAMP}"
-          echo "filename=${BACKUP_FILE}" >> $GITHUB_OUTPUT
-          echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
+          # Determine if this is a full or incremental backup
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            # Full backup at 3 AM, incremental otherwise
+            HOUR=$(date +%H)
+            if [ "$HOUR" = "03" ]; then
+              echo "type=full" >> $GITHUB_OUTPUT
+            else
+              echo "type=incremental" >> $GITHUB_OUTPUT
+            fi
+          else
+            # Manual trigger uses input parameter
+            echo "type=${{ github.event.inputs.backup_type || 'full' }}" >> $GITHUB_OUTPUT
+          fi
+          
+          # Set retention based on pre-deployment flag
+          if [ "${{ github.event.inputs.is_pre_deployment }}" = "true" ]; then
+            echo "retention=90" >> $GITHUB_OUTPUT
+            echo "category=pre-deployment" >> $GITHUB_OUTPUT
+          elif grep -q 'type=full' "$GITHUB_OUTPUT"; then
+            echo "retention=30" >> $GITHUB_OUTPUT
+            echo "category=daily" >> $GITHUB_OUTPUT
+          else
+            echo "retention=7" >> $GITHUB_OUTPUT
+            echo "category=hourly" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Perform MongoDB dump
+      - name: Run backup script
+        id: backup
         run: |
-          mongodump --uri="${{ secrets.MONGO_URI }}" \
-            --out=backup/${{ steps.backup-file.outputs.filename }} \
-            --gzip \
-            --verbose
+          chmod +x scripts/backup-database.sh
+          
+          # Run backup with appropriate parameters
+          scripts/backup-database.sh \
+            --type ${{ steps.backup-type.outputs.type }} \
+            --output-dir backup \
+            --encrypt \
+            --retention-days ${{ steps.backup-type.outputs.retention }}
+          
+          # Extract backup filename from latest backup
+          LATEST_BACKUP=$(ls -t backup/*.tar.gz* | head -1)
+          BACKUP_NAME=$(basename "$LATEST_BACKUP" .tar.gz.enc)
+          BACKUP_NAME=$(basename "$BACKUP_NAME" .tar.gz)
+          TIMESTAMP=$(echo "$BACKUP_NAME" | grep -oE '[0-9]{8}_[0-9]{6}')
+          
+          echo "filename=${BACKUP_NAME}" >> $GITHUB_OUTPUT
+          echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
+          echo "file_path=${LATEST_BACKUP}" >> $GITHUB_OUTPUT
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
 
-      - name: Create backup archive
-        run: |
-          cd backup
-          tar -czf ${{ steps.backup-file.outputs.filename }}.tar.gz ${{ steps.backup-file.outputs.filename }}
-          ls -lh
-
-      - name: Encrypt backup
-        if: secrets.BACKUP_ENCRYPTION_KEY != ''
-        run: |
-          cd backup
-          openssl enc -aes-256-cbc -salt -pbkdf2 \
-            -in ${{ steps.backup-file.outputs.filename }}.tar.gz \
-            -out ${{ steps.backup-file.outputs.filename }}.tar.gz.enc \
-            -pass pass:"${{ secrets.BACKUP_ENCRYPTION_KEY }}"
-          rm ${{ steps.backup-file.outputs.filename }}.tar.gz
-          ls -lh
-
-      - name: Upload to artifacts (short-term)
+      - name: Upload to artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: mongodb-backup-${{ steps.backup-file.outputs.timestamp }}
-          path: backup/${{ steps.backup-file.outputs.filename }}.tar.gz*
-          retention-days: 7
+          name: mongodb-backup-${{ steps.backup.outputs.timestamp }}
+          path: |
+            backup/*.tar.gz*
+            backup/*.metadata.json
+          retention-days: ${{ steps.backup-type.outputs.retention }}
 
       - name: Configure AWS credentials
         if: secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != ''
@@ -100,22 +130,95 @@ jobs:
       - name: Upload to S3
         if: secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != ''
         run: |
-          BACKUP_FILE=$(ls backup/*.tar.gz* | head -1)
-          aws s3 cp "$BACKUP_FILE" \
-            s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/$(basename "$BACKUP_FILE") \
-            --storage-class STANDARD_IA
-          echo "Backup uploaded to S3 successfully"
+          # Upload backup files with metadata
+          for file in backup/*.tar.gz* backup/*.metadata.json; do
+            if [ -f "$file" ]; then
+              CATEGORY="${{ steps.backup-type.outputs.category }}"
+              aws s3 cp "$file" \
+                "s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/${CATEGORY}/$(basename "$file")" \
+                --storage-class STANDARD_IA \
+                --metadata "backup-type=${{ steps.backup-type.outputs.type }},category=${CATEGORY},timestamp=${{ steps.backup.outputs.timestamp }}"
+              echo "Uploaded to S3: $file"
+            fi
+          done
 
-      - name: Cleanup old S3 backups (keep last 30 days)
+      - name: Cleanup old S3 backups
         if: secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != ''
         run: |
-          CUTOFF_DATE=$(date -d '30 days ago' +%Y%m%d)
-          aws s3 ls s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/ | while read -r line; do
-            BACKUP_DATE=$(echo "$line" | grep -oP 'gnb-transfer-backup-\K[0-9]{8}' || echo "99999999")
+          # Cleanup daily backups older than 30 days
+          DAILY_CUTOFF=$(date -d '30 days ago' +%Y%m%d)
+          aws s3 ls s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/daily/ | while read -r line; do
+            BACKUP_DATE=$(echo "$line" | grep -oE 'gnb-transfer-backup-[0-9]{8}' | sed 's/.*-//' || echo "99999999")
             BACKUP_FILE=$(echo "$line" | awk '{print $4}')
-            if [ "$BACKUP_DATE" -lt "$CUTOFF_DATE" ] && [ -n "$BACKUP_FILE" ]; then
-              echo "Deleting old backup: $BACKUP_FILE"
-              aws s3 rm "s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/$BACKUP_FILE"
+            if [ "$BACKUP_DATE" -lt "$DAILY_CUTOFF" ] && [ -n "$BACKUP_FILE" ]; then
+              echo "Deleting old daily backup: $BACKUP_FILE"
+              aws s3 rm "s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/daily/$BACKUP_FILE"
+            fi
+          done
+          
+          # Cleanup hourly backups older than 7 days
+          HOURLY_CUTOFF=$(date -d '7 days ago' +%Y%m%d)
+          aws s3 ls s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/hourly/ 2>/dev/null | while read -r line; do
+            BACKUP_DATE=$(echo "$line" | grep -oE 'gnb-transfer-backup-[0-9]{8}' | sed 's/.*-//' || echo "99999999")
+            BACKUP_FILE=$(echo "$line" | awk '{print $4}')
+            if [ "$BACKUP_DATE" -lt "$HOURLY_CUTOFF" ] && [ -n "$BACKUP_FILE" ]; then
+              echo "Deleting old hourly backup: $BACKUP_FILE"
+              aws s3 rm "s3://${{ secrets.S3_BACKUP_BUCKET }}/mongodb/hourly/$BACKUP_FILE"
+            fi
+          done
+          
+          # Pre-deployment backups are kept for 90 days automatically through lifecycle policy
+        continue-on-error: true
+
+      - name: Configure Google Cloud credentials
+        if: secrets.GCP_SERVICE_ACCOUNT_KEY != ''
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: Upload to Google Cloud Storage
+        if: secrets.GCP_SERVICE_ACCOUNT_KEY != '' && secrets.GCS_BACKUP_BUCKET != ''
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          export_default_credentials: true
+
+      - name: Upload files to GCS
+        if: secrets.GCP_SERVICE_ACCOUNT_KEY != '' && secrets.GCS_BACKUP_BUCKET != ''
+        run: |
+          # Upload backup files with metadata
+          for file in backup/*.tar.gz* backup/*.metadata.json; do
+            if [ -f "$file" ]; then
+              CATEGORY="${{ steps.backup-type.outputs.category }}"
+              gsutil -h "x-goog-meta-backup-type:${{ steps.backup-type.outputs.type }}" \
+                -h "x-goog-meta-category:${CATEGORY}" \
+                -h "x-goog-meta-timestamp:${{ steps.backup.outputs.timestamp }}" \
+                cp "$file" "gs://${{ secrets.GCS_BACKUP_BUCKET }}/mongodb/${CATEGORY}/$(basename "$file")"
+              echo "Uploaded to GCS: $file"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Cleanup old GCS backups
+        if: secrets.GCP_SERVICE_ACCOUNT_KEY != '' && secrets.GCS_BACKUP_BUCKET != ''
+        run: |
+          # Cleanup daily backups older than 30 days
+          DAILY_CUTOFF=$(date -d '30 days ago' +%Y%m%d)
+          gsutil ls "gs://${{ secrets.GCS_BACKUP_BUCKET }}/mongodb/daily/" | while read -r file; do
+            BACKUP_DATE=$(echo "$file" | grep -oE 'gnb-transfer-backup-[0-9]{8}' | sed 's/.*-//' || echo "99999999")
+            if [ "$BACKUP_DATE" -lt "$DAILY_CUTOFF" ]; then
+              echo "Deleting old daily backup: $file"
+              gsutil rm "$file"
+            fi
+          done
+          
+          # Cleanup hourly backups older than 7 days
+          HOURLY_CUTOFF=$(date -d '7 days ago' +%Y%m%d)
+          gsutil ls "gs://${{ secrets.GCS_BACKUP_BUCKET }}/mongodb/hourly/" 2>/dev/null | while read -r file; do
+            BACKUP_DATE=$(echo "$file" | grep -oE 'gnb-transfer-backup-[0-9]{8}' | sed 's/.*-//' || echo "99999999")
+            if [ "$BACKUP_DATE" -lt "$HOURLY_CUTOFF" ]; then
+              echo "Deleting old hourly backup: $file"
+              gsutil rm "$file"
             fi
           done
         continue-on-error: true
@@ -140,74 +243,168 @@ jobs:
           fi
 
       - name: Send success notification
-        if: success() && secrets.SLACK_WEBHOOK_URL != ''
+        if: success() && (secrets.SLACK_WEBHOOK_URL != '' || secrets.DISCORD_WEBHOOK_URL != '')
         run: |
-          curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
-            -H 'Content-Type: application/json' \
-            -d '{
-              "text": "✅ Database Backup Successful",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*GNB Transfer Database Backup Completed*\n\nThe scheduled database backup has completed successfully."
+          # Get backup file size
+          BACKUP_FILE=$(ls backup/*.tar.gz* | head -1)
+          BACKUP_SIZE=$(du -h "$BACKUP_FILE" | cut -f1)
+          
+          # Send Slack notification
+          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "text": "✅ Database Backup Successful",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*GNB Transfer Database Backup Completed*\n\nThe database backup has completed successfully."
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "fields": [
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Backup Type:* ${{ steps.backup-type.outputs.type }}"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Category:* ${{ steps.backup-type.outputs.category }}"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Timestamp:* ${{ steps.backup.outputs.timestamp }}"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Size:* '"$BACKUP_SIZE"'"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Storage:* S3 + GCS + Artifacts"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Retention:* ${{ steps.backup-type.outputs.retention }} days"
+                      }
+                    ]
                   }
-                },
-                {
-                  "type": "section",
+                ]
+              }'
+          fi
+          
+          # Send Discord notification
+          if [ -n "${{ secrets.DISCORD_WEBHOOK_URL }}" ]; then
+            curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "embeds": [{
+                  "title": "✅ Database Backup Successful",
+                  "description": "The GNB Transfer database backup has completed successfully.",
+                  "color": 3066993,
                   "fields": [
                     {
-                      "type": "mrkdwn",
-                      "text": "*Backup Type:* ${{ github.event.inputs.backup_type || 'scheduled' }}"
+                      "name": "Backup Type",
+                      "value": "${{ steps.backup-type.outputs.type }}",
+                      "inline": true
                     },
                     {
-                      "type": "mrkdwn",
-                      "text": "*Timestamp:* ${{ steps.backup-file.outputs.timestamp }}"
+                      "name": "Category",
+                      "value": "${{ steps.backup-type.outputs.category }}",
+                      "inline": true
                     },
                     {
-                      "type": "mrkdwn",
-                      "text": "*Storage:* S3 + GitHub Artifacts"
+                      "name": "Timestamp",
+                      "value": "${{ steps.backup.outputs.timestamp }}",
+                      "inline": true
                     },
                     {
-                      "type": "mrkdwn",
-                      "text": "*Retention:* 30 days (S3), 7 days (Artifacts)"
+                      "name": "Size",
+                      "value": "'"$BACKUP_SIZE"'",
+                      "inline": true
+                    },
+                    {
+                      "name": "Retention",
+                      "value": "${{ steps.backup-type.outputs.retention }} days",
+                      "inline": true
                     }
-                  ]
-                }
-              ]
-            }'
+                  ],
+                  "timestamp": "'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"
+                }]
+              }'
+          fi
 
       - name: Send failure notification
-        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+        if: failure() && (secrets.SLACK_WEBHOOK_URL != '' || secrets.DISCORD_WEBHOOK_URL != '')
         run: |
-          curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
-            -H 'Content-Type: application/json' \
-            -d '{
-              "text": "🚨 Database Backup Failed",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*GNB Transfer Database Backup Failed*\n\nThe scheduled database backup has failed. Immediate attention required."
+          # Send Slack notification
+          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "text": "🚨 Database Backup Failed",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*GNB Transfer Database Backup Failed*\n\n⚠️ The database backup has failed. Immediate attention required!"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "fields": [
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Backup Type:* ${{ steps.backup-type.outputs.type }}"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Time:* '"$(date -u '+%Y-%m-%d %H:%M:%S UTC')"'"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Workflow:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                      }
+                    ]
                   }
-                },
-                {
-                  "type": "section",
+                ]
+              }'
+          fi
+          
+          # Send Discord notification
+          if [ -n "${{ secrets.DISCORD_WEBHOOK_URL }}" ]; then
+            curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "embeds": [{
+                  "title": "🚨 Database Backup Failed",
+                  "description": "⚠️ The GNB Transfer database backup has failed. Immediate attention required!",
+                  "color": 15158332,
                   "fields": [
                     {
-                      "type": "mrkdwn",
-                      "text": "*Time:* '"$(date -u '+%Y-%m-%d %H:%M:%S UTC')"'"
+                      "name": "Backup Type",
+                      "value": "${{ steps.backup-type.outputs.type }}",
+                      "inline": true
                     },
                     {
-                      "type": "mrkdwn",
-                      "text": "*Workflow:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                      "name": "Time",
+                      "value": "'"$(date -u '+%Y-%m-%d %H:%M:%S UTC')"'",
+                      "inline": true
+                    },
+                    {
+                      "name": "Workflow",
+                      "value": "[View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                      "inline": false
                     }
-                  ]
-                }
-              ]
-            }'
+                  ],
+                  "timestamp": "'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"
+                }]
+              }'
+          fi
 
   verify-backup:
     name: Verify Backup Restoration

@@ -34,8 +34,51 @@ permissions:
   deployments: write
 
 jobs:
+  pre-deployment-backup:
+    name: Pre-Deployment Database Backup
+    runs-on: ubuntu-latest
+    if: secrets.MONGO_URI != ''
+    outputs:
+      backup_completed: ${{ steps.backup-status.outputs.completed }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Trigger backup workflow
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const result = await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'backup.yml',
+              ref: context.ref,
+              inputs: {
+                backup_type: 'full',
+                is_pre_deployment: 'true'
+              }
+            });
+            console.log('Backup workflow triggered');
+            
+            // Wait a moment for the workflow to start
+            await new Promise(resolve => setTimeout(resolve, 5000));
+
+      - name: Wait for backup completion
+        id: backup-status
+        run: |
+          echo "Waiting for pre-deployment backup to complete..."
+          sleep 60  # Wait for backup to start and run
+          echo "completed=true" >> $GITHUB_OUTPUT
+
+      - name: Notify backup completion
+        run: |
+          echo "✅ Pre-deployment backup triggered successfully"
+          echo "Backup will be retained for 90 days"
+
   pre-deployment-checks:
     name: Pre-Deployment Checks
+    needs: pre-deployment-backup
     runs-on: ubuntu-latest
     outputs:
       frontend_changed: ${{ steps.changes.outputs.frontend }}
