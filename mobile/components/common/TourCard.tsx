@@ -129,8 +129,9 @@ function TourCardComponent({ tour, compact = false }: TourCardProps) {
 }
 
 // Memoize to prevent unnecessary re-renders in lists
+// areEqual returns true when props haven't changed (skip re-render)
 export const TourCard = memo(TourCardComponent, (prevProps, nextProps) => {
-  // Custom comparison - only re-render if tour data actually changed
+  // Return true if props are equal (don't re-render)
   const prevTour = prevProps.tour;
   const nextTour = nextProps.tour;
   return (

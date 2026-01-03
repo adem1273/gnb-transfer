@@ -82,7 +82,9 @@ function BookingCardComponent({ booking, onPress }: BookingCardProps) {
 }
 
 // Memoize to prevent unnecessary re-renders in lists
+// areEqual returns true when props haven't changed (skip re-render)
 export const BookingCard = memo(BookingCardComponent, (prevProps, nextProps) => {
+  // Return true if props are equal (don't re-render)
   const prevBooking = prevProps.booking;
   const nextBooking = nextProps.booking;
   return (
