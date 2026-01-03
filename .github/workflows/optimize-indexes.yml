@@ -1,0 +1,195 @@
+name: Database Index Optimization
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (no changes made)'
+        required: false
+        type: boolean
+        default: false
+      drop_unused:
+        description: 'Drop unused indexes'
+        required: false
+        type: boolean
+        default: false
+  # Run on deployment to production
+  workflow_run:
+    workflows: ["Production Deploy"]
+    types:
+      - completed
+    branches:
+      - main
+  # Optional: Run weekly to check index health
+  schedule:
+    - cron: '0 2 * * 0'  # Every Sunday at 2 AM UTC
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  optimize-indexes:
+    name: Optimize Database Indexes
+    runs-on: ubuntu-latest
+    # Only run if triggered manually, or if production deploy succeeded
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Determine run mode
+        id: run_mode
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            DRY_RUN="${{ inputs.dry_run }}"
+            DROP_UNUSED="${{ inputs.drop_unused }}"
+          elif [ "${{ github.event_name }}" == "schedule" ]; then
+            DRY_RUN="true"
+            DROP_UNUSED="false"
+          else
+            # On production deploy, run live but don't drop unused
+            DRY_RUN="false"
+            DROP_UNUSED="false"
+          fi
+          
+          echo "dry_run=${DRY_RUN}" >> $GITHUB_OUTPUT
+          echo "drop_unused=${DROP_UNUSED}" >> $GITHUB_OUTPUT
+          
+          echo "Running with dry_run=${DRY_RUN}, drop_unused=${DROP_UNUSED}"
+
+      - name: Run index optimization
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI_PRODUCTION }}
+        run: |
+          cd backend
+          ARGS=""
+          
+          if [ "${{ steps.run_mode.outputs.dry_run }}" == "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          
+          if [ "${{ steps.run_mode.outputs.drop_unused }}" == "true" ]; then
+            ARGS="$ARGS --drop-unused"
+          fi
+          
+          echo "Running: node scripts/optimize-indexes.js $ARGS"
+          node scripts/optimize-indexes.js $ARGS
+
+      - name: Upload optimization report
+        if: success() && steps.run_mode.outputs.dry_run == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: index-optimization-report-${{ github.run_number }}
+          path: backend/docs/INDEX_OPTIMIZATION_REPORT.md
+          retention-days: 30
+
+      - name: Notify on failure
+        if: failure() && github.event_name != 'workflow_dispatch'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '⚠️ Database Index Optimization Failed',
+              body: `The database index optimization workflow failed.
+              
+              **Workflow Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
+              **Trigger:** ${context.eventName}
+              **Branch:** ${context.ref}
+              
+              Please review the logs and fix any indexing issues.`,
+              labels: ['database', 'maintenance', 'automated']
+            };
+            
+            try {
+              await github.rest.issues.create(issue);
+            } catch (error) {
+              console.log('Failed to create issue:', error);
+            }
+
+      - name: Post summary
+        if: always()
+        run: |
+          echo "## Database Index Optimization Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run:** ${{ steps.run_mode.outputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Drop Unused:** ${{ steps.run_mode.outputs.drop_unused }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.run_mode.outputs.dry_run }}" == "false" ]; then
+            echo "### Report" >> $GITHUB_STEP_SUMMARY
+            echo "The optimization report has been uploaded as an artifact." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Dry Run" >> $GITHUB_STEP_SUMMARY
+            echo "This was a dry run - no changes were made to the database." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  validate-indexes:
+    name: Validate Index Usage
+    runs-on: ubuntu-latest
+    needs: optimize-indexes
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      inputs.dry_run == false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm ci --production
+
+      - name: Run index validation
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI_PRODUCTION }}
+        run: |
+          cd backend
+          # Run the optimize script in dry-run mode for validation
+          node scripts/optimize-indexes.js --dry-run
+
+      - name: Check index usage
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI_PRODUCTION }}
+        run: |
+          cd backend
+          # Run performance tests if the script exists
+          if [ -f scripts/test-query-performance.mjs ]; then
+            node scripts/test-query-performance.mjs || true
+          fi
+
+      - name: Post validation summary
+        if: always()
+        run: |
+          echo "## Index Validation Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Index validation and performance tests completed." >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for any warnings or recommendations." >> $GITHUB_STEP_SUMMARY

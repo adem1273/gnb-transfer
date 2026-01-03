@@ -153,5 +153,9 @@ Crawl-delay: 1`;
   return robotsTxt.trim();
 };
 
+// Index for singleton pattern - only one document exists
+robotsConfigSchema.index({ enabled: 1 });
+robotsConfigSchema.index({ updatedAt: -1 }); // Track when config was last updated
+
 const RobotsConfig = mongoose.models.RobotsConfig || mongoose.model('RobotsConfig', robotsConfigSchema);
 export default RobotsConfig;

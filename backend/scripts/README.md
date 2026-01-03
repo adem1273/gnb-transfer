@@ -4,6 +4,49 @@ This directory contains scripts for managing database indexes and testing query 
 
 ## Available Scripts
 
+### Index Optimization
+
+#### `optimize-indexes.js` ⭐ NEW
+
+**Comprehensive index optimization with performance testing and reporting.**
+
+**Usage:**
+```bash
+# Full optimization with performance tests
+node scripts/optimize-indexes.js
+
+# Dry run (no changes, see what would happen)
+node scripts/optimize-indexes.js --dry-run
+
+# Drop unused indexes
+node scripts/optimize-indexes.js --drop-unused
+
+# Force rebuild all indexes
+node scripts/optimize-indexes.js --force
+```
+
+**Features:**
+- ✅ Processes all 34 models
+- ✅ Before/after performance comparisons
+- ✅ Background index creation
+- ✅ Unused index detection
+- ✅ TTL index support
+- ✅ Detailed progress logging
+- ✅ Automatic report generation
+- ✅ Error handling and recovery
+
+**Output:**
+- Console progress with color-coded status
+- Performance metrics for each collection
+- Generated report at `docs/INDEX_OPTIMIZATION_REPORT.md`
+- Summary of improvements
+
+**When to run:**
+- After deploying to production (via GitHub Actions)
+- After major schema changes
+- Monthly for maintenance
+- When query performance degrades
+
 ### Index Management
 
 #### `create-indexes.mjs`

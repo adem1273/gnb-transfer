@@ -34,6 +34,9 @@ const adminSettingsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Index for timestamp queries (singleton pattern - only one document but useful for auditing)
+adminSettingsSchema.index({ updatedAt: -1 });
+
 const AdminSettings =
   mongoose.models.AdminSettings || mongoose.model('AdminSettings', adminSettingsSchema);
 export default AdminSettings;
