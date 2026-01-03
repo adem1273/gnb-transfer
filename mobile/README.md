@@ -4,8 +4,10 @@ The GNB Transfer Mobile App is a React Native application built with Expo, provi
 
 [![Expo](https://img.shields.io/badge/Expo-52-000020.svg?logo=expo)](https://expo.dev/)
 [![React Native](https://img.shields.io/badge/React%20Native-0.76-61DAFB.svg?logo=react)](https://reactnative.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6.svg?logo=typescript)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6.svg?logo=typescript)](https://www.typescriptlang.org())
 [![NativeWind](https://img.shields.io/badge/NativeWind-4.0-06B6D4.svg?logo=tailwindcss)](https://www.nativewind.dev/)
+
+> **📱 Ready to submit to App Store / Play Store?** See **[QUICK_START.md](./QUICK_START.md)** for a complete overview of what's done and what's needed.
 
 ---
 
@@ -869,9 +871,26 @@ npx react-native log-android
 
 ## 🔗 Related Documentation
 
+### 🚀 Quick Start
+
+- **[QUICK_START.md](./QUICK_START.md)** - **Start here!** Complete overview of what's done and what needs to be done for store submission
+
+### Mobile App Guides
+
+- **[RELEASE_GUIDE.md](./RELEASE_GUIDE.md)** - Complete release process (versioning, builds, TestFlight, store submission)
+- **[STORE_SUBMISSION.md](./STORE_SUBMISSION.md)** - App Store & Play Store submission checklists
+- **[OTA_UPDATES.md](./OTA_UPDATES.md)** - Over-The-Air update procedures and safety rules
+- **[PRIVACY_LEGAL.md](./PRIVACY_LEGAL.md)** - Privacy policy, legal requirements, GDPR/CCPA compliance
+- **[ASSETS_CHECKLIST.md](./ASSETS_CHECKLIST.md)** - Complete asset requirements (icons, screenshots, graphics)
+
+### Project Documentation
+
 - [Main Project README](../README.md) - Full project overview
 - [Backend Documentation](../backend/README.md) - API documentation
 - [Shared Package](../packages/shared/README.md) - Shared utilities and types
+
+### External Resources
+
 - [Expo Documentation](https://docs.expo.dev/) - Official Expo docs
 - [Expo Router](https://expo.github.io/router/docs) - Navigation documentation
 - [NativeWind](https://www.nativewind.dev/) - Tailwind for React Native
