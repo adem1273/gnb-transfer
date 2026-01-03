@@ -165,7 +165,7 @@ const performanceTests = {
   ],
   Booking: [
     { query: { status: 'confirmed' }, desc: 'Confirmed bookings' },
-    { query: { user: new mongoose.Types.ObjectId(), status: 'pending' }, desc: 'User pending bookings' },
+    { query: { status: 'pending' }, desc: 'Pending bookings' },
   ],
   Tour: [
     { query: { active: true, category: 'transfer' }, desc: 'Active transfer tours' },
@@ -377,7 +377,8 @@ async function optimizeModelIndexes(model) {
  * Generate performance report
  */
 function generateReport() {
-  const reportPath = join(__dirname, '../docs/INDEX_OPTIMIZATION_REPORT.md');
+  const reportDir = join(__dirname, '../docs');
+  const reportPath = join(reportDir, 'INDEX_OPTIMIZATION_REPORT.md');
   
   const report = `# Index Optimization Report
 

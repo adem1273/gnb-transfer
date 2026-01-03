@@ -173,14 +173,18 @@ jobs:
           MONGO_URI: ${{ secrets.MONGO_URI_PRODUCTION }}
         run: |
           cd backend
-          node scripts/create-indexes.mjs --dry-run
+          # Run the optimize script in dry-run mode for validation
+          node scripts/optimize-indexes.js --dry-run
 
       - name: Check index usage
         env:
           MONGO_URI: ${{ secrets.MONGO_URI_PRODUCTION }}
         run: |
           cd backend
-          node scripts/test-query-performance.mjs || true
+          # Run performance tests if the script exists
+          if [ -f scripts/test-query-performance.mjs ]; then
+            node scripts/test-query-performance.mjs || true
+          fi
 
       - name: Post validation summary
         if: always()
