@@ -2,5 +2,28 @@
   "name": "@gnb-transfer/shared",
   "version": "1.0.0",
   "main": "index.ts",
-  "types": "index.d.ts"
+  "types": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./api": "./api/index.ts",
+    "./utils": "./utils/index.ts",
+    "./validators": "./validators/index.ts",
+    "./i18n": "./i18n/index.ts",
+    "./types": "./types/index.ts",
+    "./constants": "./constants/index.ts"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "yup": "^1.4.0",
+    "i18next": "^23.0.0",
+    "@react-native-async-storage/async-storage": "^2.1.0",
+    "expo-constants": "~17.0.0"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.0",
+    "@types/react": "~18.3.0"
+  }
 }
