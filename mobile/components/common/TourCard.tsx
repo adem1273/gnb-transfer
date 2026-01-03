@@ -1,18 +1,23 @@
 /**
  * Tour card component for displaying tour information
+ * Optimized with React.memo and expo-image for performance
  */
 
-import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import React, { memo } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Tour } from '@gnb-transfer/shared';
+
+// Default blurhash for placeholder - represents a light gray gradient
+const DEFAULT_BLURHASH = 'L6PZfSi_.AyE_3t7t7R**0o#DgR4';
 
 interface TourCardProps {
   tour: Tour;
   compact?: boolean;
 }
 
-export function TourCard({ tour, compact = false }: TourCardProps) {
+function TourCardComponent({ tour, compact = false }: TourCardProps) {
   const router = useRouter();
   const id = tour.id || tour._id;
 
@@ -34,7 +39,10 @@ export function TourCard({ tour, compact = false }: TourCardProps) {
         <Image
           source={{ uri: tour.image || 'https://via.placeholder.com/200x120' }}
           className="w-full h-28"
-          resizeMode="cover"
+          contentFit="cover"
+          placeholder={DEFAULT_BLURHASH}
+          transition={200}
+          cachePolicy="memory-disk"
         />
         <View className="p-3">
           <Text className="text-gray-800 font-semibold text-sm" numberOfLines={1}>
@@ -71,7 +79,10 @@ export function TourCard({ tour, compact = false }: TourCardProps) {
         <Image
           source={{ uri: tour.image || 'https://via.placeholder.com/400x200' }}
           className="w-full h-44"
-          resizeMode="cover"
+          contentFit="cover"
+          placeholder={DEFAULT_BLURHASH}
+          transition={200}
+          cachePolicy="memory-disk"
         />
         {tour.isCampaign && (
           <View className="absolute top-3 left-3 bg-accent px-2 py-1 rounded">
@@ -116,5 +127,21 @@ export function TourCard({ tour, compact = false }: TourCardProps) {
     </TouchableOpacity>
   );
 }
+
+// Memoize to prevent unnecessary re-renders in lists
+// areEqual returns true when props haven't changed (skip re-render)
+export const TourCard = memo(TourCardComponent, (prevProps, nextProps) => {
+  // Return true if props are equal (don't re-render)
+  const prevTour = prevProps.tour;
+  const nextTour = nextProps.tour;
+  return (
+    (prevTour.id || prevTour._id) === (nextTour.id || nextTour._id) &&
+    prevTour.title === nextTour.title &&
+    prevTour.price === nextTour.price &&
+    prevTour.discount === nextTour.discount &&
+    prevTour.image === nextTour.image &&
+    prevProps.compact === nextProps.compact
+  );
+});
 
 export default TourCard;

@@ -1,6 +1,6 @@
 /**
  * AuthContext - Authentication context for the mobile app
- * Provides user state and authentication methods
+ * Provides user state and authentication methods with token refresh
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
@@ -12,6 +12,7 @@ import {
   setUser,
   getUser,
   getToken,
+  getRefreshToken,
 } from '@gnb-transfer/shared';
 import type { User, LoginCredentials, RegisterCredentials } from '@gnb-transfer/shared';
 
@@ -23,6 +24,7 @@ interface AuthContextType {
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  refreshToken: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -109,6 +111,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  /**
+   * Manually refresh the access token using the refresh token
+   * Returns true if refresh was successful, false otherwise
+   */
+  const refreshToken = useCallback(async (): Promise<boolean> => {
+    try {
+      const storedRefreshToken = await getRefreshToken();
+      if (!storedRefreshToken) {
+        return false;
+      }
+
+      const response = await authApi.refresh(storedRefreshToken);
+      await setToken(response.accessToken);
+      if (response.refreshToken) {
+        await setRefreshToken(response.refreshToken);
+      }
+      if (response.user) {
+        setUserState(response.user);
+        await setUser(response.user);
+      }
+      return true;
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      // Token refresh failed, clear auth state
+      await clearAuth();
+      setUserState(null);
+      return false;
+    }
+  }, []);
+
   const value: AuthContextType = {
     user,
     isAuthenticated,
@@ -117,6 +149,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     refreshUser,
+    refreshToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
