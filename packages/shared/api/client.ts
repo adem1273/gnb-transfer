@@ -4,17 +4,26 @@
  */
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
-import Constants from 'expo-constants';
 import { API_VERSION, DEFAULT_API_URL, HTTP_STATUS } from '../constants';
 import { getToken, getRefreshToken, setToken, setRefreshToken, clearTokens } from '../utils/storage';
 import type { TokenRefreshResponse, ApiResponse } from '../types';
 
-// Get API URL from Expo config or use default
+// Try to import expo-constants, but make it optional for non-Expo environments
+let Constants: { expoConfig?: { extra?: { apiUrl?: string } } } | null = null;
+try {
+  Constants = require('expo-constants').default;
+} catch {
+  // expo-constants not available - running in non-Expo environment
+  Constants = null;
+}
+
+// Get API URL from Expo config, environment, or use default
 const getApiUrl = (): string => {
-  const expoApiUrl = Constants.expoConfig?.extra?.apiUrl;
-  if (expoApiUrl) {
-    return `${expoApiUrl}/${API_VERSION}`;
+  // Try Expo config first (mobile)
+  if (Constants?.expoConfig?.extra?.apiUrl) {
+    return `${Constants.expoConfig.extra.apiUrl}/${API_VERSION}`;
   }
+  // Default URL
   return `${DEFAULT_API_URL}/${API_VERSION}`;
 };
 

@@ -186,10 +186,10 @@ export const bookingSchema = yup.object({
     .number()
     .required('Number of adults is required')
     .min(1, 'At least 1 adult is required')
-    .max(VALIDATION.GUESTS.MAX)
+    .max(VALIDATION.GUESTS.MAX, `Cannot exceed ${VALIDATION.GUESTS.MAX} adults`)
     .integer(),
-  childrenCount: yup.number().min(0).max(VALIDATION.GUESTS.MAX).integer().default(0),
-  infantsCount: yup.number().min(0).max(20).integer().default(0),
+  childrenCount: yup.number().min(0).max(VALIDATION.GUESTS.MAX, `Cannot exceed ${VALIDATION.GUESTS.MAX} children`).integer().default(0),
+  infantsCount: yup.number().min(0).max(20, 'Cannot exceed 20 infants').integer().default(0),
   passengers: yup
     .array()
     .of(passengerSchema)

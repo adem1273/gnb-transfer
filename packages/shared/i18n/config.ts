@@ -1,11 +1,24 @@
 /**
  * i18next configuration for multi-language support
  * Loads all 11 languages from web public/locales directory
+ * 
+ * Note: This module uses relative imports to load translations from the web app's
+ * locales directory. This works in a monorepo setup where the shared package
+ * and web app are siblings. For different project structures, you may need to
+ * adjust the import paths or use a different loading strategy.
  */
 
 import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
 import { DEFAULT_LANGUAGE, FALLBACK_LANGUAGE, RTL_LANGUAGES, SUPPORTED_LANGUAGES } from '../constants';
+
+// Try to import react-i18next, make it optional
+let initReactI18next: { type: '3rdParty'; init: (i18n: unknown) => void } | null = null;
+try {
+  initReactI18next = require('react-i18next').initReactI18next;
+} catch {
+  // react-i18next not available
+  initReactI18next = null;
+}
 
 // Import translation files
 // These are imported from the web app's locales directory
@@ -75,7 +88,10 @@ export const initI18n = async (options?: {
 }) => {
   const { lng, fallbackLng, debug, onLanguageChanged } = options || {};
 
-  await i18n.use(initReactI18next).init({
+  // Use react-i18next if available
+  const i18nInstance = initReactI18next ? i18n.use(initReactI18next) : i18n;
+
+  await i18nInstance.init({
     resources,
     lng: lng || DEFAULT_LANGUAGE,
     fallbackLng: fallbackLng || FALLBACK_LANGUAGE,

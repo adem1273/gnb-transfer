@@ -1,10 +1,54 @@
 /**
- * AsyncStorage wrapper for secure token storage
+ * Storage wrapper for secure token storage
  * Works with React Native AsyncStorage for mobile apps
+ * Falls back to a simple in-memory storage for non-React-Native environments
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../constants';
+
+// Storage interface for platform-agnostic storage operations
+interface StorageInterface {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<void>;
+  removeItem(key: string): Promise<void>;
+  multiRemove(keys: string[]): Promise<void>;
+  clear(): Promise<void>;
+}
+
+// In-memory storage fallback for non-React-Native environments
+class InMemoryStorage implements StorageInterface {
+  private storage: Map<string, string> = new Map();
+
+  async getItem(key: string): Promise<string | null> {
+    return this.storage.get(key) ?? null;
+  }
+
+  async setItem(key: string, value: string): Promise<void> {
+    this.storage.set(key, value);
+  }
+
+  async removeItem(key: string): Promise<void> {
+    this.storage.delete(key);
+  }
+
+  async multiRemove(keys: string[]): Promise<void> {
+    keys.forEach((key) => this.storage.delete(key));
+  }
+
+  async clear(): Promise<void> {
+    this.storage.clear();
+  }
+}
+
+// Try to import AsyncStorage, fall back to in-memory storage
+let storageImpl: StorageInterface;
+try {
+  const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+  storageImpl = AsyncStorage;
+} catch {
+  // AsyncStorage not available - use in-memory storage fallback
+  storageImpl = new InMemoryStorage();
+}
 
 /**
  * Set the access token in storage
@@ -12,7 +56,7 @@ import { STORAGE_KEYS } from '../constants';
  */
 export const setToken = async (token: string): Promise<void> => {
   try {
-    await AsyncStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+    await storageImpl.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
   } catch (error) {
     console.error('Error setting token:', error);
     throw error;
@@ -25,7 +69,7 @@ export const setToken = async (token: string): Promise<void> => {
  */
 export const getToken = async (): Promise<string | null> => {
   try {
-    return await AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    return await storageImpl.getItem(STORAGE_KEYS.ACCESS_TOKEN);
   } catch (error) {
     console.error('Error getting token:', error);
     return null;
@@ -38,7 +82,7 @@ export const getToken = async (): Promise<string | null> => {
  */
 export const setRefreshToken = async (refreshToken: string): Promise<void> => {
   try {
-    await AsyncStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+    await storageImpl.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
   } catch (error) {
     console.error('Error setting refresh token:', error);
     throw error;
@@ -51,7 +95,7 @@ export const setRefreshToken = async (refreshToken: string): Promise<void> => {
  */
 export const getRefreshToken = async (): Promise<string | null> => {
   try {
-    return await AsyncStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+    return await storageImpl.getItem(STORAGE_KEYS.REFRESH_TOKEN);
   } catch (error) {
     console.error('Error getting refresh token:', error);
     return null;
@@ -63,7 +107,7 @@ export const getRefreshToken = async (): Promise<string | null> => {
  */
 export const clearTokens = async (): Promise<void> => {
   try {
-    await AsyncStorage.multiRemove([
+    await storageImpl.multiRemove([
       STORAGE_KEYS.ACCESS_TOKEN,
       STORAGE_KEYS.REFRESH_TOKEN,
     ]);
@@ -79,7 +123,7 @@ export const clearTokens = async (): Promise<void> => {
  */
 export const setUser = async (user: object): Promise<void> => {
   try {
-    await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    await storageImpl.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
   } catch (error) {
     console.error('Error setting user:', error);
     throw error;
@@ -92,7 +136,7 @@ export const setUser = async (user: object): Promise<void> => {
  */
 export const getUser = async <T = object>(): Promise<T | null> => {
   try {
-    const userData = await AsyncStorage.getItem(STORAGE_KEYS.USER);
+    const userData = await storageImpl.getItem(STORAGE_KEYS.USER);
     return userData ? JSON.parse(userData) : null;
   } catch (error) {
     console.error('Error getting user:', error);
@@ -105,7 +149,7 @@ export const getUser = async <T = object>(): Promise<T | null> => {
  */
 export const clearUser = async (): Promise<void> => {
   try {
-    await AsyncStorage.removeItem(STORAGE_KEYS.USER);
+    await storageImpl.removeItem(STORAGE_KEYS.USER);
   } catch (error) {
     console.error('Error clearing user:', error);
     throw error;
@@ -117,7 +161,7 @@ export const clearUser = async (): Promise<void> => {
  */
 export const clearAuth = async (): Promise<void> => {
   try {
-    await AsyncStorage.multiRemove([
+    await storageImpl.multiRemove([
       STORAGE_KEYS.ACCESS_TOKEN,
       STORAGE_KEYS.REFRESH_TOKEN,
       STORAGE_KEYS.USER,
@@ -134,7 +178,7 @@ export const clearAuth = async (): Promise<void> => {
  */
 export const getLanguage = async (): Promise<string | null> => {
   try {
-    return await AsyncStorage.getItem(STORAGE_KEYS.LANGUAGE);
+    return await storageImpl.getItem(STORAGE_KEYS.LANGUAGE);
   } catch (error) {
     console.error('Error getting language:', error);
     return null;
@@ -147,7 +191,7 @@ export const getLanguage = async (): Promise<string | null> => {
  */
 export const setLanguage = async (language: string): Promise<void> => {
   try {
-    await AsyncStorage.setItem(STORAGE_KEYS.LANGUAGE, language);
+    await storageImpl.setItem(STORAGE_KEYS.LANGUAGE, language);
   } catch (error) {
     console.error('Error setting language:', error);
     throw error;
@@ -160,7 +204,7 @@ export const setLanguage = async (language: string): Promise<void> => {
  */
 export const isOnboardingComplete = async (): Promise<boolean> => {
   try {
-    const value = await AsyncStorage.getItem(STORAGE_KEYS.ONBOARDING_COMPLETE);
+    const value = await storageImpl.getItem(STORAGE_KEYS.ONBOARDING_COMPLETE);
     return value === 'true';
   } catch (error) {
     console.error('Error checking onboarding status:', error);
@@ -173,7 +217,7 @@ export const isOnboardingComplete = async (): Promise<boolean> => {
  */
 export const setOnboardingComplete = async (): Promise<void> => {
   try {
-    await AsyncStorage.setItem(STORAGE_KEYS.ONBOARDING_COMPLETE, 'true');
+    await storageImpl.setItem(STORAGE_KEYS.ONBOARDING_COMPLETE, 'true');
   } catch (error) {
     console.error('Error setting onboarding complete:', error);
     throw error;
@@ -187,7 +231,7 @@ export const setOnboardingComplete = async (): Promise<void> => {
  */
 export const getItem = async (key: string): Promise<string | null> => {
   try {
-    return await AsyncStorage.getItem(key);
+    return await storageImpl.getItem(key);
   } catch (error) {
     console.error(`Error getting item ${key}:`, error);
     return null;
@@ -201,7 +245,7 @@ export const getItem = async (key: string): Promise<string | null> => {
  */
 export const setItem = async (key: string, value: string): Promise<void> => {
   try {
-    await AsyncStorage.setItem(key, value);
+    await storageImpl.setItem(key, value);
   } catch (error) {
     console.error(`Error setting item ${key}:`, error);
     throw error;
@@ -214,7 +258,7 @@ export const setItem = async (key: string, value: string): Promise<void> => {
  */
 export const removeItem = async (key: string): Promise<void> => {
   try {
-    await AsyncStorage.removeItem(key);
+    await storageImpl.removeItem(key);
   } catch (error) {
     console.error(`Error removing item ${key}:`, error);
     throw error;
@@ -226,7 +270,7 @@ export const removeItem = async (key: string): Promise<void> => {
  */
 export const clearAll = async (): Promise<void> => {
   try {
-    await AsyncStorage.clear();
+    await storageImpl.clear();
   } catch (error) {
     console.error('Error clearing all storage:', error);
     throw error;
