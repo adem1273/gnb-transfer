@@ -301,6 +301,83 @@ npx react-native run-android
 
 ---
 
+## 📡 OTA Update Strategy
+
+This app uses Expo's Over-The-Air (OTA) updates for delivering safe, non-breaking JavaScript changes without requiring a new App Store or Google Play submission.
+
+### What OTA Updates Are For
+
+✅ **Allowed via OTA:**
+- Bug fixes (logic errors, crash fixes)
+- Text and copy changes (typos, translations)
+- Minor UI tweaks (colors, spacing, fonts)
+- Performance improvements (code optimization)
+
+### What OTA Updates Must NEVER Be Used For
+
+⛔ **Requires Full Store Release:**
+- Navigation structure changes
+- Authentication flow modifications
+- Data model or API contract changes
+- Native module additions or updates
+- New permissions requirements
+- Significant feature additions
+
+### How runtimeVersion Prevents Incompatible Updates
+
+The app uses the `appVersion` policy for `runtimeVersion`:
+
+```json
+{
+  "runtimeVersion": {
+    "policy": "appVersion"
+  }
+}
+```
+
+This ensures that OTA updates are only delivered to app versions with matching native code. When you:
+- Update native modules → Increment app version → New store release required
+- Make JS-only changes → Same runtimeVersion → OTA update delivered
+
+### Development Environment Safety
+
+OTA updates are **automatically disabled** in development:
+- Development builds use the local Metro bundler
+- `__DEV__` flag ensures OTA checks never interfere with local development
+- Production builds (via EAS) enable OTA checking on app load
+
+### App Store / Play Store Compliance
+
+⚠️ **Important Policy Reminder:**
+- Apple App Store and Google Play Store policies prohibit using OTA updates to bypass app review
+- OTA updates must only deliver minor bug fixes and improvements
+- Any significant functionality changes must go through the standard review process
+- Violating these policies can result in app removal from stores
+
+### Configuration Reference
+
+```json
+{
+  "updates": {
+    "enabled": true,
+    "checkAutomatically": "ON_LOAD",
+    "fallbackToCacheTimeout": 30000
+  },
+  "runtimeVersion": {
+    "policy": "appVersion"
+  }
+}
+```
+
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| `enabled` | `true` | Enable OTA updates in production |
+| `checkAutomatically` | `ON_LOAD` | Check for updates when app starts |
+| `fallbackToCacheTimeout` | `30000` | 30-second timeout before using cached bundle |
+| `runtimeVersion.policy` | `appVersion` | Match updates to app version |
+
+---
+
 ## 🌐 API Configuration
 
 ### Environment Variables

@@ -1,6 +1,17 @@
 /**
  * Root layout for the Expo Router application
  * Provides authentication protection, global error handling, and offline support
+ * 
+ * OTA UPDATE SAFETY RULES:
+ * ========================
+ * OTA updates are ONLY for non-breaking JavaScript changes (bug fixes, text updates, minor UI tweaks).
+ * Breaking changes (navigation, auth flows, data models, native code) require a full store release.
+ * 
+ * Why this matters:
+ * - App Store and Play Store policies require significant changes to go through review
+ * - OTA bypasses store review, so it must only be used for safe, minor updates
+ * - runtimeVersion 'appVersion' policy ensures only compatible updates are delivered
+ * - Development builds use local Metro bundler, never OTA updates
  */
 
 import '../global.css';
@@ -16,6 +27,25 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { AppState, Platform, AppStateStatus } from 'react-native';
 import { AuthProvider, useAuth, ErrorProvider } from '../contexts';
+
+/**
+ * Checks if the app is running in development mode.
+ * 
+ * In development mode:
+ * - OTA updates are disabled (development builds use local Metro bundler)
+ * - The app loads JavaScript from the local development server
+ * - This prevents accidental OTA fetches that could interfere with local development
+ * 
+ * In production mode:
+ * - OTA updates are enabled via app.json configuration
+ * - Updates check automatically on app load (ON_LOAD)
+ * - 30-second fallback timeout ensures the app doesn't hang waiting for updates
+ * 
+ * __DEV__ is set by React Native and is true when running in development mode
+ * (e.g., via `expo start` or `npm start`). This is the most reliable way to
+ * detect development mode in React Native applications.
+ */
+const isDevelopment = __DEV__;
 
 // Create async storage persister for offline support
 const asyncStoragePersister = createAsyncStoragePersister({
@@ -120,6 +150,20 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
+  /**
+   * Development mode safety for OTA updates:
+   * - __DEV__ is true when running via Metro bundler (expo start)
+   * - Development builds automatically use local Metro server, not OTA
+   * - OTA updates are only checked in production builds (built via EAS)
+   * - This ensures developers always see their local code changes
+   */
+  useEffect(() => {
+    if (isDevelopment) {
+      // eslint-disable-next-line no-console
+      console.log('[OTA] Development mode detected - OTA updates disabled, using local Metro bundler');
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>

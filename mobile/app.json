@@ -34,6 +34,15 @@
     "experiments": {
       "typedRoutes": true
     },
-    "scheme": "gnb-transfer"
+    "scheme": "gnb-transfer",
+    "_comment_updates": "OTA updates are ONLY for non-breaking JavaScript changes (bug fixes, text updates, minor UI tweaks). Breaking changes (navigation, auth flows, data models, native code) require a full store release. runtimeVersion 'appVersion' policy ensures only compatible updates are delivered.",
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 30000
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }
