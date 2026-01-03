@@ -380,11 +380,105 @@ export const authApi = {
   },
 };
 
+// ==================== PayTR Payments API ====================
+
+/**
+ * PayTR Payment response type
+ */
+export interface PaytrPaymentResponse {
+  token: string;
+  merchantOid: string;
+  iframeUrl: string;
+}
+
+/**
+ * PayTR payment status response type
+ */
+export interface PaytrStatusResponse {
+  bookingId: string;
+  paymentMethod: string;
+  paymentStatus: 'pending' | 'completed' | 'cancelled' | 'unknown';
+  bookingStatus: string;
+  amount: number;
+}
+
+/**
+ * PayTR config response type
+ */
+export interface PaytrConfigResponse {
+  configured: boolean;
+  testMode: boolean;
+}
+
+/**
+ * PayTR API - Functions for PayTR payment operations
+ */
+export const paytrApi = {
+  /**
+   * Check if PayTR is configured
+   * @returns Promise with PayTR configuration status
+   */
+  getConfig: async (): Promise<PaytrConfigResponse> => {
+    const response = await apiClient.get<ApiResponse<PaytrConfigResponse>>(
+      '/payments/paytr/config'
+    );
+    if (response.data.success && 'data' in response.data) {
+      return response.data.data;
+    }
+    throw new Error('Failed to get PayTR config');
+  },
+
+  /**
+   * Create PayTR payment for a booking
+   * @param bookingId - Booking ID
+   * @param successUrl - URL to redirect on success
+   * @param failUrl - URL to redirect on failure
+   * @param maxInstallment - Maximum installment count (0 for no installment)
+   * @returns Promise with payment token and iframe URL
+   */
+  createPayment: async (
+    bookingId: string,
+    successUrl: string,
+    failUrl: string,
+    maxInstallment: number = 0
+  ): Promise<PaytrPaymentResponse> => {
+    const response = await apiClient.post<ApiResponse<PaytrPaymentResponse>>(
+      '/payments/paytr/create',
+      {
+        bookingId,
+        successUrl,
+        failUrl,
+        maxInstallment,
+      }
+    );
+    if (response.data.success && 'data' in response.data) {
+      return response.data.data;
+    }
+    throw new Error('Failed to create PayTR payment');
+  },
+
+  /**
+   * Get payment status for a booking
+   * @param bookingId - Booking ID
+   * @returns Promise with payment status
+   */
+  getStatus: async (bookingId: string): Promise<PaytrStatusResponse> => {
+    const response = await apiClient.get<ApiResponse<PaytrStatusResponse>>(
+      `/payments/paytr/status/${bookingId}`
+    );
+    if (response.data.success && 'data' in response.data) {
+      return response.data.data;
+    }
+    throw new Error('Failed to get payment status');
+  },
+};
+
 // Export all APIs
 export const api = {
   tours: toursApi,
   bookings: bookingsApi,
   auth: authApi,
+  paytr: paytrApi,
 };
 
 export default api;

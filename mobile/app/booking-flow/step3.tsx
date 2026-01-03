@@ -2,7 +2,7 @@
  * Booking Step 3 - Payment selection
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { toursApi, bookingsApi, PaymentMethod } from '@gnb-transfer/shared';
+import * as Linking from 'expo-linking';
+import { toursApi, bookingsApi, paytrApi, PaymentMethod } from '@gnb-transfer/shared';
 import { Loading } from '../../components/common/Loading';
 import { ErrorState } from '../../components/common/ErrorState';
 import { useAuth } from '../../contexts/AuthContext';
@@ -44,6 +45,12 @@ const paymentOptions: PaymentOption[] = [
     icon: '🔐',
     description: 'Secure online payment',
   },
+  {
+    method: 'paytr',
+    label: 'PayTR',
+    icon: '🇹🇷',
+    description: 'Turkish payment gateway',
+  },
 ];
 
 export default function BookingStep3() {
@@ -64,6 +71,27 @@ export default function BookingStep3() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod>('cash');
+  const [isProcessingPaytr, setIsProcessingPaytr] = useState(false);
+  const [paytrConfigured, setPaytrConfigured] = useState(false);
+
+  // Check PayTR configuration on mount
+  useEffect(() => {
+    const checkPaytrConfig = async () => {
+      try {
+        const config = await paytrApi.getConfig();
+        setPaytrConfigured(config.configured);
+      } catch {
+        // PayTR not configured, hide the option
+        setPaytrConfigured(false);
+      }
+    };
+    checkPaytrConfig();
+  }, []);
+
+  // Filter payment options based on PayTR availability
+  const availablePaymentOptions = paymentOptions.filter(
+    (option) => option.method !== 'paytr' || paytrConfigured
+  );
 
   const {
     data: tour,
@@ -77,10 +105,18 @@ export default function BookingStep3() {
 
   const createBookingMutation = useMutation({
     mutationFn: bookingsApi.create,
-    onSuccess: (booking) => {
-      router.replace(`/booking-flow/confirmation?bookingId=${booking.id || booking._id}`);
+    onSuccess: async (booking) => {
+      const bookingId = booking.id || booking._id;
+
+      // If PayTR is selected, initiate PayTR payment flow
+      if (selectedPayment === 'paytr') {
+        await handlePaytrPayment(bookingId);
+      } else {
+        router.replace(`/booking-flow/confirmation?bookingId=${bookingId}`);
+      }
     },
     onError: (error: any) => {
+      setIsProcessingPaytr(false);
       Alert.alert(
         'Booking Failed',
         error?.message || 'Failed to create booking. Please try again.'
@@ -108,6 +144,49 @@ export default function BookingStep3() {
       day: 'numeric',
       year: 'numeric',
     });
+  };
+
+  /**
+   * Handle PayTR payment flow
+   * Creates payment token and opens PayTR payment page in browser
+   */
+  const handlePaytrPayment = async (bookingId: string) => {
+    try {
+      setIsProcessingPaytr(true);
+
+      // Generate deep link callback URLs for the app
+      const successUrl = Linking.createURL('payment/success', {
+        queryParams: { bookingId },
+      });
+      const failUrl = Linking.createURL('payment/failed', {
+        queryParams: { bookingId },
+      });
+
+      // Create PayTR payment
+      const paymentResult = await paytrApi.createPayment(
+        bookingId,
+        successUrl,
+        failUrl,
+        0 // No installment for mobile
+      );
+
+      // Open PayTR payment page in external browser
+      const canOpen = await Linking.canOpenURL(paymentResult.iframeUrl);
+      if (canOpen) {
+        await Linking.openURL(paymentResult.iframeUrl);
+        // Navigate to a waiting screen that will check payment status
+        router.replace(`/booking-flow/payment-pending?bookingId=${bookingId}&merchantOid=${paymentResult.merchantOid}`);
+      } else {
+        throw new Error('Cannot open payment page');
+      }
+    } catch (error: any) {
+      Alert.alert(
+        'Payment Error',
+        error?.message || 'Failed to initiate payment. Please try again.'
+      );
+    } finally {
+      setIsProcessingPaytr(false);
+    }
   };
 
   const handleConfirmBooking = () => {
@@ -159,6 +238,8 @@ export default function BookingStep3() {
   if (tourError || !tour) {
     return <ErrorState message="Failed to load tour details" fullScreen />;
   }
+
+  const isLoading = createBookingMutation.isPending || isProcessingPaytr;
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -247,7 +328,7 @@ export default function BookingStep3() {
           <Text className="text-lg font-semibold text-gray-800 mb-3">
             Payment Method 💳
           </Text>
-          {paymentOptions.map((option) => (
+          {availablePaymentOptions.map((option) => (
             <TouchableOpacity
               key={option.method}
               onPress={() => setSelectedPayment(option.method)}
@@ -290,16 +371,18 @@ export default function BookingStep3() {
           </View>
           <TouchableOpacity
             onPress={handleConfirmBooking}
-            disabled={createBookingMutation.isPending}
+            disabled={isLoading}
             className={`bg-primary px-8 py-4 rounded-xl ${
-              createBookingMutation.isPending ? 'opacity-70' : ''
+              isLoading ? 'opacity-70' : ''
             }`}
             activeOpacity={0.8}
           >
-            {createBookingMutation.isPending ? (
+            {isLoading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text className="text-white font-bold text-base">Confirm Booking</Text>
+              <Text className="text-white font-bold text-base">
+                {selectedPayment === 'paytr' ? 'Pay with PayTR' : 'Confirm Booking'}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
