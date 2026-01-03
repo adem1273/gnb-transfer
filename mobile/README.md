@@ -467,6 +467,83 @@ The app includes comprehensive offline support:
 
 ---
 
+## 🛡️ Sentry Crash Reporting
+
+The app uses Sentry for crash and error visibility in production builds.
+
+### Purpose
+
+Sentry provides visibility into unexpected runtime crashes and errors that occur in production. This helps identify and fix bugs that users encounter.
+
+> **⚠️ FREE TIER ONLY**: This integration uses only Sentry's free tier features. No paid features are enabled.
+
+### Disabled Features (Cost/Privacy Safety)
+
+The following features are explicitly **DISABLED** to stay within free tier limits and protect user privacy:
+
+| Feature | Status | Reason |
+|---------|--------|--------|
+| Performance Tracing | ❌ Disabled | Paid feature / quota impact |
+| Session Replay | ❌ Disabled | Paid feature |
+| Profiling | ❌ Disabled | Paid feature |
+| Auto Session Tracking | ❌ Disabled | Reduces event volume |
+| HTTP Breadcrumbs | ❌ Filtered | May contain tokens/auth headers |
+| Console Breadcrumbs | ❌ Filtered | May contain sensitive data |
+
+### Free Tier Limits
+
+⚠️ **Sentry free tier includes limited events per month.** Monitor your usage at [sentry.io](https://sentry.io/) to avoid unexpected charges.
+
+The configuration is optimized to minimize event volume:
+- Only captures unexpected runtime errors
+- Filters out validation errors (expected behavior)
+- Filters out handled network errors
+- No performance monitoring events
+
+### Configuration
+
+1. Create a free Sentry account at [sentry.io](https://sentry.io/signup/)
+2. Create a new React Native project
+3. Copy your DSN to the environment:
+
+```bash
+# In mobile/.env (production)
+EXPO_PUBLIC_SENTRY_DSN=https://your-dsn@sentry.io/project-id
+```
+
+### Development vs Production
+
+| Environment | Sentry Status | Reason |
+|-------------|---------------|--------|
+| Development (`__DEV__` = true) | ❌ Disabled | Errors logged to console only |
+| Production (EAS builds) | ✅ Enabled | Errors sent to Sentry |
+
+### Security & Privacy
+
+The integration follows strict privacy rules:
+- ✅ Never sends tokens or auth headers
+- ✅ Never sends personal user data
+- ✅ Never logs API request/response bodies
+- ✅ Navigation breadcrumbs have query params stripped
+- ✅ Error reports are minimal and anonymized
+
+### Manual Error Capture
+
+For unexpected runtime errors not caught by the Error Boundary:
+
+```typescript
+import { captureException } from '../sentry';
+
+try {
+  await riskyOperation();
+} catch (error) {
+  // Only capture unexpected errors, not validation/network errors
+  captureException(error, { operation: 'riskyOperation' });
+}
+```
+
+---
+
 ## 🚨 Troubleshooting
 
 ### Common Issues
