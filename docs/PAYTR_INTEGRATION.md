@@ -281,26 +281,203 @@ const basketItems = [
 const userBasket = Buffer.from(JSON.stringify(basketItems)).toString('base64');
 ```
 
-## Test Cards
+## Sandbox Testing
 
-Use these cards when `PAYTR_TEST_MODE=true`:
+### Test Mode Configuration
 
-### Successful Payment
-| Card Number | Expiry | CVV |
-|-------------|--------|-----|
-| 4355084355084358 | 12/30 | 000 |
+To use PayTR in test/sandbox mode, set the following in your `.env` file:
 
-### Failed Payment
-| Card Number | Expiry | CVV |
-|-------------|--------|-----|
-| 4090700090700006 | 12/30 | 000 |
+```env
+PAYTR_TEST_MODE=true
+PAYTR_MERCHANT_ID=your_test_merchant_id
+PAYTR_MERCHANT_KEY=your_test_merchant_key
+PAYTR_MERCHANT_SALT=your_test_merchant_salt
+```
 
-### 3D Secure Test
-| Card Number | Expiry | CVV |
-|-------------|--------|-----|
-| 5571135571135575 | 12/30 | 000 |
+**Important Notes:**
+- Test transactions use the same API endpoint as production
+- The `test_mode` parameter (set to `1`) differentiates test from production
+- Test transactions do NOT charge real money
+- Use only test cards provided below - real cards will fail in test mode
+- Test transactions appear in your PayTR test dashboard
 
-**3D Secure Password:** 12345
+### Test Cards
+
+Use these test cards when `PAYTR_TEST_MODE=true`:
+
+#### 1. Successful Payment (Standard)
+| Card Number | Expiry | CVV | Card Type | Notes |
+|-------------|--------|-----|-----------|-------|
+| 4355084355084358 | 12/30 | 000 | Visa | Instant approval, no 3D Secure |
+
+**Test Scenario:** Standard successful payment without additional verification.
+
+#### 2. Failed Payment Tests
+| Card Number | Expiry | CVV | Card Type | Failure Reason |
+|-------------|--------|-----|-----------|----------------|
+| 4090700090700006 | 12/30 | 000 | Visa | Insufficient funds |
+
+**Test Scenario:** Simulates a declined transaction. Use this to test error handling.
+
+#### 3. 3D Secure Authentication
+| Card Number | Expiry | CVV | Card Type | Notes |
+|-------------|--------|-----|-----------|-------|
+| 5571135571135575 | 12/30 | 000 | Mastercard | Requires 3D Secure verification |
+
+**3D Secure Test Password:** `12345`
+
+**Test Scenario:** 
+1. Enter card details
+2. System redirects to 3D Secure verification page
+3. Enter password: `12345`
+4. Transaction completes successfully
+
+#### 4. Additional Test Cards
+
+**For Installment Testing:**
+| Card Number | Expiry | CVV | Max Installments |
+|-------------|--------|-----|------------------|
+| 4355084355084358 | 12/30 | 000 | Up to 12 |
+
+**Card Holder Name:** Any name (e.g., "TEST USER")
+
+### Sandbox Testing Checklist
+
+Before going live, test the following scenarios:
+
+- [ ] **Successful Payment**: Complete payment with test card 4355084355084358
+- [ ] **Failed Payment**: Verify error handling with card 4090700090700006
+- [ ] **3D Secure Flow**: Test authentication with card 5571135571135575
+- [ ] **Installment Payment**: Test 3, 6, and 12 installment options
+- [ ] **Payment Cancellation**: Cancel payment in the iframe and verify redirect
+- [ ] **IPN Callback**: Verify webhook receives status updates
+- [ ] **Hash Verification**: Ensure callback hash validation works correctly
+- [ ] **Multiple Currencies**: Test with TRY, USD, EUR if supported
+- [ ] **Mobile Payment**: Test payment flow on mobile devices
+- [ ] **Payment Timeout**: Let payment session expire (30 minutes) and verify handling
+
+### Testing the IPN Callback
+
+PayTR sends IPN (Instant Payment Notification) callbacks to your server. To test locally:
+
+#### Option 1: Using ngrok (Recommended for Local Development)
+
+```bash
+# Install ngrok (if not already installed)
+# Download from: https://ngrok.com/download
+
+# Start your backend server
+cd backend && npm run dev
+
+# In a new terminal, expose your local server
+ngrok http 5000
+
+# Copy the HTTPS URL (e.g., https://abc123.ngrok.io)
+# Update BACKEND_URL in .env to this ngrok URL
+```
+
+Then configure the IPN callback URL in your PayTR test merchant panel:
+```
+https://abc123.ngrok.io/api/payments/paytr/callback
+```
+
+#### Option 2: Using Deployed Test Environment
+
+Deploy to a test server (Render, Railway, etc.) and use the deployed URL for IPN callbacks.
+
+#### Verifying IPN Callbacks
+
+1. **Check Server Logs**: Monitor backend logs for incoming IPN requests
+   ```bash
+   tail -f backend/logs/combined.log
+   ```
+
+2. **Expected IPN Parameters**:
+   - `merchant_oid`: Your order ID (format: GNB-{bookingId}-{timestamp})
+   - `status`: 'success' or 'failed'
+   - `total_amount`: Amount in kuruş (TRY * 100)
+   - `hash`: Verification hash
+   - `test_mode`: '1' for test transactions
+
+3. **Test IPN Response**: Your endpoint must return `OK` to acknowledge receipt
+
+### End-to-End Test Flow
+
+Complete test scenario from booking to payment confirmation:
+
+```bash
+# 1. Create a test booking
+POST /api/bookings
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "phone": "+905551234567",
+  "pickupLocation": "Istanbul Airport",
+  "dropoffLocation": "Sultanahmet",
+  "passengerCount": 2,
+  "amount": 150
+}
+
+# 2. Create payment token
+POST /api/payments/paytr/create
+{
+  "bookingId": "{booking_id_from_step_1}",
+  "successUrl": "http://localhost:5173/payment/success",
+  "failUrl": "http://localhost:5173/payment/failed",
+  "maxInstallment": 12
+}
+
+# 3. Open iframe URL in browser
+# Use test card: 4355084355084358
+
+# 4. Verify booking status updated
+GET /api/bookings/{booking_id}
+# Should show status: "paid"
+```
+
+### Common Test Issues and Solutions
+
+| Issue | Solution |
+|-------|----------|
+| "Hash error" in response | Verify merchant credentials, check parameter order |
+| IPN callback not received | Ensure server is publicly accessible, check firewall |
+| Payment iframe shows error | Check browser console, verify CSP headers allow PayTR |
+| Test card rejected | Ensure PAYTR_TEST_MODE=true, use exact test card numbers |
+| 3D Secure page doesn't load | Wait a few seconds, check internet connection |
+
+### Moving to Production
+
+Before switching to production mode:
+
+1. **Get Production Credentials**
+   - Complete PayTR merchant verification
+   - Obtain production Merchant ID, Key, and Salt
+   
+2. **Update Environment Variables**
+   ```env
+   PAYTR_TEST_MODE=false
+   PAYTR_MERCHANT_ID=production_merchant_id
+   PAYTR_MERCHANT_KEY=production_merchant_key
+   PAYTR_MERCHANT_SALT=production_merchant_salt
+   ```
+
+3. **Configure Production IPN URL**
+   - Set callback URL in PayTR merchant panel
+   - Use your production domain (HTTPS required)
+   - Format: `https://yourdomain.com/api/payments/paytr/callback`
+
+4. **Security Checklist**
+   - [ ] All secrets stored in environment variables
+   - [ ] HTTPS enabled on production server
+   - [ ] IPN hash verification enabled
+   - [ ] Error logging configured (without exposing secrets)
+   - [ ] Rate limiting enabled on payment endpoints
+   - [ ] CORS configured for your domain only
+
+5. **Test with Real Cards**
+   - Start with small amounts
+   - Test all payment flows
+   - Monitor for errors in first few transactions
 
 ## Error Codes
 

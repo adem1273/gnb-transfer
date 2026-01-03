@@ -98,6 +98,29 @@ const globalSettingsSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // Payment provider settings
+    paymentProviders: {
+      stripe: {
+        enabled: {
+          type: Boolean,
+          default: true,
+        },
+        publicKey: {
+          type: String,
+          default: '',
+        },
+      },
+      paytr: {
+        enabled: {
+          type: Boolean,
+          default: false,
+        },
+        testMode: {
+          type: Boolean,
+          default: true,
+        },
+      },
+    },
     registrationsEnabled: {
       type: Boolean,
       default: true,
