@@ -544,6 +544,202 @@ try {
 
 ---
 
+## 📱 App Store & Play Store Readiness
+
+This section outlines the technical requirements and checklist for submitting the app to the Apple App Store and Google Play Store.
+
+### Store Submission Checklist
+
+#### ✅ Completed (Technical Configuration)
+
+| Item | Status | Notes |
+|------|--------|-------|
+| App name & slug | ✅ Done | `GNB Transfer` / `gnb-transfer` |
+| Bundle identifiers | ✅ Done | `com.gnbtransfer.app` (iOS & Android) |
+| Version (semver) | ✅ Done | `1.0.0` |
+| iOS buildNumber | ✅ Done | `1` (increment for each TestFlight/App Store upload) |
+| Android versionCode | ✅ Done | `1` (increment for each Play Store upload) |
+| Orientation | ✅ Done | Portrait only |
+| Splash screen config | ✅ Done | Brand color `#1D4ED8` |
+| URL scheme | ✅ Done | `gnb-transfer://` for deep linking |
+| OTA updates config | ✅ Done | Safe `appVersion` policy |
+| EAS build profiles | ✅ Done | development, preview, production |
+| Sentry (free tier) | ✅ Done | Production-only, no paid features |
+| Permissions audit | ✅ Done | No special permissions required |
+
+#### 📋 TODO: Manual Work Required
+
+The following items **cannot be completed by automation** and require manual work:
+
+**Assets (Design Work):**
+- [ ] **App Icon** - `assets/icon.png` (1024×1024px, PNG, no alpha for iOS)
+- [ ] **Splash Screen** - `assets/splash-icon.png` (centered logo, transparent background)
+- [ ] **Adaptive Icon (Android)** - `assets/adaptive-icon.png` (foreground layer, 1024×1024px)
+- [ ] **Favicon (Web)** - `assets/favicon.png` (48×48px minimum)
+
+**App Store Screenshots:**
+| Device | Resolution | Quantity |
+|--------|------------|----------|
+| iPhone 6.7" | 1290×2796 | 3-10 |
+| iPhone 6.5" | 1242×2688 | 3-10 |
+| iPhone 5.5" | 1242×2208 | 3-10 |
+| iPad Pro 12.9" | 2048×2732 | 3-10 (if supporting iPad) |
+
+**Play Store Screenshots:**
+| Type | Resolution | Quantity |
+|------|------------|----------|
+| Phone | 1080×1920 (min) | 2-8 |
+| 7" Tablet | 1200×1920 | 2-8 (if supporting) |
+| 10" Tablet | 1800×2560 | 2-8 (if supporting) |
+
+**Legal Pages (Required for Store Approval):**
+- [ ] **Privacy Policy** - Host at `https://gnbtransfer.com/privacy-policy`
+- [ ] **Terms of Service** - Host at `https://gnbtransfer.com/terms-of-service`
+
+**Store Listings (Per Store):**
+- [ ] App description (short & full)
+- [ ] Keywords / tags
+- [ ] Category selection
+- [ ] Contact email
+- [ ] Marketing URL
+
+**Accounts & Credentials:**
+- [ ] Apple Developer account ($99/year)
+- [ ] Google Play Developer account ($25 one-time)
+- [ ] App Store Connect API key (for EAS Submit)
+- [ ] Google Play service account JSON key (for EAS Submit)
+
+---
+
+## 🔄 Versioning Strategy
+
+Understanding when and how to update version numbers is critical for safe releases.
+
+### Version Number Reference
+
+| Field | Location | Format | Increment When |
+|-------|----------|--------|----------------|
+| `version` | app.json | Semver (1.0.0) | User-visible changes, new features |
+| `buildNumber` (iOS) | app.json | Integer string | **Every** App Store / TestFlight upload |
+| `versionCode` (Android) | app.json | Integer | **Every** Play Store upload |
+| `runtimeVersion` | Automatic | Based on `version` | Native code changes (via policy) |
+
+### When to Bump Version Numbers
+
+#### Version (semver: `version`)
+- **MAJOR (2.0.0)**: Breaking changes, major redesigns, incompatible API changes
+- **MINOR (1.1.0)**: New features, non-breaking enhancements
+- **PATCH (1.0.1)**: Bug fixes, minor improvements (can often be OTA)
+
+#### Build Numbers (`buildNumber` / `versionCode`)
+- **Always increment** before uploading to stores
+- Can have multiple builds per version (e.g., version `1.0.0` with builds `1`, `2`, `3`)
+- Never reuse a build number for the same version
+
+### OTA vs Store Release Decision Tree
+
+```
+┌─────────────────────────────────────┐
+│ What type of change is this?        │
+└─────────────────┬───────────────────┘
+                  │
+    ┌─────────────┴─────────────┐
+    ▼                           ▼
+┌───────────┐           ┌───────────────┐
+│ JS-only   │           │ Native code   │
+│ change?   │           │ change?       │
+└─────┬─────┘           └───────┬───────┘
+      │                         │
+      ▼                         ▼
+┌─────────────────┐     ┌─────────────────────┐
+│ Safe for OTA:   │     │ REQUIRES STORE      │
+│ • Bug fixes     │     │ RELEASE:            │
+│ • Text changes  │     │ • New permissions   │
+│ • Minor UI      │     │ • Native modules    │
+│ • Performance   │     │ • SDK updates       │
+└─────────────────┘     │ • Navigation major  │
+                        │ • Auth flow major   │
+                        └─────────────────────┘
+```
+
+### Safe OTA Update Examples
+
+✅ **Allowed via OTA:**
+- Fixing a typo in a label
+- Changing button colors
+- Fixing a calculation bug
+- Adding/updating translations
+- Performance optimizations (JS-only)
+
+### Requires Store Release Examples
+
+⛔ **NOT allowed via OTA:**
+- Adding `expo-camera` or `expo-location`
+- Updating Expo SDK version
+- Changing navigation structure significantly
+- Modifying authentication flows
+- Adding new native modules
+- Requesting new permissions
+
+---
+
+## 🔐 Privacy & Legal Requirements
+
+### GDPR & Privacy Compliance
+
+> ⚠️ **Legal Disclaimer**: This section provides technical guidance only. Consult a legal professional for compliance requirements specific to your jurisdiction.
+
+#### Data Collection Summary
+
+| Data Type | Collected | Purpose | Storage |
+|-----------|-----------|---------|---------|
+| Email | Yes | Account, bookings | Backend DB |
+| Phone | Yes | Booking contact | Backend DB |
+| Name | Yes | Booking contact | Backend DB |
+| Location (GPS) | **No** | Not used | N/A |
+| Photos/Camera | **No** | Not used | N/A |
+| Device ID | Minimal | Crash reports (Sentry) | Sentry (anonymized) |
+
+#### Required Legal Documents
+
+**Privacy Policy** must cover:
+- What data is collected
+- How data is used
+- Third-party services (Sentry, Stripe/PayTR)
+- User rights (access, deletion, correction)
+- Data retention periods
+- Contact information
+
+**Terms of Service** should cover:
+- Service description
+- User responsibilities
+- Payment terms
+- Cancellation/refund policy
+- Liability limitations
+- Dispute resolution
+
+#### Hosting Legal Pages
+
+Host your legal pages at a publicly accessible URL:
+- **Privacy Policy**: `https://gnbtransfer.com/privacy-policy`
+- **Terms of Service**: `https://gnbtransfer.com/terms-of-service`
+
+These URLs are referenced in `app.json` under `expo.extra` and should be linked in your app's settings/profile screen.
+
+#### App Store Requirements
+
+**Apple App Store:**
+- Privacy Policy URL required for all apps
+- App Privacy "nutrition labels" in App Store Connect
+- Data deletion mechanism required (if account creation exists)
+
+**Google Play Store:**
+- Privacy Policy URL required
+- Data Safety section in Play Console
+- Must disclose third-party data sharing
+
+---
+
 ## 🚨 Troubleshooting
 
 ### Common Issues

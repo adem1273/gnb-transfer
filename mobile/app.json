@@ -1,46 +1,75 @@
 {
   "expo": {
+    "_comment_app_identity": "App identity for App Store / Play Store. Update 'name' for store listing, 'slug' is URL-safe identifier.",
     "name": "GNB Transfer",
     "slug": "gnb-transfer",
+    "scheme": "gnb-transfer",
+
+    "_comment_versioning": "VERSIONING STRATEGY: 'version' = semver for store listings. iOS 'buildNumber' and Android 'versionCode' must increment for EVERY store submission. See README for when to bump each.",
     "version": "1.0.0",
+
+    "_comment_ui": "UI settings for consistent app experience across devices.",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+
+    "_comment_assets": "TODO: Replace placeholder assets before store submission. See README for required sizes.",
+    "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#1D4ED8"
     },
+
+    "_comment_ios": "iOS-specific configuration. buildNumber must increment for each App Store submission (including TestFlight).",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gnbtransfer.app"
+      "bundleIdentifier": "com.gnbtransfer.app",
+      "buildNumber": "1"
     },
+
+    "_comment_android": "Android-specific configuration. versionCode must increment for each Play Store upload (integer, monotonically increasing).",
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1D4ED8"
       },
-      "package": "com.gnbtransfer.app"
+      "package": "com.gnbtransfer.app",
+      "versionCode": 1,
+      "_comment_permissions": "No special permissions required. App uses text input for locations, no camera/gallery access."
     },
+
+    "_comment_web": "Web bundle configuration (not primary target, but useful for development).",
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/favicon.png"
     },
+
+    "_comment_plugins": "Expo plugins for additional functionality.",
     "plugins": [
       "expo-router"
     ],
+
     "experiments": {
       "typedRoutes": true
     },
-    "scheme": "gnb-transfer",
-    "_comment_updates": "OTA updates are ONLY for non-breaking JavaScript changes (bug fixes, text updates, minor UI tweaks). Breaking changes (navigation, auth flows, data models, native code) require a full store release. runtimeVersion 'appVersion' policy ensures only compatible updates are delivered.",
+
+    "_comment_legal": "TODO: Replace placeholder URLs with actual legal pages before store submission. Required for App Store & Play Store compliance.",
+    "extra": {
+      "privacyPolicyUrl": "https://gnbtransfer.com/privacy-policy",
+      "termsOfServiceUrl": "https://gnbtransfer.com/terms-of-service",
+      "supportEmail": "support@gnbtransfer.com"
+    },
+
+    "_comment_updates": "OTA (Over-The-Air) UPDATES CONFIGURATION. SAFETY RULES: OTA is ONLY for non-breaking JavaScript changes (bug fixes, text updates, minor UI tweaks). Breaking changes (navigation, auth flows, data models, native code) require a full store release. 'appVersion' policy ensures only compatible updates are delivered to matching native builds. OTA is automatically disabled in __DEV__ mode.",
     "updates": {
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 30000
     },
+
+    "_comment_runtimeVersion": "runtimeVersion uses 'appVersion' policy: OTA updates only delivered to app versions with matching native code. Increment version when native modules change.",
     "runtimeVersion": {
       "policy": "appVersion"
     }

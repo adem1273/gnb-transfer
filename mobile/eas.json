@@ -1,28 +1,44 @@
 {
+  "_comment_cli": "EAS CLI version requirement. Ensure you have eas-cli >= 12.0.0 installed globally.",
   "cli": {
     "version": ">= 12.0.0"
   },
+
+  "_comment_build": "EAS Build profiles for different environments. Each profile has specific environment variables and distribution settings.",
   "build": {
+    "_comment_development": "DEVELOPMENT: Used for local development with Expo Go / development client. Internal distribution only.",
     "development": {
       "developmentClient": true,
       "distribution": "internal",
       "env": {
+        "_comment": "Local API URL - update if backend runs on different port",
         "EXPO_PUBLIC_API_URL": "http://localhost:5000/api"
       }
     },
+
+    "_comment_preview": "PREVIEW: Used for internal testing (TestFlight, internal APK). Connect to staging backend.",
     "preview": {
       "distribution": "internal",
       "env": {
+        "_comment": "Staging API - update with your actual staging URL before use",
         "EXPO_PUBLIC_API_URL": "https://staging-api.gnbtransfer.com/api"
       }
     },
+
+    "_comment_production": "PRODUCTION: Used for App Store / Play Store releases. Connect to production backend. NEVER hardcode secrets here.",
     "production": {
       "env": {
+        "_comment": "Production API - ensure this matches your live backend",
         "EXPO_PUBLIC_API_URL": "https://api.gnbtransfer.com/api"
       }
     }
   },
+
+  "_comment_submit": "EAS Submit configuration for store submissions. Configure app-specific passwords and service accounts before first submission.",
   "submit": {
-    "production": {}
+    "production": {
+      "_comment_ios": "iOS: Requires App Store Connect API key or app-specific password. See https://docs.expo.dev/submit/ios/",
+      "_comment_android": "Android: Requires Google Play service account JSON key. See https://docs.expo.dev/submit/android/"
+    }
   }
 }
