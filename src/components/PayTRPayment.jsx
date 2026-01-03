@@ -73,11 +73,8 @@ function PayTRPayment({ bookingId, amount, onError }) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-8 min-h-[400px]">
-        <LoadingSpinner />
-        <p className="text-gray-600 mt-4 text-center">
-          {t('payment.paytr.loading') || 'Preparing secure payment...'}
-        </p>
-        <p className="text-gray-600 mt-2 text-center text-sm">
+        <LoadingSpinner text={t('payment.paytr.loading') || 'Preparing secure payment...'} />
+        <p className="text-gray-500 mt-2 text-center text-sm">
           {t('payment.paytr.redirecting') || 'You will be redirected to the secure payment page'}
         </p>
       </div>
