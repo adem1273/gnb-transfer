@@ -202,10 +202,10 @@ describe('PayTR Service', () => {
   });
 
   describe('createBasketData', () => {
-    it('should create valid base64 encoded basket', () => {
+    it('should create valid base64 encoded basket with amounts in kuruş', () => {
       const booking = {
         tourName: 'Airport Transfer',
-        amount: 150,
+        amount: 150, // 150 TRY
         extraServicesTotal: 0,
       };
 
@@ -218,13 +218,14 @@ describe('PayTR Service', () => {
       const decoded = JSON.parse(Buffer.from(basketData, 'base64').toString());
       expect(Array.isArray(decoded)).toBe(true);
       expect(decoded[0][0]).toBe('Airport Transfer');
+      expect(decoded[0][1]).toBe('15000'); // 150 TRY = 15000 kuruş
     });
 
-    it('should include extra services when present', () => {
+    it('should include extra services when present with kuruş conversion', () => {
       const booking = {
         tourName: 'Airport Transfer',
         amount: 150,
-        extraServicesTotal: 25,
+        extraServicesTotal: 25, // 25 TRY
       };
 
       const basketData = createBasketData(booking);
@@ -232,7 +233,7 @@ describe('PayTR Service', () => {
 
       expect(decoded.length).toBe(2);
       expect(decoded[1][0]).toBe('Extra Services');
-      expect(decoded[1][1]).toBe('25');
+      expect(decoded[1][1]).toBe('2500'); // 25 TRY = 2500 kuruş
     });
 
     it('should use default tour name when not provided', () => {
@@ -245,6 +246,7 @@ describe('PayTR Service', () => {
       const decoded = JSON.parse(Buffer.from(basketData, 'base64').toString());
 
       expect(decoded[0][0]).toBe('Transfer Service');
+      expect(decoded[0][1]).toBe('10000'); // 100 TRY = 10000 kuruş
     });
   });
 

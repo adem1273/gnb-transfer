@@ -26,9 +26,9 @@ const getPaytrConfig = () => ({
   merchantKey: process.env.PAYTR_MERCHANT_KEY || '',
   merchantSalt: process.env.PAYTR_MERCHANT_SALT || '',
   testMode: process.env.PAYTR_TEST_MODE === 'true',
-  apiUrl: process.env.PAYTR_TEST_MODE === 'true'
-    ? 'https://www.paytr.com/odeme/api/get-token'
-    : 'https://www.paytr.com/odeme/api/get-token',
+  // PayTR uses the same API URL for both test and production modes.
+  // The test_mode parameter in the request differentiates test vs production transactions.
+  apiUrl: 'https://www.paytr.com/odeme/api/get-token',
 });
 
 /**
@@ -145,15 +145,20 @@ export const verifyIpnHash = (callbackData) => {
 
 /**
  * Create basket data for PayTR
+ * Note: Basket amounts should be in kuruş (smallest currency unit)
  *
  * @param {Object} booking - Booking object with details
+ * @param {string} [booking.tourName] - Name of the tour/service
+ * @param {number} [booking.amount] - Amount in main currency (will be converted to kuruş)
+ * @param {number} [booking.extraServicesTotal] - Extra services total in main currency
  * @returns {string} Base64 encoded JSON basket
  */
 export const createBasketData = (booking) => {
+  // Convert main currency amounts to kuruş (multiply by 100)
   const basketItems = [
     [
       booking.tourName || 'Transfer Service',
-      String(booking.amount || 0),
+      String(Math.round((booking.amount || 0) * 100)), // Convert to kuruş
       '1', // quantity
     ],
   ];
@@ -162,7 +167,7 @@ export const createBasketData = (booking) => {
   if (booking.extraServicesTotal > 0) {
     basketItems.push([
       'Extra Services',
-      String(booking.extraServicesTotal),
+      String(Math.round(booking.extraServicesTotal * 100)), // Convert to kuruş
       '1',
     ]);
   }
@@ -178,14 +183,14 @@ export const createBasketData = (booking) => {
  * @param {Object} options - Payment options
  * @param {string} options.bookingId - Internal booking ID
  * @param {string} options.email - Customer email
- * @param {number} options.amount - Amount in the currency's smallest unit (kuruş for TRY)
+ * @param {number} options.amount - Amount in main currency unit (TRY). Will be converted to kuruş (x100).
  * @param {string} options.userName - Customer name
  * @param {string} options.userPhone - Customer phone
  * @param {string} options.userIp - Customer IP address
  * @param {string} options.userAddress - Customer address
  * @param {string} [options.currency='TL'] - Currency code (TL, USD, EUR, GBP)
  * @param {string} options.tourName - Name of the tour/service
- * @param {number} [options.extraServicesTotal=0] - Extra services total
+ * @param {number} [options.extraServicesTotal=0] - Extra services total in main currency unit
  * @param {string} options.successUrl - URL to redirect on success
  * @param {string} options.failUrl - URL to redirect on failure
  * @param {number} [options.maxInstallment=0] - Maximum installment (0 = no installment)

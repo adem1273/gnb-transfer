@@ -288,17 +288,17 @@ Use these cards when `PAYTR_TEST_MODE=true`:
 ### Successful Payment
 | Card Number | Expiry | CVV |
 |-------------|--------|-----|
-| 4355 0843 5508 4358 | 12/30 | 000 |
+| 4355084355084358 | 12/30 | 000 |
 
 ### Failed Payment
 | Card Number | Expiry | CVV |
 |-------------|--------|-----|
-| 4090 7000 9070 0006 | 12/30 | 000 |
+| 4090700090700006 | 12/30 | 000 |
 
 ### 3D Secure Test
 | Card Number | Expiry | CVV |
 |-------------|--------|-----|
-| 5571 1355 7113 5575 | 12/30 | 000 |
+| 5571135571135575 | 12/30 | 000 |
 
 **3D Secure Password:** 12345
 
