@@ -96,3 +96,13 @@ playwright/.cache/
 
 # Load test results
 scripts/load-test-results/*.log
+
+# Mobile/Expo
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+mobile/ios/
+mobile/android/
+mobile/.env
+mobile/.env.*
+!mobile/.env.example
