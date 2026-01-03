@@ -51,7 +51,7 @@ jobs:
       - name: Install backend dependencies
         run: |
           cd backend
-          npm ci --production
+          npm ci
 
       - name: Determine run mode
         id: run_mode

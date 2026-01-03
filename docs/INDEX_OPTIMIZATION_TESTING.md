@@ -111,7 +111,7 @@ This will test common queries and report:
 Check the generated report:
 
 ```bash
-cat backend/docs/INDEX_OPTIMIZATION_REPORT.md
+cat docs/INDEX_OPTIMIZATION_REPORT.md
 ```
 
 Look for:

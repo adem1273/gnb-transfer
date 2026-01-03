@@ -135,18 +135,35 @@ async function testQueryPerformance(model, query, description) {
     const explain = await model.find(query).explain('executionStats');
     const executionTime = Date.now() - startTime;
     
+    // Handle different MongoDB versions and explain plan structures
     const stats = explain.executionStats || explain;
+    const queryPlanner = explain.queryPlanner || {};
+    const winningPlan = queryPlanner.winningPlan || {};
+    const executionStages = stats.executionStages || {};
+    const inputStage = executionStages.inputStage || winningPlan.inputStage || {};
+    
+    // Determine index usage
+    let indexUsed = 'COLLSCAN';
+    let isIndexScan = false;
+    
+    if (inputStage.indexName) {
+      indexUsed = inputStage.indexName;
+      isIndexScan = true;
+    } else if (inputStage.stage === 'IXSCAN') {
+      indexUsed = inputStage.indexName || 'IXSCAN';
+      isIndexScan = true;
+    } else if (winningPlan.stage === 'IXSCAN' || executionStages.stage === 'IXSCAN') {
+      indexUsed = 'IXSCAN';
+      isIndexScan = true;
+    }
     
     return {
       description,
       executionTimeMs: stats.executionTimeMs || executionTime,
       totalDocsExamined: stats.totalDocsExamined || 0,
       nReturned: stats.nReturned || 0,
-      indexUsed: stats.executionStages?.inputStage?.indexName || 
-                 explain.queryPlanner?.winningPlan?.inputStage?.indexName || 
-                 'COLLSCAN',
-      isIndexScan: stats.executionStages?.inputStage?.stage === 'IXSCAN' || 
-                   explain.queryPlanner?.winningPlan?.inputStage?.stage === 'IXSCAN',
+      indexUsed,
+      isIndexScan,
     };
   } catch (error) {
     console.error(`Error testing query performance: ${error.message}`);
@@ -298,11 +315,22 @@ async function optimizeModelIndexes(model) {
       const modelIndexNames = new Set(
         modelIndexes.map(([fields, options]) => {
           if (options.name) return options.name;
-          // Generate index name similar to MongoDB
-          return Object.entries(fields)
-            .map(([k, v]) => `${k}_${v}`)
-            .join('_');
-        })
+          
+          // Generate index name similar to MongoDB's convention
+          // Note: This is a simplified version and may not match all edge cases
+          // For complex indexes (text, 2dsphere, etc.), MongoDB may use different naming
+          const keys = Object.entries(fields);
+          if (keys.length === 0) return null;
+          
+          // Handle text indexes
+          const hasText = keys.some(([, v]) => v === 'text');
+          if (hasText) {
+            return keys.map(([k]) => `${k}_text`).join('_');
+          }
+          
+          // Standard index naming
+          return keys.map(([k, v]) => `${k}_${v}`).join('_');
+        }).filter(Boolean)
       );
       
       for (const existingIdx of existingIndexes) {

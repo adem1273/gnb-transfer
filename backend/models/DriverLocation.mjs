@@ -7,8 +7,9 @@
 
 import mongoose from 'mongoose';
 
-// TTL for location data (24 hours in seconds)
-// Can be configured via environment variable for different retention periods
+// TTL for location data
+// Default: 86400 seconds (24 hours = 24 * 60 * 60)
+// Can be configured via DRIVER_LOCATION_TTL environment variable
 const LOCATION_TTL_SECONDS = parseInt(process.env.DRIVER_LOCATION_TTL || '86400', 10);
 
 const driverLocationSchema = new mongoose.Schema({
