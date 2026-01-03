@@ -1,0 +1,8 @@
+/**
+ * NativeWind/TailwindCSS global styles
+ * This file is processed by NativeWind to enable Tailwind CSS styling
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
