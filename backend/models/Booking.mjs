@@ -165,8 +165,26 @@ const bookingSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['cash', 'credit_card', 'stripe'],
+      enum: ['cash', 'credit_card', 'stripe', 'paytr'],
       default: 'cash',
+    },
+    // Payment details for online payment gateways (Stripe, PayTR)
+    paymentDetails: {
+      // PayTR specific fields
+      merchantOid: { type: String, trim: true },
+      paytrToken: { type: String, trim: true },
+      paymentType: { type: String, trim: true },
+      isTestMode: { type: Boolean },
+      // Stripe specific fields
+      stripePaymentIntentId: { type: String, trim: true },
+      stripeCustomerId: { type: String, trim: true },
+      // Common fields
+      initiatedAt: { type: Date },
+      completedAt: { type: Date },
+      failureReason: {
+        code: { type: String },
+        message: { type: String },
+      },
     },
     status: {
       type: String,

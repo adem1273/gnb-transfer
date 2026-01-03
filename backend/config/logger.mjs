@@ -63,6 +63,15 @@ const redact = fastRedact({
     'payment.creditCard',
     'payment.cvv',
 
+    // PayTR payment secrets
+    'paytr.merchantKey',
+    'paytr.merchantSalt',
+    'paytrToken',
+    'env.PAYTR_MERCHANT_KEY',
+    'env.PAYTR_MERCHANT_SALT',
+    'PAYTR_MERCHANT_KEY',
+    'PAYTR_MERCHANT_SALT',
+
     // API keys and secrets
     'apiKey',
     'api_key',

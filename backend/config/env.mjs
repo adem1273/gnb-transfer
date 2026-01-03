@@ -63,6 +63,9 @@ const SENSITIVE_VARS = [
   'MONGO_URI',
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
+  'PAYTR_MERCHANT_ID',
+  'PAYTR_MERCHANT_KEY',
+  'PAYTR_MERCHANT_SALT',
   'OPENAI_API_KEY',
   'GOOGLE_CLIENT_ID',
   'GOOGLE_CLIENT_SECRET',
@@ -266,6 +269,11 @@ export const isFeatureEnabled = (feature) => {
     featureCache = {
       ai: process.env.ENABLE_AI_FEATURES !== 'false' && !!process.env.OPENAI_API_KEY,
       payment: process.env.ENABLE_PAYMENT !== 'false' && !!process.env.STRIPE_SECRET_KEY,
+      paytr: process.env.ENABLE_PAYMENT !== 'false' && !!(
+        process.env.PAYTR_MERCHANT_ID &&
+        process.env.PAYTR_MERCHANT_KEY &&
+        process.env.PAYTR_MERCHANT_SALT
+      ),
       analytics: process.env.ENABLE_ANALYTICS !== 'false',
       email: !!process.env.EMAIL_USER || !!process.env.SMTP_USER || !!process.env.MAILTRAP_USER,
       sentry: !!process.env.SENTRY_DSN,
