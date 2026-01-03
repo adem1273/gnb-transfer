@@ -111,6 +111,9 @@ function Sidebar() {
                 <div className="text-xs font-semibold text-gray-400 uppercase mt-4 mb-1">
                   Settings
                 </div>
+                <Link to="/admin/metrics" className="px-2 py-1 hover:bg-gray-700 rounded">
+                  📊 Performance Metrics
+                </Link>
                 <Link to="/admin/features" className="px-2 py-1 hover:bg-gray-700 rounded">
                   🎛️ Feature Toggles
                 </Link>
