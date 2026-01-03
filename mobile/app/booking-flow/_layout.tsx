@@ -36,6 +36,13 @@ export default function BookingFlowLayout() {
         }}
       />
       <Stack.Screen
+        name="payment-pending"
+        options={{
+          title: 'Processing Payment',
+          headerBackVisible: false,
+        }}
+      />
+      <Stack.Screen
         name="confirmation"
         options={{
           title: 'Booking Confirmed',

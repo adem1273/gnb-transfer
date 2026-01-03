@@ -131,7 +131,7 @@ export interface Booking {
   extraServices?: ExtraServices;
   extraServicesTotal?: number;
   amount?: number;
-  paymentMethod: 'cash' | 'credit_card' | 'stripe';
+  paymentMethod: 'cash' | 'credit_card' | 'stripe' | 'paytr';
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'paid';
   pickupLocation?: string;
   notes?: string;
@@ -302,7 +302,7 @@ export interface BookingFormData {
   extraServices?: ExtraServices;
   pickupLocation?: string;
   notes?: string;
-  paymentMethod: 'cash' | 'credit_card' | 'stripe';
+  paymentMethod: 'cash' | 'credit_card' | 'stripe' | 'paytr';
 }
 
 // Export all types for convenience
