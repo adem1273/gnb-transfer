@@ -48,8 +48,8 @@ export function Skeleton({ width = '100%', height = 20, borderRadius = 4, classN
       className={className}
       style={[
         {
-          width: width as number,
-          height: height as number,
+          width,
+          height,
           borderRadius,
           backgroundColor: '#E5E7EB',
           opacity,

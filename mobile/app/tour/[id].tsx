@@ -1,8 +1,8 @@
 /**
- * TourDetail Screen - Display tour details with image gallery, description, reviews, and Book Now button
+ * TourDetail Screen - Display tour details with image, description, reviews, and Book Now button
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -10,13 +10,11 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
-  FlatList,
   Share,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { toursApi, Tour, Review } from '@gnb-transfer/shared';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { toursApi, Review } from '@gnb-transfer/shared';
 import { ErrorState } from '../../components/common/ErrorState';
 import { TourDetailSkeleton } from '../../components/skeleton/Skeleton';
 
@@ -50,7 +48,6 @@ const mockReviews: Review[] = [
 export default function TourDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const {
     data: tour,
@@ -78,10 +75,8 @@ export default function TourDetailScreen() {
     router.push(`/booking-flow/step1?tourId=${id}`);
   };
 
-  // Mock gallery images (would normally come from tour data)
-  const galleryImages = tour?.image
-    ? [tour.image, tour.image, tour.image]
-    : ['https://via.placeholder.com/400x300'];
+  // Use tour image or placeholder - single image display
+  const tourImage = tour?.image || 'https://via.placeholder.com/400x300';
 
   const discountedPrice = tour?.discount
     ? tour.price * (1 - tour.discount / 100)
@@ -115,38 +110,13 @@ export default function TourDetailScreen() {
       />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Image Gallery */}
+        {/* Tour Image */}
         <View className="relative">
-          <FlatList
-            data={galleryImages}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={(e) => {
-              const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-              setActiveImageIndex(index);
-            }}
-            renderItem={({ item }) => (
-              <Image
-                source={{ uri: item }}
-                style={{ width: SCREEN_WIDTH, height: 280 }}
-                resizeMode="cover"
-              />
-            )}
-            keyExtractor={(_, index) => index.toString()}
+          <Image
+            source={{ uri: tourImage }}
+            style={{ width: SCREEN_WIDTH, height: 280 }}
+            resizeMode="cover"
           />
-
-          {/* Image Indicators */}
-          <View className="absolute bottom-4 left-0 right-0 flex-row justify-center">
-            {galleryImages.map((_, index) => (
-              <View
-                key={index}
-                className={`w-2 h-2 rounded-full mx-1 ${
-                  activeImageIndex === index ? 'bg-white' : 'bg-white/50'
-                }`}
-              />
-            ))}
-          </View>
 
           {/* Discount Badge */}
           {tour.discount && tour.discount > 0 && (

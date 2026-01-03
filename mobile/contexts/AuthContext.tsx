@@ -4,7 +4,16 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { authApi, User, LoginCredentials, RegisterCredentials, clearAuth, setToken, setRefreshToken, setUser, getUser, getToken } from '@gnb-transfer/shared';
+import {
+  authApi,
+  clearAuth,
+  setToken,
+  setRefreshToken,
+  setUser,
+  getUser,
+  getToken,
+} from '@gnb-transfer/shared';
+import type { User, LoginCredentials, RegisterCredentials } from '@gnb-transfer/shared';
 
 interface AuthContextType {
   user: User | null;

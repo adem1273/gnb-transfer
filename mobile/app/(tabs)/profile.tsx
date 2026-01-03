@@ -13,7 +13,6 @@ import {
   Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGUAGES, changeLanguage, getCurrentLanguage, setLanguage } from '@gnb-transfer/shared';
 import { useAuth } from '../../contexts/AuthContext';
 import { ProfileSkeleton } from '../../components/skeleton/Skeleton';
@@ -47,7 +46,6 @@ function MenuItem({ icon, label, value, onPress, danger }: MenuItemProps) {
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { t, i18n } = useTranslation();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [currentLang, setCurrentLang] = useState(getCurrentLanguage());

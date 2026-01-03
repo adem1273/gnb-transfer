@@ -13,15 +13,13 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { toursApi, bookingsApi, PaymentMethod, PAYMENT_METHODS } from '@gnb-transfer/shared';
+import { toursApi, bookingsApi, PaymentMethod } from '@gnb-transfer/shared';
 import { Loading } from '../../components/common/Loading';
 import { ErrorState } from '../../components/common/ErrorState';
 import { useAuth } from '../../contexts/AuthContext';
 
-type PaymentMethodType = 'cash' | 'credit_card' | 'stripe';
-
 interface PaymentOption {
-  method: PaymentMethodType;
+  method: PaymentMethod;
   label: string;
   icon: string;
   description: string;
@@ -65,7 +63,7 @@ export default function BookingStep3() {
   }>();
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  const [selectedPayment, setSelectedPayment] = useState<PaymentMethodType>('cash');
+  const [selectedPayment, setSelectedPayment] = useState<PaymentMethod>('cash');
 
   const {
     data: tour,
