@@ -1,13 +1,116 @@
 # GNB Transfer
 
-**GNB Transfer** is a comprehensive, production-ready MERN stack web application for tourism and transfer services. The platform includes a customer-facing website, advanced admin panel, payment integration, AI-powered features, and multi-language support.
+<div align="center">
 
-Built with modern web technologies and best practices, GNB Transfer provides a complete solution for managing bookings, tours, fleet operations, customer loyalty, and business analytics.
+![GNB Transfer Banner](https://via.placeholder.com/1200x400/4F46E5/FFFFFF?text=GNB+Transfer+-+Tourism+%26+Transfer+Management+Platform)
 
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
-[![Node](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-6+-green.svg)](https://www.mongodb.com/)
+**A comprehensive, production-ready MERN stack web application for tourism and transfer services.**
+
+The platform includes a customer-facing website, advanced admin panel, payment integration, AI-powered features, and multi-language support.
+
+[🚀 Live Demo](#-live-demo) • [📚 Documentation](docs/) • [🐛 Report Bug](https://github.com/adem1273/gnb-transfer/issues) • [✨ Request Feature](https://github.com/adem1273/gnb-transfer/issues)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19+-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-6+-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Express.js](https://img.shields.io/badge/Express.js-5+-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![Vite](https://img.shields.io/badge/Vite-7+-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4+-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Stripe](https://img.shields.io/badge/Stripe-Integrated-008CDD?logo=stripe&logoColor=white)](https://stripe.com/)
+[![Redis](https://img.shields.io/badge/Redis-Cache-DC382D?logo=redis&logoColor=white)](https://redis.io/)
+[![BullMQ](https://img.shields.io/badge/BullMQ-Jobs-F7931E)](https://bullmq.io/)
+[![Sentry](https://img.shields.io/badge/Sentry-Monitoring-362D59?logo=sentry&logoColor=white)](https://sentry.io/)
+[![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-Testing-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI%2FCD-2088FF?logo=githubactions&logoColor=white)](https://github.com/features/actions)
+[![Code Style: Prettier](https://img.shields.io/badge/Code_Style-Prettier-F7B93E?logo=prettier&logoColor=black)](https://prettier.io/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+</div>
+
+---
+
+## 🚀 Live Demo
+
+> **Note**: Demo credentials are provided for testing purposes. Please do not use real payment information.
+
+- **Frontend**: [https://gnbtransfer.com](https://gnbtransfer.com) *(Update with your actual demo URL)*
+- **Admin Panel**: [https://gnbtransfer.com/admin](https://gnbtransfer.com/admin) *(Update with your actual demo URL)*
+
+**Demo Credentials:**
+- **Admin**: `demo-admin@gnbtransfer.com` / `DemoAdmin2024!`
+- **Customer**: `demo-user@gnbtransfer.com` / `DemoUser2024!`
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+
+### Customer-Facing Interface
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=Homepage" alt="Homepage" width="400"/>
+      <br />
+      <b>Homepage with Multi-Language Support</b>
+    </td>
+    <td align="center">
+      <img src="https://via.placeholder.com/400x300/10B981/FFFFFF?text=Booking+System" alt="Booking System" width="400"/>
+      <br />
+      <b>Smart Booking System</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://via.placeholder.com/400x300/F59E0B/FFFFFF?text=Tours+%26+Packages" alt="Tours" width="400"/>
+      <br />
+      <b>Tours & Packages Gallery</b>
+    </td>
+    <td align="center">
+      <img src="https://via.placeholder.com/400x300/EF4444/FFFFFF?text=Payment+Integration" alt="Payment" width="400"/>
+      <br />
+      <b>Stripe Payment Integration</b>
+    </td>
+  </tr>
+</table>
+
+### Admin Dashboard
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://via.placeholder.com/400x300/8B5CF6/FFFFFF?text=Admin+Dashboard" alt="Admin Dashboard" width="400"/>
+      <br />
+      <b>Analytics Dashboard</b>
+    </td>
+    <td align="center">
+      <img src="https://via.placeholder.com/400x300/EC4899/FFFFFF?text=Booking+Management" alt="Booking Management" width="400"/>
+      <br />
+      <b>Booking Management Panel</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://via.placeholder.com/400x300/06B6D4/FFFFFF?text=Fleet+Management" alt="Fleet Management" width="400"/>
+      <br />
+      <b>Fleet & Driver Management</b>
+    </td>
+    <td align="center">
+      <img src="https://via.placeholder.com/400x300/84CC16/FFFFFF?text=CMS+Suite" alt="CMS" width="400"/>
+      <br />
+      <b>Content Management System</b>
+    </td>
+  </tr>
+</table>
+
+> **Note**: Replace placeholder images with actual screenshots of your application for maximum impact.
+
+</div>
 
 ---
 
@@ -1557,24 +1660,30 @@ See `CONTRIBUTING.md` for detailed guidelines.
 
 ## 📄 License
 
-This project is licensed under the **ISC License**.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ```
-ISC License
+MIT License
 
-Copyright (c) 2024 GNB Transfer
+Copyright (c) 2024-2025 GNB Transfer
 
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
 
 ---
