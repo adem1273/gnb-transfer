@@ -1,8 +1,9 @@
 /**
  * Booking card component for displaying booking information
+ * Optimized with React.memo for performance
  */
 
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Booking, Tour } from '@gnb-transfer/shared';
@@ -20,7 +21,7 @@ const statusColors: Record<string, { bg: string; text: string }> = {
   paid: { bg: 'bg-purple-100', text: 'text-purple-800' },
 };
 
-export function BookingCard({ booking, onPress }: BookingCardProps) {
+function BookingCardComponent({ booking, onPress }: BookingCardProps) {
   const router = useRouter();
   const tour = booking.tour as Tour | undefined;
   const statusStyle = statusColors[booking.status] || statusColors.pending;
@@ -79,5 +80,19 @@ export function BookingCard({ booking, onPress }: BookingCardProps) {
     </TouchableOpacity>
   );
 }
+
+// Memoize to prevent unnecessary re-renders in lists
+export const BookingCard = memo(BookingCardComponent, (prevProps, nextProps) => {
+  const prevBooking = prevProps.booking;
+  const nextBooking = nextProps.booking;
+  return (
+    (prevBooking.id || prevBooking._id) === (nextBooking.id || nextBooking._id) &&
+    prevBooking.status === nextBooking.status &&
+    prevBooking.date === nextBooking.date &&
+    prevBooking.guests === nextBooking.guests &&
+    prevBooking.amount === nextBooking.amount &&
+    prevProps.onPress === nextProps.onPress
+  );
+});
 
 export default BookingCard;
