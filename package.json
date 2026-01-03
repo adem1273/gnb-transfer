@@ -4,6 +4,11 @@
   "type": "module",
   "description": "GNB Transfer - Full Stack Web Application",
   "main": "backend/server.mjs",
+  "workspaces": [
+    "mobile",
+    "packages/*",
+    "backend"
+  ],
   "scripts": {
     "start": "node backend/server.mjs",
     "dev": "concurrently \"cd backend && nodemon server.mjs\" \"vite\"",
@@ -22,7 +27,12 @@
     "lint:fix": "eslint src --ext .js,.jsx --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,json}\"",
     "audit-fix": "npm audit fix --force",
-    "preinstall": "echo 'Starting npm install...'"
+    "preinstall": "echo 'Starting npm install...'",
+    "mobile:start": "cd mobile && npm start",
+    "mobile:ios": "cd mobile && npm run ios",
+    "mobile:android": "cd mobile && npm run android",
+    "mobile:build:ios": "cd mobile && eas build --platform ios",
+    "mobile:build:android": "cd mobile && eas build --platform android"
   },
   "keywords": [
     "gnb",
