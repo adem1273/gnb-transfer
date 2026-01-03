@@ -4,8 +4,10 @@ The GNB Transfer Mobile App is a React Native application built with Expo, provi
 
 [![Expo](https://img.shields.io/badge/Expo-52-000020.svg?logo=expo)](https://expo.dev/)
 [![React Native](https://img.shields.io/badge/React%20Native-0.76-61DAFB.svg?logo=react)](https://reactnative.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6.svg?logo=typescript)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6.svg?logo=typescript)](https://www.typescriptlang.org())
 [![NativeWind](https://img.shields.io/badge/NativeWind-4.0-06B6D4.svg?logo=tailwindcss)](https://www.nativewind.dev/)
+
+> **📱 Ready to submit to App Store / Play Store?** See **[QUICK_START.md](./QUICK_START.md)** for a complete overview of what's done and what's needed.
 
 ---
 
@@ -868,6 +870,10 @@ npx react-native log-android
 ---
 
 ## 🔗 Related Documentation
+
+### 🚀 Quick Start
+
+- **[QUICK_START.md](./QUICK_START.md)** - **Start here!** Complete overview of what's done and what needs to be done for store submission
 
 ### Mobile App Guides
 
