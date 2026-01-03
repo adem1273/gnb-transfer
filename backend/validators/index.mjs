@@ -86,8 +86,8 @@ export const validateBookingCreation = [
     .withMessage('Invalid tour ID format'),
   body('paymentMethod')
     .optional()
-    .isIn(['cash', 'card', 'stripe'])
-    .withMessage('Payment method must be cash, card, or stripe'),
+    .isIn(['cash', 'card', 'stripe', 'paytr'])
+    .withMessage('Payment method must be cash, card, stripe, or paytr'),
   body('guests')
     .optional()
     .isInt({ min: 1, max: 50 })

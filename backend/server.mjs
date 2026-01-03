@@ -85,6 +85,7 @@ import publicHomeLayoutRoutes from './routes/publicHomeLayoutRoutes.mjs';
 import superAdminRoutes from './routes/superAdminRoutes.mjs';
 import rateLimitAdminRoutes from './routes/rateLimitAdminRoutes.mjs';
 import jobQueueRoutes from './routes/jobQueueRoutes.mjs';
+import paytrRoutes from './routes/paytrRoutes.mjs';
 
 // Initialize schedulers and services
 import { initCampaignScheduler } from './services/campaignScheduler.mjs';
@@ -325,6 +326,9 @@ app.use(`${API_V1}/sitemap`, sitemapRoutes);
 app.use(`${API_V1}/admin/robots-config`, robotsConfigRoutes);
 app.use(`${API_V1}/campaigns`, campaignRoutes);
 
+// Payment routes (v1)
+app.use(`${API_V1}/payments/paytr`, paytrRoutes);
+
 // Upload routes (v1 - admin only)
 app.use(`${API_V1}/upload`, uploadRoutes);
 
@@ -410,6 +414,9 @@ app.use('/api/loyalty', loyaltyRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/tracking', adTrackingRoutes);
 app.use('/api/campaigns', campaignRoutes);
+
+// Payment routes (legacy - for backward compatibility)
+app.use('/api/payments/paytr', paytrRoutes);
 
 // Health check endpoint (registered before other routes)
 // Comprehensive health check for all system dependencies

@@ -28,8 +28,8 @@ const objectIdSchema = z
 /**
  * Payment method enum
  */
-const paymentMethodSchema = z.enum(['cash', 'card', 'credit_card', 'stripe'], {
-  errorMap: () => ({ message: 'Payment method must be cash, card, credit_card, or stripe' }),
+const paymentMethodSchema = z.enum(['cash', 'card', 'credit_card', 'stripe', 'paytr'], {
+  errorMap: () => ({ message: 'Payment method must be cash, card, credit_card, stripe, or paytr' }),
 });
 
 /**
