@@ -55,10 +55,21 @@ echo -e "  ${GREEN}✓${NC} npm $(npm -v)"
 # Check for Expo CLI
 if ! command -v expo &> /dev/null; then
     echo -e "  ${YELLOW}⚠${NC} Expo CLI not found globally"
-    echo "    Installing Expo CLI..."
-    npm install -g @expo/cli
+    echo ""
+    read -p "    Would you like to install Expo CLI globally? (y/N) " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "    Installing Expo CLI..."
+        npm install -g @expo/cli
+    else
+        echo -e "    ${YELLOW}Skipping Expo CLI installation. You can use npx expo instead.${NC}"
+    fi
 fi
-echo -e "  ${GREEN}✓${NC} Expo CLI available"
+if command -v expo &> /dev/null; then
+    echo -e "  ${GREEN}✓${NC} Expo CLI available"
+else
+    echo -e "  ${YELLOW}⚠${NC} Expo CLI not installed (use 'npx expo' commands)"
+fi
 
 echo ""
 

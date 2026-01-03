@@ -511,7 +511,9 @@ npx react-native log-android
 
 | Home | Tours | Bookings | Profile |
 |------|-------|----------|---------|
-| ![Home](./screenshots/home.png) | ![Tours](./screenshots/tours.png) | ![Bookings](./screenshots/bookings.png) | ![Profile](./screenshots/profile.png) |
+| 📱 Home screen with featured destinations | 🗺️ Browse available tours | ✈️ View and manage bookings | 👤 User profile settings |
+
+> **Note**: Add actual screenshots to the `screenshots/` directory and update the table above with image references like `![Home](./screenshots/home.png)`.
 
 ---
 
