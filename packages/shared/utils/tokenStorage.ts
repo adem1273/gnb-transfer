@@ -31,19 +31,16 @@ interface SecureStoreModule {
   setItemAsync(key: string, value: string, options?: SecureStoreOptions): Promise<void>;
   getItemAsync(key: string, options?: SecureStoreOptions): Promise<string | null>;
   deleteItemAsync(key: string, options?: SecureStoreOptions): Promise<void>;
+  // ALWAYS_THIS_DEVICE_ONLY is exported directly from the module
+  ALWAYS_THIS_DEVICE_ONLY?: number;
 }
 
 interface SecureStoreOptions {
   keychainAccessible?: number;
 }
 
-interface SecureStoreConstants {
-  ALWAYS_THIS_DEVICE_ONLY: number;
-}
-
 // SecureStore module reference (lazy loaded)
 let SecureStore: SecureStoreModule | null = null;
-let SecureStoreConstants: SecureStoreConstants | null = null;
 
 /**
  * Initialize SecureStore module
@@ -58,7 +55,6 @@ const getSecureStore = (): SecureStoreModule | null => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const secureStoreModule = require('expo-secure-store');
     SecureStore = secureStoreModule;
-    SecureStoreConstants = secureStoreModule;
     return SecureStore;
   } catch {
     // SecureStore not available - this is expected in web environment
@@ -72,9 +68,10 @@ const getSecureStore = (): SecureStoreModule | null => {
  * Android: Default Keystore usage (no special options needed)
  */
 const getSecureStoreOptions = (): SecureStoreOptions | undefined => {
-  if (SecureStoreConstants?.ALWAYS_THIS_DEVICE_ONLY !== undefined) {
+  const store = getSecureStore();
+  if (store?.ALWAYS_THIS_DEVICE_ONLY !== undefined) {
     return {
-      keychainAccessible: SecureStoreConstants.ALWAYS_THIS_DEVICE_ONLY,
+      keychainAccessible: store.ALWAYS_THIS_DEVICE_ONLY,
     };
   }
   return undefined;
