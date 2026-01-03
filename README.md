@@ -21,7 +21,7 @@ Built with modern web technologies and best practices, GNB Transfer provides a c
 ### Customer-Facing Features
 - **Multi-Language Support**: 9 languages (TR, EN, AR, RU, DE, FR, ES, ZH, FA) with RTL support
 - **Smart Booking System**: Multi-step booking with passenger details, flight info, extras
-- **Stripe Payments**: Secure payment processing with webhooks
+- **Dual Payment Integration**: Stripe for global payments, PayTR for Turkish market with installments
 - **AI-Powered Recommendations**: Personalized tour suggestions using OpenAI
 - **SEO-Optimized Blog**: 40+ articles in 9 languages with structured data
 - **Live Chat**: Real-time customer support
@@ -104,7 +104,8 @@ Built with modern web technologies and best practices, GNB Transfer provides a c
 | **MongoDB** | 7.0.0 | NoSQL database driver |
 | **Mongoose** | 9.1.1 | ODM with validation and indexing |
 | **JWT** | Latest | Authentication with refresh tokens |
-| **Stripe** | Latest | Payment processing |
+| **Stripe** | Latest | Global payment processing |
+| **PayTR** | iframe API | Turkish market payment gateway |
 | **OpenAI** | Latest | AI recommendations |
 | **Nodemailer** | Latest | Email sending |
 | **Winston** | Latest | Logging with rotation |
@@ -589,8 +590,12 @@ CORS_ORIGINS=http://localhost:5173
 |----------|-------------|--------------|
 | `NODE_ENV` | Environment mode (`development`, `production`) | Production deployment |
 | `PORT` | Backend server port | Default: 5000 |
-| `STRIPE_SECRET_KEY` | Stripe secret key | Payment processing |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signature | Payment webhooks |
+| `STRIPE_SECRET_KEY` | Stripe secret key | Stripe payment processing |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signature | Stripe payment webhooks |
+| `PAYTR_MERCHANT_ID` | PayTR merchant ID | PayTR payment processing (Turkish market) |
+| `PAYTR_MERCHANT_KEY` | PayTR merchant key | PayTR payment processing |
+| `PAYTR_MERCHANT_SALT` | PayTR merchant salt | PayTR payment processing |
+| `PAYTR_TEST_MODE` | Enable test mode (`true`/`false`) | PayTR sandbox testing |
 | `OPENAI_API_KEY` | OpenAI API key | AI-powered features |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID | Google Sign-In |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth secret | Google Sign-In |
@@ -624,7 +629,8 @@ VITE_API_URL=http://localhost:5000/api
 
 | Variable | Description | Required For |
 |----------|-------------|--------------|
-| `VITE_STRIPE_PUBLIC_KEY` | Stripe publishable key | Payment processing |
+| `VITE_STRIPE_PUBLIC_KEY` | Stripe publishable key | Stripe payment processing |
+| `VITE_PAYTR_ENABLED` | Enable PayTR option (`true`/`false`) | PayTR payment option display |
 | `VITE_GOOGLE_CLIENT_ID` | Google OAuth client ID | Google Sign-In |
 | `VITE_APPLE_CLIENT_ID` | Apple Sign-In client ID | Apple Sign-In |
 | `VITE_GA_MEASUREMENT_ID` | Google Analytics 4 ID (G-XXXXXXXXXX) | Analytics |
@@ -1430,6 +1436,192 @@ Pre-commit hooks (if configured):
 - ESLint checking
 - Prettier formatting
 - Test execution
+
+---
+
+## 💳 Payment Integration
+
+GNB Transfer supports **two payment gateways** to serve both international and Turkish markets:
+
+### 1. Stripe (Global Payment Processing)
+
+**Stripe** is the default payment provider for international card payments.
+
+#### Features:
+- ✅ Global card processing (Visa, Mastercard, AMEX, etc.)
+- ✅ 3D Secure authentication
+- ✅ Webhook notifications for payment status
+- ✅ Strong customer authentication (SCA) compliance
+- ✅ PCI DSS Level 1 certified
+- ✅ Support for 135+ currencies
+
+#### Setup Instructions:
+
+1. **Create Stripe Account**
+   - Sign up at [https://dashboard.stripe.com/register](https://dashboard.stripe.com/register)
+   - Complete account verification
+
+2. **Get API Keys**
+   - Navigate to [API Keys](https://dashboard.stripe.com/apikeys)
+   - Copy your **Publishable key** and **Secret key**
+
+3. **Configure Environment Variables**
+
+   **Backend** (`backend/.env`):
+   ```env
+   STRIPE_SECRET_KEY=sk_test_...  # Use sk_live_... for production
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   ```
+
+   **Frontend** (`.env`):
+   ```env
+   VITE_STRIPE_PUBLIC_KEY=pk_test_...  # Use pk_live_... for production
+   ```
+
+4. **Configure Webhooks**
+   - Go to [Webhooks](https://dashboard.stripe.com/webhooks) in Stripe Dashboard
+   - Add endpoint: `https://yourdomain.com/api/webhooks/stripe`
+   - Select events: `payment_intent.succeeded`, `payment_intent.payment_failed`
+   - Copy webhook signing secret to `STRIPE_WEBHOOK_SECRET`
+
+5. **Test Locally** (Optional)
+   ```bash
+   # Install Stripe CLI
+   stripe login
+   
+   # Forward webhooks to local server
+   stripe listen --forward-to localhost:5000/api/webhooks/stripe
+   ```
+
+#### Test Cards:
+
+| Card Number | Type | Description |
+|-------------|------|-------------|
+| 4242 4242 4242 4242 | Success | Standard successful payment |
+| 4000 0025 0000 3155 | 3D Secure | Requires authentication |
+| 4000 0000 0000 9995 | Decline | Card declined |
+
+**Expiry:** Any future date | **CVV:** Any 3 digits
+
+### 2. PayTR (Turkish Payment Gateway)
+
+**PayTR** is integrated for the Turkish market, supporting local payment methods and installments.
+
+#### Features:
+- ✅ Turkish credit/debit cards (Troy, Visa, Mastercard)
+- ✅ Installment payments (up to 12 installments)
+- ✅ 3D Secure authentication
+- ✅ Turkish Lira (TRY) optimized
+- ✅ Bank transfer options (EFT/Havale)
+- ✅ IPN (Instant Payment Notification) callbacks
+
+#### Setup Instructions:
+
+1. **Create PayTR Merchant Account**
+   - Sign up at [https://www.paytr.com](https://www.paytr.com)
+   - Complete merchant verification process
+   - This may take 1-3 business days
+
+2. **Get Merchant Credentials**
+   - Login to PayTR Merchant Panel
+   - Navigate to **API Integration** section
+   - Copy your:
+     - Merchant ID
+     - Merchant Key
+     - Merchant Salt
+
+3. **Configure Environment Variables**
+
+   **Backend** (`backend/.env`):
+   ```env
+   PAYTR_MERCHANT_ID=your_merchant_id
+   PAYTR_MERCHANT_KEY=your_merchant_key
+   PAYTR_MERCHANT_SALT=your_merchant_salt
+   PAYTR_TEST_MODE=true  # Set to false for production
+   ```
+
+4. **Configure IPN Callback URL**
+   - In PayTR Merchant Panel, set IPN URL to:
+     ```
+     https://yourdomain.com/api/payments/paytr/callback
+     ```
+   - **Important:** Must be publicly accessible HTTPS URL
+   - For local testing, use ngrok or similar tunneling service
+
+5. **Test in Sandbox Mode**
+
+   Set `PAYTR_TEST_MODE=true` and use test cards below.
+
+#### Test Cards (Sandbox Mode):
+
+| Card Number | Expiry | CVV | Type | Result |
+|-------------|--------|-----|------|--------|
+| 4355084355084358 | 12/30 | 000 | Visa | ✅ Successful payment |
+| 4090700090700006 | 12/30 | 000 | Visa | ❌ Failed (insufficient funds) |
+| 5571135571135575 | 12/30 | 000 | Mastercard | 🔐 3D Secure (password: 12345) |
+
+**Test installments:** Up to 12 installments available with test cards
+
+### Payment Provider Selection
+
+Users can select their preferred payment method during checkout:
+
+- **PayTR** is automatically shown when configured (`PAYTR_MERCHANT_ID` is set)
+- **Stripe** is shown when `VITE_STRIPE_PUBLIC_KEY` is set
+- If both are configured, users can choose their preferred option
+- PayTR is recommended for Turkish customers (supports TRY and installments)
+- Stripe is recommended for international customers
+
+### Testing End-to-End Payment Flow
+
+#### 1. Create a Booking
+```bash
+# Via frontend booking form or API
+POST http://localhost:5000/api/bookings
+```
+
+#### 2. Navigate to Payment Page
+The booking response includes a `bookingId`. Use it to access:
+```
+http://localhost:5173/payment?bookingId={bookingId}
+```
+
+#### 3. Select Payment Provider
+- Choose **Stripe** or **PayTR**
+- Enter test card details
+- Complete payment
+
+#### 4. Verify Payment Status
+- Check booking status via API:
+  ```bash
+  GET http://localhost:5000/api/bookings/{bookingId}
+  ```
+- Status should update to `paid` after successful payment
+
+### Moving to Production
+
+**Stripe:**
+1. Switch to live API keys (`sk_live_...` and `pk_live_...`)
+2. Configure production webhook endpoint
+3. Update `STRIPE_WEBHOOK_SECRET` with production secret
+
+**PayTR:**
+1. Set `PAYTR_TEST_MODE=false`
+2. Use production merchant credentials
+3. Ensure IPN callback URL is HTTPS and publicly accessible
+4. Test with small amounts first
+
+### Troubleshooting Payments
+
+See the [PayTR Integration Guide](docs/PAYTR_INTEGRATION.md) for comprehensive troubleshooting:
+- Hash verification errors
+- IPN callback issues
+- Test card problems
+- 3D Secure authentication
+
+For Stripe issues, check:
+- [Stripe Testing Guide](https://stripe.com/docs/testing)
+- [Webhook Debugging](https://stripe.com/docs/webhooks/test)
 
 ---
 

@@ -64,6 +64,7 @@ router.put(
         currency,
         defaultLanguage,
         featureFlags,
+        paymentProviders,
       } = req.body;
 
       // Build updates object with only provided fields
@@ -82,6 +83,9 @@ router.put(
         } else {
           updates.featureFlags = featureFlags;
         }
+      }
+      if (paymentProviders !== undefined) {
+        updates.paymentProviders = paymentProviders;
       }
 
       // Update settings
