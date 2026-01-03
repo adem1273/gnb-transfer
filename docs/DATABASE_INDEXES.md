@@ -148,6 +148,104 @@ BlogPost.find({ $text: { $search: 'best beaches turkey' }, status: 'published' }
 - Text index covers title, excerpt, and SEO meta title for comprehensive search
 - Author index supports contributor pages
 
+### Vehicle Model
+
+**Purpose**: Fleet management, vehicle assignment, maintenance tracking
+
+| Index | Type | Fields | Rationale |
+|-------|------|--------|-----------|
+| plateNumber_1 | Single, Unique | plateNumber | Vehicle identification |
+| status_1_type_1 | Compound | status, type | Available vehicles by type |
+| currentDriver_1 | Single | currentDriver | Driver-vehicle assignment lookup |
+| insuranceExpiry_1 | Single | insuranceExpiry | Insurance renewal tracking |
+| registrationExpiry_1 | Single | registrationExpiry | Registration renewal tracking |
+| type_1_capacity_1_status_1 | Compound | type, capacity, status | Vehicle search by requirements |
+
+**Query Patterns:**
+```javascript
+// Available vehicles by type - uses status_1_type_1 index
+Vehicle.find({ status: 'available', type: 'sedan' })
+
+// Expiring insurance - uses insuranceExpiry_1 index
+Vehicle.find({ insuranceExpiry: { $lte: thirtyDaysFromNow } })
+
+// Vehicle by capacity - uses type_1_capacity_1_status_1 index
+Vehicle.find({ type: 'van', capacity: { $gte: 8 }, status: 'available' })
+```
+
+### Coupon Model
+
+**Purpose**: Discount codes, marketing campaigns, promotion tracking
+
+| Index | Type | Fields | Rationale |
+|-------|------|--------|-----------|
+| code_1 | Single, Unique | code | Coupon code lookup |
+| active_1_validFrom_1_validUntil_1 | Compound | active, validFrom, validUntil | Valid coupons filtering |
+| createdAt_-1 | Single | createdAt | Recent coupons list |
+| applicableTours_1 | Single | applicableTours | Tour-specific coupons |
+
+**Query Patterns:**
+```javascript
+// Valid coupons - uses active_1_validFrom_1_validUntil_1 index
+Coupon.find({ active: true, validFrom: { $lte: now }, validUntil: { $gte: now } })
+
+// Tour coupons - uses applicableTours_1 index
+Coupon.find({ applicableTours: tourId })
+```
+
+### Route Model
+
+**Purpose**: Transfer routes, pricing, location pairs, distance calculation
+
+| Index | Type | Fields | Rationale |
+|-------|------|--------|-----------|
+| active_1_isPopular_-1 | Compound | active, isPopular | Popular routes first |
+| origin.name_1_destination.name_1 | Compound | origin.name, destination.name | Route lookup by locations |
+| origin.type_1_destination.type_1 | Compound | origin.type, destination.type | Route lookup by location types |
+| distance_1_basePrice_1 | Compound | distance, basePrice | Price/distance filtering |
+| categories_1 | Single | categories | Category-based filtering |
+| name_text_description_text_origin.name_text_destination.name_text | Text | Multiple text fields | Full-text route search |
+
+**Query Patterns:**
+```javascript
+// Popular routes - uses active_1_isPopular_-1 index
+Route.find({ active: true }).sort({ isPopular: -1 })
+
+// Airport routes - uses origin.type_1_destination.type_1 index
+Route.find({ 'origin.type': 'airport', 'destination.type': 'hotel' })
+
+// Route search - uses text index
+Route.find({ $text: { $search: 'istanbul airport' } })
+```
+
+### RefreshToken Model
+
+**Purpose**: JWT refresh token management, rotation, security
+
+| Index | Type | Fields | Rationale |
+|-------|------|--------|-----------|
+| tokenId_1 | Single, Unique | tokenId | Direct token lookup (O(1)) |
+| tokenHash_1 | Single | tokenHash | Token verification |
+| userId_1_revoked_1 | Compound | userId, revoked | Active user tokens |
+| userId_1_createdAt_-1 | Compound | userId, createdAt | Recent user tokens |
+| expiresAt_1_TTL | TTL | expiresAt | Auto-delete expired tokens |
+| revoked_1 | Single | revoked | Revoked token queries |
+| ipAddress_1 | Single | ipAddress | Security auditing by IP |
+
+**Query Patterns:**
+```javascript
+// Active user tokens - uses userId_1_revoked_1 index
+RefreshToken.find({ userId, revoked: false })
+
+// Token lookup - uses tokenId_1 index
+RefreshToken.findOne({ tokenId })
+```
+
+**Optimization Notes:**
+- TTL index automatically removes expired tokens
+- Compound indexes support security queries
+- Token hash stored separately for security
+
 ### Review Model
 
 **Purpose**: Customer reviews, ratings, driver feedback, homepage testimonials
@@ -205,6 +303,193 @@ Driver.find({ status: 'active', rating: { $gte: 4.5 } }).sort({ rating: -1 })
 // License expiry check - uses licenseExpiry_1 index
 Driver.find({ licenseExpiry: { $lte: thirtyDaysFromNow } })
 ```
+
+### LoyaltyPoints Model
+
+**Purpose**: Customer loyalty program, points tracking, tier management, rewards
+
+| Index | Type | Fields | Rationale |
+|-------|------|--------|-----------|
+| user_1 | Single, Unique | user | One loyalty record per user |
+| totalPoints_-1 | Single | totalPoints | Leaderboard queries by current points |
+| tier_1 | Single | tier | Tier-based filtering and analytics |
+| tier_1_totalPoints_-1 | Compound | tier, totalPoints | Tier-specific leaderboards |
+| lastActivityAt_-1 | Single | lastActivityAt | Identify inactive users for re-engagement |
+| lifetimePoints_-1 | Single | lifetimePoints | Overall leaderboard and tier calculation |
+
+**Query Patterns:**
+```javascript
+// Leaderboard - uses lifetimePoints_-1 index
+LoyaltyPoints.find().sort({ lifetimePoints: -1 }).limit(10)
+
+// Tier members - uses tier_1_totalPoints_-1 index
+LoyaltyPoints.find({ tier: 'gold' }).sort({ totalPoints: -1 })
+
+// Inactive users - uses lastActivityAt_-1 index
+LoyaltyPoints.find({ lastActivityAt: { $lt: thirtyDaysAgo } })
+```
+
+### SupportTicket Model
+
+**Purpose**: Customer support ticket management, AI escalation tracking
+
+| Index | Type | Fields | Rationale |
+|-------|------|--------|-----------|
+| email_1_createdAt_-1 | Compound | email, createdAt | User ticket history chronological |
+| status_1_priority_-1 | Compound | status, priority | Support dashboard priority queue |
+| createdAt_-1 | Single | createdAt | Recent tickets list |
+| user_1_status_1 | Compound | user, status | User's active tickets |
+| booking_1 | Single | booking | Booking-related support lookup |
+| category_1_status_1 | Compound | category, status | Category-based filtering |
+| status_1_createdAt_-1 | Compound | status, createdAt | Status-filtered chronological queries |
+
+**Query Patterns:**
+```javascript
+// Support dashboard - uses status_1_priority_-1 index
+SupportTicket.find({ status: 'open' }).sort({ priority: -1 })
+
+// User's tickets - uses user_1_status_1 index
+SupportTicket.find({ user: userId, status: { $in: ['open', 'in-progress'] } })
+
+// Booking support - uses booking_1 index
+SupportTicket.find({ booking: bookingId })
+```
+
+### DriverLocation Model
+
+**Purpose**: Real-time driver GPS tracking, location history
+
+| Index | Type | Fields | Rationale |
+|-------|------|--------|-----------|
+| driverId_1 | Single | driverId | Driver lookup (legacy field-level index) |
+| driverId_1_updatedAt_-1 | Compound | driverId, updatedAt | Latest location per driver |
+| updatedAt_-1 | Single | updatedAt | Recent location updates |
+| updatedAt_1_TTL | TTL | updatedAt | Auto-delete locations older than 24 hours |
+
+**Query Patterns:**
+```javascript
+// Latest driver location - uses driverId_1_updatedAt_-1 index
+DriverLocation.findOne({ driverId }).sort({ updatedAt: -1 })
+
+// Recent locations - uses updatedAt_-1 index
+DriverLocation.find({ updatedAt: { $gte: lastHour } })
+```
+
+**Optimization Notes:**
+- TTL index automatically purges old location data to save storage
+- Compound index supports efficient "latest location" queries
+- Consider geospatial indexes if proximity searches are needed
+
+### AdminSettings Model
+
+**Purpose**: System-wide admin configuration (singleton pattern)
+
+| Index | Type | Fields | Rationale |
+|-------|------|--------|-----------|
+| updatedAt_-1 | Single | updatedAt | Audit trail for configuration changes |
+
+**Query Patterns:**
+```javascript
+// Get settings (singleton) - uses primary key
+AdminSettings.findOne()
+
+// Settings history - uses updatedAt_-1 index
+AdminSettings.find().sort({ updatedAt: -1 })
+```
+
+**Optimization Notes:**
+- Singleton pattern: only one document exists
+- Index mainly for audit trail and version tracking
+
+### RobotsConfig Model
+
+**Purpose**: robots.txt configuration (singleton pattern)
+
+| Index | Type | Fields | Rationale |
+|-------|------|--------|-----------|
+| enabled_1 | Single | enabled | Filter by enabled status |
+| updatedAt_-1 | Single | updatedAt | Configuration change tracking |
+
+**Query Patterns:**
+```javascript
+// Get config (singleton) - uses primary key
+RobotsConfig.findOne()
+
+// Recent config changes - uses updatedAt_-1 index
+RobotsConfig.find().sort({ updatedAt: -1 })
+```
+
+**Optimization Notes:**
+- Singleton pattern with minimal indexing needs
+- Indexes support audit and version control
+
+### Additional System Models
+
+The following models also have optimized indexes configured for their specific use cases:
+
+**Campaign Model**
+- Active campaigns, priority-based selection, coupon codes
+- Indexes: `active_1_startDate_1_endDate_1`, `type_1_active_1`, `couponCode_1` (unique, sparse), `priority_-1`
+
+**AdTracking Model**
+- UTM tracking, conversion analytics, platform ROI
+- Indexes: `utm.source_1_utm.campaign_1`, `adPlatform_1_converted_1`, `createdAt_1`, `gclid_1` (sparse), `fbclid_1` (sparse)
+
+**Media Model**
+- Upload tracking, MIME type filtering, usage statistics
+- Indexes: `uploadedBy_1_createdAt_-1`, `mimeType_1`, `createdAt_-1`, `usageCount_1`
+
+**PriceRule Model**
+- Dynamic pricing, seasonal rules, priority ordering
+- Indexes: `active_1_priority_-1`, `ruleType_1_active_1`, date range compound indexes
+
+**DelayMetrics Model**
+- Flight delay tracking with 90-day TTL retention
+- Indexes: `booking_1_createdAt_-1`, `discountCode_1` (sparse), `createdAt_1` (TTL: 90 days)
+
+**BasePricing Model**
+- Origin-destination pricing lookups
+- Indexes: `origin_1_destination_1` (unique), `originType_1_destinationType_1`, `active_1`
+
+**CampaignRule Model**
+- Campaign conditions and date ranges
+- Indexes: `active_1_startDate_1_endDate_1`, `conditionType_1`
+
+**ExtraService Model**
+- Service catalog with category indexing
+- Indexes: `code_1`, `category_1`, `active_1_order_1`
+
+**FeatureToggle Model**
+- Feature flag lookups for A/B testing
+- Indexes: `id_1_enabled_1`
+
+**GlobalSettings Model**
+- Key-value configuration store (singleton pattern)
+- Indexes: `key_1` (unique)
+
+**HomeLayout Model**
+- Active layout selection for homepage builder
+- Indexes: `isActive_1_createdAt_-1`, `createdAt_-1`
+
+**Menu Model**
+- Location-based menu queries
+- Indexes: `location_1_isActive_1`
+
+**Page Model**
+- CMS page management with slug lookups
+- Indexes: `slug_1` (unique), `published_1_createdAt_-1`, `createdAt_-1`
+
+**Referral Model**
+- Referral code tracking and user referrals
+- Indexes: `referrer_1`, `referralCode_1`, `referredUsers.user_1`
+
+**Settings Model**
+- System settings key-value store
+- Indexes: `key_1` (unique)
+
+**DelayCompensation Model**
+- Delay compensation tracking
+- Indexes: `status_1_createdAt_-1`, `booking_1`
 
 ## Query Optimization Techniques
 

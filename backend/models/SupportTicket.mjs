@@ -114,9 +114,13 @@ const supportTicketSchema = new mongoose.Schema(
 );
 
 // Indexes for better query performance
-supportTicketSchema.index({ email: 1, createdAt: -1 });
-supportTicketSchema.index({ status: 1, priority: -1 });
-supportTicketSchema.index({ createdAt: -1 });
+supportTicketSchema.index({ email: 1, createdAt: -1 }); // User ticket history
+supportTicketSchema.index({ status: 1, priority: -1 }); // Support dashboard
+supportTicketSchema.index({ createdAt: -1 }); // Recent tickets
+supportTicketSchema.index({ user: 1, status: 1 }); // User's active tickets
+supportTicketSchema.index({ booking: 1 }); // Booking-related tickets
+supportTicketSchema.index({ category: 1, status: 1 }); // Category filtering
+supportTicketSchema.index({ status: 1, createdAt: -1 }); // Status-based chronological queries
 
 // Virtual for ticket age
 supportTicketSchema.virtual('age').get(function () {

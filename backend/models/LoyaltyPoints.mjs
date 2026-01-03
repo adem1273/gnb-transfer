@@ -104,8 +104,11 @@ const loyaltyPointsSchema = new mongoose.Schema(
 
 // Indexes
 loyaltyPointsSchema.index({ user: 1 }, { unique: true });
-loyaltyPointsSchema.index({ totalPoints: -1 });
-loyaltyPointsSchema.index({ tier: 1 });
+loyaltyPointsSchema.index({ totalPoints: -1 }); // Leaderboard queries
+loyaltyPointsSchema.index({ tier: 1 }); // Tier-based queries
+loyaltyPointsSchema.index({ tier: 1, totalPoints: -1 }); // Tier leaderboard
+loyaltyPointsSchema.index({ lastActivityAt: -1 }); // Inactive user identification
+loyaltyPointsSchema.index({ lifetimePoints: -1 }); // Overall leaderboard
 
 // Calculate tier based on lifetime points
 loyaltyPointsSchema.methods.calculateTier = function () {
