@@ -7,12 +7,14 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import {
   authApi,
   clearAuth,
-  setToken,
-  setRefreshToken,
   setUser,
   getUser,
-  getToken,
-  getRefreshToken,
+  // Token storage now uses SecureStore for enhanced security
+  setAccessToken,
+  getAccessToken,
+  setRefreshToken as setSecureRefreshToken,
+  getRefreshToken as getSecureRefreshToken,
+  clearTokens,
 } from '@gnb-transfer/shared';
 import type { User, LoginCredentials, RegisterCredentials } from '@gnb-transfer/shared';
 
@@ -43,7 +45,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const token = await getToken();
+        const token = await getAccessToken();
         if (token) {
           const storedUser = await getUser<User>();
           if (storedUser) {
@@ -55,7 +57,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               setUserState(profile);
               await setUser(profile);
             } catch {
-              // Token invalid, clear auth
+              // Token invalid, clear auth (both secure tokens and user data)
+              await clearTokens();
               await clearAuth();
             }
           }
@@ -72,9 +75,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = useCallback(async (credentials: LoginCredentials) => {
     const response = await authApi.login(credentials);
-    await setToken(response.accessToken);
+    await setAccessToken(response.accessToken);
     if (response.refreshToken) {
-      await setRefreshToken(response.refreshToken);
+      await setSecureRefreshToken(response.refreshToken);
     }
     await setUser(response.user);
     setUserState(response.user);
@@ -82,9 +85,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = useCallback(async (credentials: RegisterCredentials) => {
     const response = await authApi.register(credentials);
-    await setToken(response.accessToken);
+    await setAccessToken(response.accessToken);
     if (response.refreshToken) {
-      await setRefreshToken(response.refreshToken);
+      await setSecureRefreshToken(response.refreshToken);
     }
     await setUser(response.user);
     setUserState(response.user);
@@ -96,6 +99,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Error during logout:', error);
     } finally {
+      // Always clear secure tokens and user data on logout
+      await clearTokens();
       await clearAuth();
       setUserState(null);
     }
@@ -117,15 +122,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    */
   const refreshToken = useCallback(async (): Promise<boolean> => {
     try {
-      const storedRefreshToken = await getRefreshToken();
+      const storedRefreshToken = await getSecureRefreshToken();
       if (!storedRefreshToken) {
         return false;
       }
 
       const response = await authApi.refresh(storedRefreshToken);
-      await setToken(response.accessToken);
+      await setAccessToken(response.accessToken);
       if (response.refreshToken) {
-        await setRefreshToken(response.refreshToken);
+        await setSecureRefreshToken(response.refreshToken);
       }
       if (response.user) {
         setUserState(response.user);
@@ -134,7 +139,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return true;
     } catch (error) {
       console.error('Error refreshing token:', error);
-      // Token refresh failed, clear auth state
+      // Token refresh failed, clear auth state (both secure tokens and user data)
+      await clearTokens();
       await clearAuth();
       setUserState(null);
       return false;
