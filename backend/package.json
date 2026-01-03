@@ -20,7 +20,11 @@
     "db:indexes": "node scripts/create-indexes.mjs",
     "db:indexes:dry-run": "node scripts/create-indexes.mjs --dry-run",
     "db:indexes:drop-unused": "node scripts/create-indexes.mjs --drop-unused",
-    "db:test-performance": "node scripts/test-query-performance.mjs"
+    "db:test-performance": "node scripts/test-query-performance.mjs",
+    "db:optimize": "node scripts/optimize-indexes.js",
+    "db:optimize:dry-run": "node scripts/optimize-indexes.js --dry-run",
+    "db:optimize:drop-unused": "node scripts/optimize-indexes.js --drop-unused",
+    "db:optimize:force": "node scripts/optimize-indexes.js --force"
   },
   "keywords": [
     "gnb",
