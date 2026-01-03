@@ -1,0 +1,537 @@
+# GNB Transfer Mobile App
+
+The GNB Transfer Mobile App is a React Native application built with Expo, providing customers with a seamless way to book airport transfers, view tours, and manage their bookings on the go.
+
+[![Expo](https://img.shields.io/badge/Expo-52-000020.svg?logo=expo)](https://expo.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.76-61DAFB.svg?logo=react)](https://reactnative.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6.svg?logo=typescript)](https://www.typescriptlang.org/)
+[![NativeWind](https://img.shields.io/badge/NativeWind-4.0-06B6D4.svg?logo=tailwindcss)](https://www.nativewind.dev/)
+
+---
+
+## ✨ Features
+
+### Customer Features
+- **Multi-Language Support**: 9 languages (TR, EN, AR, RU, DE, FR, ES, ZH, FA) synced with web app
+- **Easy Booking**: Multi-step booking flow with passenger details and extras
+- **Tour Discovery**: Browse and book tours with detailed information
+- **Booking Management**: View and track your bookings in real-time
+- **Profile Management**: Update personal information and preferences
+- **Offline Support**: View cached data when offline with TanStack Query persistence
+- **Dark Mode**: Automatic theme switching based on device settings
+
+### Technical Features
+- **Expo Router**: File-based routing with authentication guards
+- **TanStack Query**: Server state management with offline persistence
+- **NativeWind**: Tailwind CSS for React Native styling
+- **Shared Package**: Common utilities, validators, and types with web app
+- **TypeScript**: Full type safety across the codebase
+- **EAS Build**: Production-ready build configuration
+
+---
+
+## 🛠️ Technology Stack
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Expo** | 52.0.0 | Development platform and build system |
+| **React Native** | 0.76.0 | Cross-platform mobile framework |
+| **Expo Router** | 4.0.0 | File-based navigation |
+| **TypeScript** | 5.6 | Static type checking |
+| **NativeWind** | 4.0.0 | Tailwind CSS for React Native |
+| **TanStack Query** | 5.x | Server state and caching |
+| **i18next** | 23.x | Internationalization |
+| **Axios** | 1.7.x | HTTP client |
+| **Yup** | 1.4.x | Form validation |
+
+---
+
+## 📱 Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js**: Version 18 or higher ([Download](https://nodejs.org/))
+- **npm**: Version 8 or higher (comes with Node.js)
+- **Expo CLI**: Install globally with `npm install -g @expo/cli`
+- **Expo Go App**: Download from [App Store](https://apps.apple.com/app/expo-go/id982107779) or [Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent)
+
+### Optional (for Native Builds)
+- **iOS**: Xcode 15+ (macOS only)
+- **Android**: Android Studio with SDK 34+
+- **EAS CLI**: `npm install -g eas-cli`
+
+---
+
+## 🚀 Setup Instructions
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/adem1273/gnb-transfer.git
+cd gnb-transfer
+```
+
+### 2. Install Root Dependencies
+
+```bash
+# From project root
+npm install
+```
+
+### 3. Install Mobile Dependencies
+
+```bash
+cd mobile
+npm install
+```
+
+### 4. Configure Environment Variables
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit with your API URL
+# For local development, use your machine's IP address
+# Example: EXPO_PUBLIC_API_URL=http://192.168.1.100:5000/api
+```
+
+**Finding Your Local IP:**
+```bash
+# macOS
+ipconfig getifaddr en0
+
+# Linux
+hostname -I | awk '{print $1}'
+
+# Windows
+ipconfig | findstr IPv4
+```
+
+### 5. Start the Backend Server
+
+In a separate terminal:
+```bash
+cd backend
+npm run dev
+```
+
+### 6. Start the Mobile App
+
+```bash
+# In the mobile directory
+npm start
+# or
+npx expo start
+```
+
+### 7. Run on Device/Simulator
+
+- **Physical Device**: Scan the QR code with Expo Go app
+- **iOS Simulator**: Press `i` in the terminal
+- **Android Emulator**: Press `a` in the terminal
+- **Web Browser**: Press `w` in the terminal
+
+---
+
+## 📁 Project Structure
+
+```
+mobile/
+├── app/                      # Expo Router pages
+│   ├── (auth)/              # Authentication screens
+│   │   ├── _layout.tsx      # Auth layout
+│   │   ├── login.tsx        # Login screen
+│   │   └── register.tsx     # Registration screen
+│   ├── (tabs)/              # Main tab screens
+│   │   ├── _layout.tsx      # Tab navigation layout
+│   │   ├── index.tsx        # Home screen
+│   │   ├── tours.tsx        # Tours listing
+│   │   ├── bookings.tsx     # User bookings
+│   │   └── profile.tsx      # User profile
+│   ├── booking-flow/        # Booking process screens
+│   ├── tour/                # Tour detail screens
+│   └── _layout.tsx          # Root layout with providers
+│
+├── assets/                   # Static assets
+│   ├── icon.png             # App icon (1024x1024)
+│   ├── splash.png           # Splash screen image
+│   └── adaptive-icon.png    # Android adaptive icon
+│
+├── components/               # Reusable components
+│   ├── common/              # Shared UI components
+│   ├── skeleton/            # Loading skeleton components
+│   └── index.ts             # Component exports
+│
+├── contexts/                 # React Context providers
+│   ├── AuthContext.tsx      # Authentication state
+│   ├── ErrorContext.tsx     # Global error handling
+│   └── index.ts             # Context exports
+│
+├── scripts/                  # Utility scripts
+│   └── generate-icons.sh    # Icon generation script
+│
+├── app.json                  # Expo configuration
+├── eas.json                  # EAS Build configuration
+├── babel.config.js          # Babel configuration
+├── metro.config.js          # Metro bundler configuration
+├── tailwind.config.js       # Tailwind CSS configuration
+├── tsconfig.json            # TypeScript configuration
+├── global.css               # Global styles
+└── package.json             # Dependencies
+```
+
+---
+
+## 💻 Development Workflow
+
+### Available Scripts
+
+```bash
+# Start development server
+npm start
+
+# Start with specific platform
+npm run ios         # iOS Simulator
+npm run android     # Android Emulator
+npm run web         # Web browser
+
+# Linting
+npm run lint        # Run ESLint
+
+# Build (requires EAS CLI)
+npm run prebuild    # Generate native projects
+npm run build:dev   # Development build
+npm run build:preview  # Preview/staging build
+npm run build:prod  # Production build
+```
+
+### Development Server Commands
+
+When the Expo development server is running:
+
+| Key | Action |
+|-----|--------|
+| `i` | Open iOS Simulator |
+| `a` | Open Android Emulator |
+| `w` | Open in web browser |
+| `r` | Reload the app |
+| `m` | Toggle menu |
+| `j` | Open debugger |
+| `?` | Show all commands |
+
+### Code Style
+
+- **ESLint**: Enforced via `npm run lint`
+- **TypeScript**: Strict mode enabled
+- **Prettier**: Format code with Prettier
+- **NativeWind**: Tailwind utility classes for styling
+
+### Hot Reloading
+
+The app supports fast refresh. Changes to your code will automatically update in the running app without losing component state.
+
+---
+
+## 🔨 Build Process
+
+### Development Build (Testing on Device)
+
+For development builds with debugging support:
+
+```bash
+# Login to EAS
+eas login
+
+# Build for iOS (internal distribution)
+eas build --profile development --platform ios
+
+# Build for Android (APK)
+eas build --profile development --platform android
+```
+
+### Preview Build (Internal Testing)
+
+For sharing with testers before app store submission:
+
+```bash
+# Build for both platforms
+eas build --profile preview --platform all
+
+# Or specific platform
+eas build --profile preview --platform ios
+eas build --profile preview --platform android
+```
+
+### Production Build
+
+For app store submission:
+
+```bash
+# Build for App Store
+eas build --profile production --platform ios
+
+# Build for Google Play
+eas build --profile production --platform android
+```
+
+### Build Profiles (eas.json)
+
+| Profile | Use Case | Distribution |
+|---------|----------|--------------|
+| `development` | Debug builds | Internal (Expo Go) |
+| `preview` | Testing builds | Internal (TestFlight, APK) |
+| `production` | Store releases | App Store, Google Play |
+
+### Native Build (Without EAS)
+
+Generate native iOS/Android projects for local building:
+
+```bash
+# Generate native projects
+npx expo prebuild
+
+# iOS (requires macOS)
+cd ios && pod install && cd ..
+npx react-native run-ios
+
+# Android
+npx react-native run-android
+```
+
+---
+
+## 🌐 API Configuration
+
+### Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `EXPO_PUBLIC_API_URL` | Backend API URL | `http://192.168.1.100:5000/api` |
+
+### API URL Configuration by Environment
+
+**Development (eas.json):**
+```json
+{
+  "development": {
+    "env": {
+      "EXPO_PUBLIC_API_URL": "http://localhost:5000/api"
+    }
+  }
+}
+```
+
+**Preview/Staging:**
+```json
+{
+  "preview": {
+    "env": {
+      "EXPO_PUBLIC_API_URL": "https://staging-api.gnbtransfer.com/api"
+    }
+  }
+}
+```
+
+**Production:**
+```json
+{
+  "production": {
+    "env": {
+      "EXPO_PUBLIC_API_URL": "https://api.gnbtransfer.com/api"
+    }
+  }
+}
+```
+
+### Network Access (Development)
+
+When running on a physical device, ensure:
+
+1. Device and computer are on the same WiFi network
+2. Use your computer's local IP address (not `localhost`)
+3. Backend is running and accessible
+
+---
+
+## 🔒 Authentication Flow
+
+The app uses JWT-based authentication with the same backend as the web app:
+
+1. **Login**: User enters credentials → receives access + refresh tokens
+2. **Token Storage**: Tokens stored securely in AsyncStorage
+3. **Auto Refresh**: Access token refreshed automatically before expiry
+4. **Logout**: Tokens cleared from storage
+
+### Protected Routes
+
+The app uses Expo Router's layout system for authentication guards:
+
+- `(auth)/*` - Public routes (login, register)
+- `(tabs)/*` - Protected routes (requires authentication)
+- `tour/*` - Public routes (tour details)
+
+---
+
+## 🔌 Offline Support
+
+The app includes comprehensive offline support:
+
+### Features
+- **Query Caching**: TanStack Query persists data to AsyncStorage
+- **Network Detection**: Automatic online/offline status detection
+- **Offline First**: Cached data displayed while offline
+- **Background Sync**: Automatic refetch when connection restored
+
+### Configuration
+- Cache duration: 24 hours
+- Stale time: 5 minutes
+- Network mode: `offlineFirst`
+
+---
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+#### 1. Expo Go Can't Connect to Development Server
+
+```
+Error: Could not connect to development server
+```
+
+**Solutions:**
+1. Ensure device and computer are on same WiFi network
+2. Check if backend is running on correct port
+3. Try using tunnel mode: `npx expo start --tunnel`
+4. Verify firewall isn't blocking port 8081
+
+#### 2. Metro Bundler Issues
+
+```
+Error: Unable to resolve module
+```
+
+**Solutions:**
+```bash
+# Clear Metro cache
+npx expo start --clear
+
+# Or manually clear
+rm -rf node_modules/.cache
+rm -rf .expo
+npm install
+```
+
+#### 3. iOS Simulator Not Found
+
+```
+Error: No simulator found
+```
+
+**Solutions:**
+```bash
+# macOS only - Open Xcode and install a simulator
+xcode-select --install
+# Then open Xcode > Settings > Platforms > Download iOS Simulator
+```
+
+#### 4. Android Emulator Issues
+
+```
+Error: No Android device found
+```
+
+**Solutions:**
+1. Ensure Android Studio is installed with SDK
+2. Create an AVD (Android Virtual Device) in Android Studio
+3. Start the emulator before running `npm run android`
+4. Check if `adb` is in PATH: `adb devices`
+
+#### 5. Build Failures
+
+```
+Error: Build failed
+```
+
+**Solutions:**
+```bash
+# Clean and rebuild
+npm run prebuild -- --clean
+rm -rf node_modules
+npm install
+```
+
+#### 6. NativeWind Styles Not Applying
+
+**Solutions:**
+1. Ensure `global.css` is imported in `_layout.tsx`
+2. Restart Metro bundler: `npx expo start --clear`
+3. Check `tailwind.config.js` content paths
+
+#### 7. API Requests Failing
+
+**Solutions:**
+1. Check API URL in environment variables
+2. Ensure backend is running
+3. Check network connectivity
+4. Verify CORS settings on backend include mobile origin
+
+### Debug Tools
+
+```bash
+# Open React Native debugger
+npx expo start --go
+
+# Then press 'j' to open JavaScript debugger
+```
+
+### Useful Commands
+
+```bash
+# Check Expo environment
+npx expo doctor
+
+# Clear all caches
+npx expo start --clear
+
+# View build logs
+eas build:list
+
+# View device logs
+npx react-native log-ios
+npx react-native log-android
+```
+
+---
+
+## 📱 Screenshots
+
+*Screenshots will be added here showcasing the main app screens:*
+
+| Home | Tours | Bookings | Profile |
+|------|-------|----------|---------|
+| 📱 Home screen with featured destinations | 🗺️ Browse available tours | ✈️ View and manage bookings | 👤 User profile settings |
+
+> **Note**: Add actual screenshots to the `screenshots/` directory and update the table above with image references like `![Home](./screenshots/home.png)`.
+
+---
+
+## 🔗 Related Documentation
+
+- [Main Project README](../README.md) - Full project overview
+- [Backend Documentation](../backend/README.md) - API documentation
+- [Shared Package](../packages/shared/README.md) - Shared utilities and types
+- [Expo Documentation](https://docs.expo.dev/) - Official Expo docs
+- [Expo Router](https://expo.github.io/router/docs) - Navigation documentation
+- [NativeWind](https://www.nativewind.dev/) - Tailwind for React Native
+
+---
+
+## 📄 License
+
+This project is licensed under the ISC License. See the [LICENSE](../LICENSE) file for details.
+
+---
+
+**Built with ❤️ by the GNB Transfer Team**
