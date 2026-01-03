@@ -18,15 +18,16 @@ import '../global.css';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider, onlineManager, focusManager } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
-import { AppState, Platform, AppStateStatus } from 'react-native';
+import { AppState, Platform, AppStateStatus, StyleSheet } from 'react-native';
 import { AuthProvider, useAuth, ErrorProvider } from '../contexts';
+import { initSentry, SentryErrorBoundary } from '../sentry';
 
 /**
  * Checks if the app is running in development mode.
@@ -46,6 +47,9 @@ import { AuthProvider, useAuth, ErrorProvider } from '../contexts';
  * detect development mode in React Native applications.
  */
 const isDevelopment = __DEV__;
+
+// Initialize Sentry crash reporting (production only, FREE tier)
+initSentry();
 
 // Create async storage persister for offline support
 const asyncStoragePersister = createAsyncStoragePersister({
@@ -149,6 +153,62 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/**
+ * Fallback component for Sentry ErrorBoundary.
+ * Shows a minimal error message without exposing any user data.
+ * Allows navigation recovery by not blocking the entire app.
+ */
+function SentryFallback({ resetError }: { error?: Error; resetError?: () => void }) {
+  return (
+    <View style={styles.errorContainer}>
+      <Text style={styles.errorTitle}>Something went wrong</Text>
+      <Text style={styles.errorMessage}>
+        The app encountered an unexpected error. Please try again.
+      </Text>
+      {resetError && (
+        <TouchableOpacity style={styles.errorButton} onPress={resetError}>
+          <Text style={styles.errorButtonText}>Try Again</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
+// Styles for error fallback (avoiding NativeWind for error boundary stability)
+const styles = StyleSheet.create({
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#ffffff',
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  errorButton: {
+    backgroundColor: '#1D4ED8',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  errorButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+});
+
 export default function RootLayout() {
   /**
    * Development mode safety for OTA updates:
@@ -165,17 +225,19 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider>
-        <AuthProvider>
-          <ErrorProvider>
-            <AuthGuard>
-              <StatusBar style="auto" />
-              <Slot />
-            </AuthGuard>
-          </ErrorProvider>
-        </AuthProvider>
-      </SafeAreaProvider>
-    </QueryClientProvider>
+    <SentryErrorBoundary fallback={SentryFallback}>
+      <QueryClientProvider client={queryClient}>
+        <SafeAreaProvider>
+          <AuthProvider>
+            <ErrorProvider>
+              <AuthGuard>
+                <StatusBar style="auto" />
+                <Slot />
+              </AuthGuard>
+            </ErrorProvider>
+          </AuthProvider>
+        </SafeAreaProvider>
+      </QueryClientProvider>
+    </SentryErrorBoundary>
   );
 }
