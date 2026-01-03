@@ -869,9 +869,22 @@ npx react-native log-android
 
 ## 🔗 Related Documentation
 
+### Mobile App Guides
+
+- **[RELEASE_GUIDE.md](./RELEASE_GUIDE.md)** - Complete release process (versioning, builds, TestFlight, store submission)
+- **[STORE_SUBMISSION.md](./STORE_SUBMISSION.md)** - App Store & Play Store submission checklists
+- **[OTA_UPDATES.md](./OTA_UPDATES.md)** - Over-The-Air update procedures and safety rules
+- **[PRIVACY_LEGAL.md](./PRIVACY_LEGAL.md)** - Privacy policy, legal requirements, GDPR/CCPA compliance
+- **[ASSETS_CHECKLIST.md](./ASSETS_CHECKLIST.md)** - Complete asset requirements (icons, screenshots, graphics)
+
+### Project Documentation
+
 - [Main Project README](../README.md) - Full project overview
 - [Backend Documentation](../backend/README.md) - API documentation
 - [Shared Package](../packages/shared/README.md) - Shared utilities and types
+
+### External Resources
+
 - [Expo Documentation](https://docs.expo.dev/) - Official Expo docs
 - [Expo Router](https://expo.github.io/router/docs) - Navigation documentation
 - [NativeWind](https://www.nativewind.dev/) - Tailwind for React Native
