@@ -35,6 +35,9 @@ const DynamicPage = lazy(() => import('./pages/DynamicPage'));
 
 // Lazy load payment and admin components (heavy)
 const StripePayment = lazy(() => import('./components/StripePayment'));
+const PaymentPage = lazy(() => import('./pages/PaymentPage'));
+const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess'));
+const PaymentFailed = lazy(() => import('./pages/PaymentFailed'));
 const AdminDashboard = lazy(() => import('./pages/Dashboard'));
 const AdminBookings = lazy(() => import('./pages/Bookings'));
 const AdminUsers = lazy(() => import('./pages/Users'));
@@ -155,7 +158,9 @@ function App() {
                     <Route path="reset-password/:token" element={<ResetPassword />} />
                     <Route path="blog" element={<Blog />} />
                     <Route path="blog/:id" element={<BlogPost />} />
-                    <Route path="payment" element={<StripePayment />} />
+                    <Route path="payment" element={<PaymentPage />} />
+                    <Route path="payment/success" element={<PaymentSuccess />} />
+                    <Route path="payment/failed" element={<PaymentFailed />} />
                     <Route
                       path="reviews"
                       element={
