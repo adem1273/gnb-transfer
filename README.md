@@ -1,6 +1,6 @@
 # GNB Transfer
 
-**GNB Transfer** is a comprehensive, production-ready MERN stack web application for tourism and transfer services. The platform includes a customer-facing website, advanced admin panel, payment integration, AI-powered features, and multi-language support.
+**GNB Transfer** is a comprehensive, production-ready MERN stack web application for tourism and transfer services. The platform includes a customer-facing website, advanced admin panel, payment integration, AI-powered features, multi-language support, and a **React Native mobile app**.
 
 Built with modern web technologies and best practices, GNB Transfer provides a complete solution for managing bookings, tours, fleet operations, customer loyalty, and business analytics.
 
@@ -11,6 +11,8 @@ Built with modern web technologies and best practices, GNB Transfer provides a c
 [![Mongoose](https://img.shields.io/badge/Mongoose-9-red.svg)](https://mongoosejs.com/)
 [![Redis](https://img.shields.io/badge/Redis-Cache%20%26%20Queue-red.svg)](https://redis.io/)
 [![BullMQ](https://img.shields.io/badge/BullMQ-Background%20Jobs-orange.svg)](https://bullmq.io/)
+[![Expo](https://img.shields.io/badge/Expo-52-000020.svg)](https://expo.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.76-61DAFB.svg)](https://reactnative.dev/)
 
 ---
 
@@ -322,6 +324,19 @@ gnb-transfer/
 ├── admin/                   # Standalone admin panel (legacy/alternative)
 │   └── src/                 # Admin panel components
 │
+├── mobile/                  # React Native mobile app (Expo)
+│   ├── app/                 # Expo Router pages
+│   ├── assets/              # App icons and splash screens
+│   ├── components/          # Reusable mobile components
+│   ├── contexts/            # React Context providers
+│   ├── scripts/             # Utility scripts
+│   ├── app.json             # Expo configuration
+│   ├── eas.json             # EAS Build configuration
+│   └── package.json         # Mobile dependencies
+│
+├── packages/                # Shared packages (npm workspaces)
+│   └── shared/              # Shared utilities, types, validators
+│
 ├── public/                  # Static assets
 │   ├── images/              # Images, logos, icons
 │   └── locales/             # Public translation files
@@ -361,6 +376,68 @@ gnb-transfer/
 ├── playwright.config.js     # Playwright E2E test configuration
 └── README.md                # This file
 ```
+
+---
+
+## 📱 Mobile App
+
+GNB Transfer includes a **React Native mobile app** built with Expo, providing customers with a seamless booking experience on iOS and Android.
+
+### Key Features
+
+- **🌐 Multi-Language**: Same 9 languages as web app (TR, EN, AR, RU, DE, FR, ES, ZH, FA)
+- **📱 Easy Booking**: Streamlined multi-step booking flow
+- **🔄 Offline Support**: View cached data without internet connection
+- **🔒 Secure Auth**: JWT authentication synced with backend
+- **🎨 Native UI**: NativeWind (Tailwind CSS) for consistent styling
+
+### Quick Start
+
+```bash
+# Navigate to mobile directory
+cd mobile
+
+# Install dependencies
+npm install
+
+# Start Expo development server
+npm start
+
+# Then:
+# - Scan QR code with Expo Go app on your phone
+# - Press 'i' for iOS simulator
+# - Press 'a' for Android emulator
+```
+
+### Build Commands
+
+```bash
+# Development build (with debugging)
+npm run build:dev
+
+# Preview build (internal testing)
+npm run build:preview
+
+# Production build (App Store / Google Play)
+npm run build:prod
+```
+
+### Screenshots
+
+*Mobile app screenshots showcasing the booking flow:*
+
+| Home | Tours | Booking | Profile |
+|------|-------|---------|---------|
+| 📱 | 🗺️ | ✈️ | 👤 |
+| *Browse destinations* | *View available tours* | *Book transfers* | *Manage account* |
+
+### Documentation
+
+See [mobile/README.md](mobile/README.md) for detailed mobile app documentation including:
+- Complete setup instructions
+- Development workflow
+- Build process
+- Troubleshooting guide
 
 ---
 
@@ -1766,10 +1843,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 - ✅ **Major Upgrades** (#168) - React 19, Mongoose 9, MongoDB 7
 - ✅ **Test Coverage**: 90+ additional test cases across backend and frontend
 - ✅ **Code Cleanup** (#176) - Removed 53 duplicate files, consolidated legacy code
+- ✅ **Mobile App** - React Native (Expo) iOS/Android app with offline support
 
 ### Planned Features (Q2-Q3 2026)
 
-- [ ] **Mobile App**: React Native iOS/Android app
+- [x] **Mobile App**: React Native iOS/Android app ✅ Completed
 - [ ] **Real-time GPS Tracking**: Live driver location with Socket.IO (foundation complete)
 - [ ] **Multi-Currency Auto**: Automatic exchange rate updates via API
 - [ ] **Advanced Analytics**: Predictive analytics with ML models
@@ -1802,6 +1880,7 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 - ✅ **DDoS Protection** (#171) - Redis-backed distributed rate limiting with gradual penalties and abuse detection
 - ✅ **Cache Layer** (#170) - Redis caching with tag-based invalidation reducing database load by 60-95%
 - ✅ **Major Upgrades** (#168) - React 19, Mongoose 9, MongoDB 7, comprehensive test coverage (+90 test cases)
+- ✅ **Mobile App** - React Native (Expo) app with offline support, multi-language, and shared code
 
 #### 📊 Core Features
 
@@ -1815,6 +1894,7 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 - ✅ Corporate client management
 - ✅ Bulk messaging system
 - ✅ PDF invoice generation
+- ✅ Mobile app (iOS/Android)
 
 ---
 
@@ -1841,6 +1921,10 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 - [Security Documentation](backend/SECURITY_API_DOCS.md) - Security features
 - [Contributing](CONTRIBUTING.md) - Contribution guidelines
 - [Changelog](CHANGELOG.md) - Version history
+
+### Mobile App
+- [Mobile App Documentation](mobile/README.md) - Complete mobile app guide
+- [Shared Package](packages/shared/README.md) - Shared utilities and types
 
 ---
 
