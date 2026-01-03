@@ -207,8 +207,8 @@ export default function BookingConfirmation() {
               <Text className="text-primary mr-2">1.</Text>
               <Text className="text-gray-600 flex-1">
                 {isPaid
-                  ? 'You'll receive a confirmation email with receipt'
-                  : 'You'll receive a confirmation email shortly'}
+                  ? "You'll receive a confirmation email with receipt"
+                  : "You'll receive a confirmation email shortly"}
               </Text>
             </View>
             <View className="flex-row items-start">
