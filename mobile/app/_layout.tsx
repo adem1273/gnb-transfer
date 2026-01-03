@@ -26,7 +26,6 @@ import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persi
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { AppState, Platform, AppStateStatus } from 'react-native';
-import Constants from 'expo-constants';
 import { AuthProvider, useAuth, ErrorProvider } from '../contexts';
 
 /**
@@ -41,8 +40,12 @@ import { AuthProvider, useAuth, ErrorProvider } from '../contexts';
  * - OTA updates are enabled via app.json configuration
  * - Updates check automatically on app load (ON_LOAD)
  * - 30-second fallback timeout ensures the app doesn't hang waiting for updates
+ * 
+ * __DEV__ is set by React Native and is true when running in development mode
+ * (e.g., via `expo start` or `npm start`). This is the most reliable way to
+ * detect development mode in React Native applications.
  */
-const isDevelopment = __DEV__ || Constants.expoConfig?.extra?.isDevelopment;
+const isDevelopment = __DEV__;
 
 // Create async storage persister for offline support
 const asyncStoragePersister = createAsyncStoragePersister({
