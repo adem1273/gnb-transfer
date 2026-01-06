@@ -67,23 +67,33 @@ const parseRefreshToken = (token) => {
  * Generate access token (short-lived JWT)
  *
  * @param {object} user - User object with id, email, role
+ * @param {string} deviceFingerprint - Optional device fingerprint for token binding
  * @returns {string} - Signed JWT access token
  *
  * Access tokens are short-lived and contain user claims
  * They are verified on each protected route request
+ * 
+ * Security enhancements:
+ * - jti (JWT ID) for token revocation
+ * - deviceId for device fingerprinting (prevents token theft)
  */
-export const generateAccessToken = (user) => {
+export const generateAccessToken = (user, deviceFingerprint = null) => {
   const secret = getSecret();
+  const tokenId = crypto.randomBytes(16).toString('hex'); // Unique token ID for revocation
 
-  return jwt.sign(
-    {
-      id: user._id || user.id,
-      email: user.email,
-      role: user.role,
-    },
-    secret,
-    { expiresIn: ACCESS_TOKEN_EXPIRY }
-  );
+  const payload = {
+    id: user._id || user.id,
+    email: user.email,
+    role: user.role,
+    jti: tokenId, // JWT ID for revocation tracking
+  };
+
+  // Add device fingerprint if provided
+  if (deviceFingerprint) {
+    payload.deviceId = deviceFingerprint;
+  }
+
+  return jwt.sign(payload, secret, { expiresIn: ACCESS_TOKEN_EXPIRY });
 };
 
 /**
@@ -153,6 +163,7 @@ export const storeRefreshToken = async (userId, refreshTokenData, deviceInfo = {
  *
  * @param {string} refreshToken - Plain text refresh token to verify
  * @param {string} ipAddress - Client IP address
+ * @param {string} deviceFingerprint - Device fingerprint for new access token
  * @returns {Promise<object>} - Object with new tokens and user ID
  * @throws {Error} - If token is invalid, revoked, or expired
  *
@@ -160,13 +171,13 @@ export const storeRefreshToken = async (userId, refreshTokenData, deviceInfo = {
  * 1. Verify the provided refresh token
  * 2. Check if it's not revoked and not expired
  * 3. Revoke the old refresh token
- * 4. Generate new access token and refresh token
+ * 4. Generate new access token (with device fingerprint) and refresh token
  * 5. Store new refresh token
  * 6. Return new tokens
  *
  * This prevents token reuse attacks
  */
-export const verifyAndRotateRefreshToken = async (refreshToken, ipAddress = null) => {
+export const verifyAndRotateRefreshToken = async (refreshToken, ipAddress = null, deviceFingerprint = null) => {
   if (!refreshToken) {
     throw new Error('Refresh token is required');
   }
@@ -196,7 +207,7 @@ export const verifyAndRotateRefreshToken = async (refreshToken, ipAddress = null
     const user = matchedToken.userId;
     await matchedToken.revoke('refresh');
 
-    const newAccessToken = generateAccessToken(user);
+    const newAccessToken = generateAccessToken(user, deviceFingerprint);
     const newRefreshTokenData = generateRefreshToken();
     await storeRefreshToken(user._id, newRefreshTokenData, matchedToken.deviceInfo || {}, ipAddress);
 
@@ -230,7 +241,7 @@ export const verifyAndRotateRefreshToken = async (refreshToken, ipAddress = null
   const user = tokenDoc.userId;
   await tokenDoc.revoke('refresh');
 
-  const newAccessToken = generateAccessToken(user);
+  const newAccessToken = generateAccessToken(user, deviceFingerprint);
   const newRefreshTokenData = generateRefreshToken();
   await storeRefreshToken(user._id, newRefreshTokenData, tokenDoc.deviceInfo || {}, ipAddress);
 
@@ -292,6 +303,65 @@ export const revokeRefreshToken = async (refreshToken, reason = 'logout') => {
  */
 export const revokeAllUserTokens = async (userId, reason = 'logout') => {
   return RefreshToken.revokeAllForUser(userId, reason);
+};
+
+/**
+ * Revoke an access token (blacklist in Redis)
+ * 
+ * @param {string} token - Access token to revoke
+ * @returns {Promise<void>}
+ * 
+ * Security:
+ * - Stores token ID in Redis for remaining TTL
+ * - Only works with new tokens that have jti field
+ * - Gracefully handles Redis unavailability
+ * 
+ * Use cases:
+ * - User logout (immediate token invalidation)
+ * - Suspicious activity detected
+ * - Token theft prevention
+ */
+export const revokeAccessToken = async (token) => {
+  try {
+    const decoded = jwt.decode(token);
+    if (!decoded || !decoded.jti) {
+      // Legacy token without jti - cannot be revoked
+      return;
+    }
+    
+    const redis = await import('../config/redis.mjs').then(m => m.getRedisClient());
+    if (!redis) {
+      // Redis unavailable - log warning but don't throw
+      console.warn('Cannot revoke access token: Redis unavailable');
+      return;
+    }
+    
+    // Calculate remaining TTL for the token
+    const expiresIn = decoded.exp - Math.floor(Date.now() / 1000);
+    if (expiresIn > 0) {
+      // Store in Redis with TTL matching token expiry
+      await redis.setex(`revoked:${decoded.jti}`, expiresIn, '1');
+    }
+  } catch (error) {
+    console.error('Error revoking access token:', error);
+    // Don't throw - revocation failure shouldn't break logout
+  }
+};
+
+/**
+ * Logout helper - revokes both refresh and access tokens
+ * 
+ * @param {string} refreshToken - Refresh token to revoke
+ * @param {string} accessToken - Access token to revoke (optional)
+ * @returns {Promise<void>}
+ */
+export const logout = async (refreshToken, accessToken = null) => {
+  await revokeRefreshToken(refreshToken, 'logout');
+  
+  // Also revoke the access token for immediate invalidation
+  if (accessToken) {
+    await revokeAccessToken(accessToken);
+  }
 };
 
 /**
@@ -362,6 +432,8 @@ export default {
   verifyAndRotateRefreshToken,
   revokeRefreshToken,
   revokeAllUserTokens,
+  revokeAccessToken,
+  logout,
   getDeviceInfo,
   getClientIP,
 };

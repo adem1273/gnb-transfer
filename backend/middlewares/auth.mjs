@@ -45,7 +45,7 @@ import { getJwtSecret } from '../config/env.mjs';
  */
 export const requireAuth =
   (roles = []) =>
-  (req, res, next) => {
+  async (req, res, next) => {
     let jwtSecret;
     try {
       jwtSecret = getJwtSecret();
@@ -62,6 +62,52 @@ export const requireAuth =
     const token = authHeader.slice(7); // remove 'Bearer '
     try {
       const payload = jwt.verify(token, jwtSecret);
+      
+      // Token revocation check (only for tokens with jti)
+      if (payload.jti) {
+        try {
+          const redis = await import('../config/redis.mjs').then(m => m.getRedisClient());
+          if (redis) {
+            const isRevoked = await redis.get(`revoked:${payload.jti}`);
+            if (isRevoked) {
+              return res.apiError('Token has been revoked', 401);
+            }
+          }
+        } catch (redisError) {
+          // Log warning but don't block request if Redis is down
+          console.warn('Redis check failed during auth, continuing without revocation check:', redisError.message);
+        }
+      }
+      
+      // Device fingerprint verification (only for tokens with deviceId)
+      if (payload.deviceId) {
+        try {
+          const { generateDeviceFingerprint } = await import('../utils/deviceFingerprint.mjs');
+          const currentFingerprint = generateDeviceFingerprint(req);
+          
+          if (payload.deviceId !== currentFingerprint) {
+            // Suspicious activity - auto-revoke token
+            if (payload.jti) {
+              try {
+                const redis = await import('../config/redis.mjs').then(m => m.getRedisClient());
+                if (redis) {
+                  const expiresIn = payload.exp - Math.floor(Date.now() / 1000);
+                  if (expiresIn > 0) {
+                    await redis.setex(`revoked:${payload.jti}`, expiresIn, '1');
+                  }
+                }
+              } catch (revokeError) {
+                console.error('Failed to auto-revoke suspicious token:', revokeError.message);
+              }
+            }
+            return res.apiError('Token used from different device. Session revoked for security.', 401);
+          }
+        } catch (fpError) {
+          // Log warning but don't block if fingerprinting fails
+          console.warn('Device fingerprint check failed:', fpError.message);
+        }
+      }
+      
       req.user = payload;
       if (Array.isArray(roles) && roles.length > 0 && !roles.includes(payload.role)) {
         return res.apiError('Insufficient permissions', 403);

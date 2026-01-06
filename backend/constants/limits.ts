@@ -38,9 +38,15 @@ export const DATABASE = {
   HEARTBEAT_FREQUENCY_MS: 10000,
 } as const;
 
+export const SESSION = {
+  MAX_CONCURRENT: 5, // Maximum concurrent devices per user
+  CLEANUP_INTERVAL: 3600000, // 1 hour (ms) - cleanup interval for old sessions
+} as const;
+
 export type PaginationConfig = typeof PAGINATION;
 export type BookingConfig = typeof BOOKING;
 export type PasswordConfig = typeof PASSWORD;
 export type RateLimitsConfig = typeof RATE_LIMITS;
 export type TokenConfig = typeof TOKEN;
 export type DatabaseConfig = typeof DATABASE;
+export type SessionConfig = typeof SESSION;

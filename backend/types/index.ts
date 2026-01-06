@@ -70,6 +70,8 @@ export interface ITokenPayload {
   id: string;
   email: string;
   role: string;
+  jti?: string; // JWT ID for token revocation
+  deviceId?: string; // Device fingerprint for security
   iat?: number;
   exp?: number;
 }
