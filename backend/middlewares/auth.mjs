@@ -63,6 +63,35 @@ export const requireAuth =
     try {
       const payload = jwt.verify(token, jwtSecret);
       req.user = payload;
+      
+      // Token revocation check (Redis blacklist)
+      if (payload.jti) {
+        try {
+          const { getRedisClient } = await import('../config/redis.mjs');
+          const redis = getRedisClient();
+          if (redis && await redis.get(`revoked:${payload.jti}`)) {
+            return res.apiError('Token has been revoked', 401);
+          }
+        } catch (error) {
+          // Graceful degradation - skip revocation check if Redis unavailable
+          console.warn('Redis revocation check failed:', error.message);
+        }
+      }
+      
+      // Device fingerprint check
+      if (payload.deviceId) {
+        try {
+          const { generateDeviceFingerprint } = await import('../utils/deviceFingerprint.mjs');
+          const currentDeviceId = generateDeviceFingerprint(req);
+          if (payload.deviceId !== currentDeviceId) {
+            return res.apiError('Token used from different device', 401);
+          }
+        } catch (error) {
+          // Graceful degradation - skip device check if fingerprinting fails
+          console.warn('Device fingerprint check failed:', error.message);
+        }
+      }
+      
       if (Array.isArray(roles) && roles.length > 0 && !roles.includes(payload.role)) {
         return res.apiError('Insufficient permissions', 403);
       }
