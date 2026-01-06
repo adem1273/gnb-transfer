@@ -2,6 +2,7 @@
 
 ## Table of Contents
 - [Authentication Model](#authentication-model)
+- [JWT Security Features](#jwt-security-features)
 - [CSRF Protection](#csrf-protection)
 - [Token Storage](#token-storage)
 - [Security Best Practices](#security-best-practices)
@@ -13,22 +14,27 @@
 
 GNB Transfer uses a **stateless JWT (JSON Web Token) authentication** model with the following characteristics:
 
-1. **Access Tokens**: Short-lived JWT tokens (typically 15 minutes to 1 hour)
+1. **Access Tokens**: Short-lived JWT tokens (15 minutes)
    - Sent in the `Authorization: Bearer <token>` header
    - Used for all API requests requiring authentication
    - Stored client-side in memory or localStorage
+   - **NEW**: Include `jti` (JWT ID) for revocation tracking
+   - **NEW**: Include `deviceId` for device fingerprinting
 
-2. **Refresh Tokens**: Long-lived tokens (7 days)
+2. **Refresh Tokens**: Long-lived tokens (30 days)
    - Used to obtain new access tokens when they expire
    - Stored as HttpOnly cookies in production (security best practice)
    - Available in response body for development/testing
+   - Stored hashed in database with device information
 
 ### Authentication Flow
 
 ```
-1. Login (POST /api/users/login)
+1. Login (POST /api/auth/login)
    ├─> Credentials validated
-   ├─> Access token generated (JWT)
+   ├─> Device fingerprint generated (SHA-256 hash)
+   ├─> Session limit checked (max 5 concurrent devices)
+   ├─> Access token generated (JWT with jti + deviceId)
    ├─> Refresh token generated (random secure token)
    ├─> Refresh token stored in database (hashed)
    └─> Response:
@@ -38,19 +44,102 @@ GNB Transfer uses a **stateless JWT (JSON Web Token) authentication** model with
 2. API Request (e.g., GET /api/users/profile)
    ├─> Authorization: Bearer <accessToken>
    ├─> Token verified (signature + expiration)
+   ├─> Token revocation checked in Redis (if jti present)
+   ├─> Device fingerprint verified (if deviceId present)
    └─> Request processed
 
-3. Token Refresh (POST /api/users/refresh)
+3. Token Refresh (POST /api/auth/refresh)
    ├─> Refresh token from cookie or body
    ├─> Token verified in database
+   ├─> Device fingerprint generated for new token
    ├─> New access + refresh tokens generated
    ├─> Old refresh token revoked (token rotation)
    └─> New tokens returned
 
-4. Logout (POST /api/users/logout)
+4. Logout (POST /api/auth/logout)
    ├─> Refresh token revoked in database
+   ├─> Access token blacklisted in Redis (immediate invalidation)
    └─> Cookie cleared (if production)
 ```
+
+## JWT Security Features
+
+### 1. Token Revocation (Blacklist)
+**Status**: ✅ Implemented
+
+Prevents token usage after logout by maintaining a Redis-based blacklist:
+
+- **Technology**: Redis with TTL-based expiration
+- **Token Identification**: Unique `jti` (JWT ID) field in token payload
+- **Storage Duration**: Matches token expiry (max 15 minutes)
+- **Backward Compatible**: Legacy tokens without `jti` continue to work
+- **Graceful Degradation**: Application works without Redis (logs warning)
+
+**Benefits**:
+- Immediate token invalidation on logout
+- Prevents token reuse after password change
+- Enables emergency token revocation
+- No memory leaks (TTL auto-cleanup)
+
+**Implementation**: `backend/services/authService.mjs` - `revokeAccessToken()`
+
+---
+
+### 2. Device Fingerprinting
+**Status**: ✅ Implemented
+
+Binds tokens to specific devices to prevent session hijacking:
+
+- **Algorithm**: SHA-256 cryptographic hash
+- **Components**: User-Agent + Accept-Language + Accept-Encoding + Client IP
+- **Token Binding**: `deviceId` field in JWT payload
+- **Verification**: On every authenticated request
+- **Auto-Revocation**: Suspicious activity triggers immediate token revocation
+
+**Benefits**:
+- Prevents session hijacking (token theft)
+- Auto-detects and blocks compromised tokens
+- Non-reversible hash (no PII exposure)
+- Proxy-aware (X-Forwarded-For, X-Real-IP support)
+
+**Implementation**: `backend/utils/deviceFingerprint.mjs`
+
+---
+
+### 3. Concurrent Session Limit
+**Status**: ✅ Implemented
+
+Limits users to a maximum number of concurrent devices:
+
+- **Default Limit**: 5 concurrent devices per user
+- **Configuration**: `SESSION.MAX_CONCURRENT` in `backend/constants/limits.mjs`
+- **Enforcement**: Automatic revocation of oldest session when limit exceeded
+- **Performance**: O(1) indexed database queries
+- **Tracking**: Revocation reason stored as `max_sessions_exceeded`
+
+**Benefits**:
+- Prevents credential sharing
+- Reduces DDoS attack surface
+- Automatic cleanup (no manual intervention)
+- Configurable per deployment
+
+**Implementation**: `backend/modules/auth/auth.service.mjs` - `login()`
+
+---
+
+### Security Guarantees
+
+| Threat | Before | After |
+|--------|--------|-------|
+| Token valid after logout | ❌ Yes (15 min) | ✅ No (immediate revoke) |
+| Token usable from stolen device | ❌ Yes | ✅ No (auto-revoke) |
+| Unlimited concurrent sessions | ❌ Yes | ✅ No (max 5) |
+| Session hijacking | ⚠️ High Risk | ✅ Low Risk |
+| Credential sharing | ❌ Possible | ✅ Prevented |
+
+For detailed implementation guide, see [JWT_SECURITY_GUIDE.md](JWT_SECURITY_GUIDE.md).
+
+---
 
 ## CSRF Protection
 
