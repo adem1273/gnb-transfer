@@ -73,7 +73,7 @@ const refreshTokenSchema = new mongoose.Schema(
      */
     revokedReason: {
       type: String,
-      enum: ['logout', 'refresh', 'suspicious_activity', 'expired', 'admin_action', 'password_change'],
+      enum: ['logout', 'refresh', 'suspicious_activity', 'expired', 'admin_action', 'password_change', 'max_sessions'],
     },
 
     /**
