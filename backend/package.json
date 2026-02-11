@@ -39,7 +39,7 @@
   "dependencies": {
     "@sentry/node": "^10.30.0",
     "@sentry/profiling-node": "^10.30.0",
-    "axios": "^1.6.0",
+    "axios": "^1.13.5",
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.66.4",
     "cloudinary": "^2.8.0",
